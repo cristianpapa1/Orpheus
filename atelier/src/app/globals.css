@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+/*
+  Atelier — Bauhaus design tokens.
+  Palette discipline: black, white, red, blue, yellow. Nothing else.
+  Cards read as *windows* in a facade: 2px ink borders, warm paper fills,
+  primary accent squares, generous negative space.
+*/
+@theme {
+  /* ── palette ─────────────────────────────────────── */
+  --color-ink: #121210; /* black */
+  --color-paper: #f5f3ec; /* white (warm gallery white) */
+  --color-red: #e1251b;
+  --color-blue: #2145c9;
+  --color-yellow: #f2b705;
+
+  /* ── typography — geometric sans, strict scale ───── */
+  --font-sans: var(--font-grotesk), "Futura", "Century Gothic", ui-sans-serif,
+    system-ui, sans-serif;
+
+  --text-display: 4rem;
+  --text-display--line-height: 1.02;
+  --text-display--letter-spacing: -0.02em;
+  --text-h1: 2.5rem;
+  --text-h1--line-height: 1.1;
+  --text-h2: 1.5rem;
+  --text-h2--line-height: 1.2;
+  --text-body: 1rem;
+  --text-body--line-height: 1.55;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.4;
+  --text-caption--letter-spacing: 0.18em;
+
+  /* ── modular unit (8px base grid) ────────────────── */
+  --spacing-unit: 8px;
+}
+
+:root {
+  /* raw unit for non-Tailwind consumers */
+  --unit: 8px;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+::selection {
+  background: var(--color-yellow);
+  color: var(--color-ink);
+}
