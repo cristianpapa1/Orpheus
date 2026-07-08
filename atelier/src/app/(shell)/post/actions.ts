@@ -21,6 +21,8 @@ export interface PublishPostInput {
   width: number | null;
   height: number | null;
   blur_data: string | null;
+  /** Groups to tag this post into — caller must be a MEMBER of each. */
+  group_ids?: string[];
 }
 
 export interface PublishPostResult {
@@ -73,6 +75,20 @@ export async function publishPost(
     .filter((v) => typeof v.width === "number" && v.width > 0)
     .map((v) => ({ width: Math.round(v.width), path: v.path }));
 
+  // Group tagging guard: only groups where the author is a MEMBER
+  // (followers can't tag — RLS enforces this a second time).
+  const groupIds = [...new Set(input.group_ids ?? [])];
+  if (groupIds.length > 0) {
+    const { data: memberships } = await supabase
+      .from("group_members")
+      .select("group_id")
+      .eq("profile_id", user.id)
+      .in("group_id", groupIds);
+    if ((memberships ?? []).length !== groupIds.length) {
+      return { ok: false, error: "You can only tag groups you're a member of." };
+    }
+  }
+
   const { data, error } = await supabase
     .from("posts")
     .insert({
@@ -90,6 +106,12 @@ export async function publishPost(
     .select("id")
     .single();
   if (error || !data) return { ok: false, error: error?.message ?? "Publish failed." };
+
+  if (groupIds.length > 0) {
+    await supabase
+      .from("post_groups")
+      .insert(groupIds.map((group_id) => ({ post_id: data.id, group_id })));
+  }
 
   revalidatePath("/feed");
   redirect(`/p/${data.id}`);

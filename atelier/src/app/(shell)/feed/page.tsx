@@ -3,9 +3,11 @@ import { PostCard } from "@/components/posts/PostCard";
 import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
 import { getFeedPosts } from "@/lib/posts/queries";
+import { getGroupsForPosts } from "@/lib/groups/queries";
 
 export default async function FeedPage() {
   const posts = await getFeedPosts();
+  const groupTags = await getGroupsForPosts(posts.map((p) => p.id));
 
   return (
     <div>
@@ -40,7 +42,12 @@ export default async function FeedPage() {
       ) : (
         <WindowGrid>
           {posts.map((post, i) => (
-            <PostCard key={post.id} post={post} index={i} />
+            <PostCard
+              key={post.id}
+              post={post}
+              index={i}
+              groups={groupTags.get(post.id) ?? []}
+            />
           ))}
         </WindowGrid>
       )}

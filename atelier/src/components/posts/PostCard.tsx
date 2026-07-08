@@ -7,14 +7,24 @@ import {
   spanClass,
 } from "@/lib/posts/display";
 import { CATEGORY_LABEL, formatPostDate, type Post } from "@/lib/posts/types";
+import type { GroupTag } from "@/lib/groups/types";
 
 const ACCENTS: WindowAccent[] = ["red", "blue", "yellow"];
 
 /**
  * A post as a window in the feed facade. How it displays — span, frame,
  * aspect — is the owner's choice, carried in post.display (Phase 3).
+ * Group tags render as "also in [group]" markers (Phase 4 cross-linking).
  */
-export function PostCard({ post, index = 0 }: { post: Post; index?: number }) {
+export function PostCard({
+  post,
+  index = 0,
+  groups = [],
+}: {
+  post: Post;
+  index?: number;
+  groups?: GroupTag[];
+}) {
   const frame = frameClasses(post.display.frame);
 
   return (
@@ -52,6 +62,20 @@ export function PostCard({ post, index = 0 }: { post: Post; index?: number }) {
             </time>
           </div>
           {post.caption ? <p className="mt-2 text-body">{post.caption}</p> : null}
+          {groups.length > 0 ? (
+            <p className="mt-3 flex flex-wrap gap-2">
+              {groups.map((g) => (
+                <Link
+                  key={g.slug}
+                  href={`/g/${g.slug}`}
+                  data-also-in={g.slug}
+                  className="border-2 border-ink px-2 py-0.5 text-caption font-bold uppercase hover:bg-yellow"
+                >
+                  also in {g.name}
+                </Link>
+              ))}
+            </p>
+          ) : null}
         </div>
       </Window>
     </div>

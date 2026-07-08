@@ -15,6 +15,7 @@ import {
 import { prepareUpload, type PreparedUpload } from "@/lib/posts/media";
 import { createClient } from "@/lib/supabase/client";
 import { CATEGORY_LABEL, POST_CATEGORIES } from "@/lib/posts/types";
+import type { TaggableGroup } from "@/lib/groups/queries";
 
 type Stage = "idle" | "uploading" | "recording";
 
@@ -30,11 +31,18 @@ const EXT: Record<string, string> = {
   "image/gif": "gif",
 };
 
-export function PostComposer({ canPublish }: { canPublish: boolean }) {
+export function PostComposer({
+  canPublish,
+  memberGroups = [],
+}: {
+  canPublish: boolean;
+  memberGroups?: TaggableGroup[];
+}) {
   const [prepared, setPrepared] = useState<Prepared | null>(null);
   const [caption, setCaption] = useState("");
   const [category, setCategory] = useState("");
   const [display, setDisplay] = useState<PostDisplay>(DEFAULT_DISPLAY);
+  const [groupIds, setGroupIds] = useState<string[]>([]);
   const [stage, setStage] = useState<Stage>("idle");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -119,6 +127,7 @@ export function PostComposer({ canPublish }: { canPublish: boolean }) {
           width: prepared.variants.at(-1)?.width ?? prepared.originalWidth,
           height: prepared.variants.at(-1)?.height ?? prepared.originalHeight,
           blur_data: prepared.blur,
+          group_ids: groupIds,
         });
         // publishPost redirects on success; reaching here means failure.
         if (result && !result.ok) setError(result.error ?? "Publish failed.");
@@ -253,6 +262,35 @@ export function PostComposer({ canPublish }: { canPublish: boolean }) {
           ))}
         </div>
       </fieldset>
+
+      {memberGroups.length > 0 ? (
+        <fieldset data-group-tagging className="flex flex-col gap-2 border-t-2 border-ink pt-4">
+          <legend className="pr-3 text-caption font-bold uppercase">
+            Also share into your groups
+          </legend>
+          {memberGroups.map((g) => (
+            <label key={g.id} className="flex items-center gap-2 text-body">
+              <input
+                type="checkbox"
+                checked={groupIds.includes(g.id)}
+                onChange={(e) =>
+                  setGroupIds((ids) =>
+                    e.target.checked
+                      ? [...ids, g.id]
+                      : ids.filter((id) => id !== g.id),
+                  )
+                }
+                className="size-4 accent-ink"
+              />
+              {g.name}
+            </label>
+          ))}
+          <p className="text-caption uppercase opacity-70">
+            Tagged posts appear in the group feed and carry an &ldquo;also
+            in&rdquo; marker in the main feed
+          </p>
+        </fieldset>
+      ) : null}
 
       {error ? (
         <p role="alert" className="border-2 border-red px-3 py-2 text-caption font-bold uppercase text-red">

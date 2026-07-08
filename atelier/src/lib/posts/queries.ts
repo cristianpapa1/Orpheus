@@ -95,6 +95,28 @@ export async function getPostById(id: string): Promise<Post | null> {
   return data ? toPost(data as unknown as PostRow) : null;
 }
 
+/** Fetch specific posts by id, newest first (group feeds). */
+export async function getPostsByIds(
+  ids: string[],
+  limit = 30,
+): Promise<Post[]> {
+  const supabase = await createServerSupabase();
+  if (!supabase) {
+    return DEMO_POSTS.filter((p) => ids.includes(p.id))
+      .sort(byNewest)
+      .slice(0, limit);
+  }
+  const { data } = await supabase
+    .from("posts")
+    .select(POST_SELECT)
+    .in("id", ids)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  return ((data ?? []) as unknown as PostRow[])
+    .map(toPost)
+    .filter((p): p is Post => p !== null);
+}
+
 export async function getPostsByAuthor(
   authorId: string,
   limit = 6,

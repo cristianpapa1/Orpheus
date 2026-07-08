@@ -1,11 +1,11 @@
 ---
-task: "Build Atelier Phase 3 media pipeline and personalization"
+task: "Build Atelier Phase 4 groups and group feeds"
 slug: 20260708-120400_develop-the-atelier-build-here-build
 project: Atelier
 effort: E3
 effort_source: classifier
-phase: complete
-progress: 141/142
+phase: execute
+progress: 141/175
 mode: interactive
 started: 2026-07-08T15:04:39Z
 updated: 2026-07-08T15:14:00Z
@@ -229,6 +229,51 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - [DEFERRED-VERIFY] ISC-141: Live high-res upload round-trip [follow-up: ATELIER-P3-LIVE — after creds: upload a >10MB photo, confirm original object bytes identical + variants + blur + display config round-trip]
 - [x] ISC-142: Antecedent: all personalization flows through the typed PostDisplay config — no ad-hoc per-post CSS
 
+### Phase 4 — groups data model
+- [ ] ISC-143: Migration 0005 creates `groups` with name/slug constraints and an `is_private` feed-privacy flag
+- [ ] ISC-144: `group_members` has an owner/member role check and composite PK
+- [ ] ISC-145: `group_invites` and `group_join_requests` tables exist with composite PKs
+- [ ] ISC-146: `post_groups` join table links posts to groups (cascade deletes)
+- [ ] ISC-147: RLS enabled on all five new tables with policies
+- [ ] ISC-148: Member vs follower are structurally distinct (`group_members` vs `group_followers`)
+- [ ] ISC-149: group_members allows three insert paths: creator bootstrap, invited self-join, owner-approved requester
+
+### Phase 4 — lib & demo
+- [ ] ISC-150: Group types export the viewer-relation enum (owner/member/follower/invited/requested/none)
+- [ ] ISC-151: ≥2 demo groups with members and tagged posts (one private) for preview mode
+- [ ] ISC-152: `getGroupsForPosts` maps post→groups in a single query (feed markers)
+- [ ] ISC-153: `getGroupPosts` returns a group's tagged posts chronologically
+
+### Phase 4 — create, invite, join, follow
+- [ ] ISC-154: `/groups` lists groups with member/follower counts
+- [ ] ISC-155: Create-group form on `/groups` (name, description, privacy)
+- [ ] ISC-156: `createGroup` slugifies, inserts group + owner membership
+- [ ] ISC-157: Invite form is member-only; `inviteToGroup` validates inviter membership server-side
+- [ ] ISC-158: `acceptInvite` turns an invite into membership and removes the invite
+- [ ] ISC-159: `requestToJoin` + owner-guarded `approveRequest` actions exist
+- [ ] ISC-160: `followGroup`/`unfollowGroup` actions exist (follower can never tag)
+- [ ] ISC-161: Anti: publishing validates group membership server-side — a non-member can never tag a post into a group
+
+### Phase 4 — group page & feed
+- [ ] ISC-162: `/g/[slug]` returns 200 with name, description, windowed layout (public route)
+- [ ] ISC-163: Group feed renders the posts tagged into that group
+- [ ] ISC-164: Unknown group slug returns 404
+- [ ] ISC-165: Member list renders with handles
+- [ ] ISC-166: Private group feed is hidden from non-members with a notice
+- [ ] ISC-167: Non-members see follow and request-to-join controls
+
+### Phase 4 — cross-linking
+- [ ] ISC-168: Composer offers group-tagging checkboxes for the author's member groups
+- [ ] ISC-169: `publishPost` accepts group_ids and inserts post_groups rows
+- [ ] ISC-170: Main feed shows an "also in [group]" marker on tagged posts
+- [ ] ISC-171: The marker links to that group's feed at /g/[slug]
+
+### Phase 4 — guards & regression
+- [ ] ISC-172: Build, typecheck, lint, and full test suite pass
+- [ ] ISC-173: All prior routes re-probed at expected status codes
+- [ ] ISC-174: Live group round-trip (create→invite→join→tag→both feeds) [DEFERRED-VERIFY — follow-up: ATELIER-P4-LIVE]
+- [ ] ISC-175: Antecedent: group pages compose the Window primitive; Anti: promo grep still zero
+
 ## Test Strategy
 
 | isc | type | check | threshold | tool |
@@ -272,6 +317,11 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 | p3-display-lib | PostDisplay enums, parse, class mappers + tests | ISC-122..124, 142 | p2-post-lib | yes |
 | p3-publish | client-direct upload + publishPost ownership guards | ISC-119..121, 125, 130 | p3-media-lib, p3-display-lib | no |
 | p3-rendering | ResponsiveImage, blur-up, frames/spans/aspects in feed+detail | ISC-126..129, 131..135 | p3-display-lib | yes |
+| p4-data-model | migration 0005: groups, members, followers, invites, requests, post_groups | ISC-143..149 | p2-data-model | yes |
+| p4-groups-lib | types, demo groups, queries incl. post→groups map | ISC-150..153 | p4-data-model | yes |
+| p4-actions | create/invite/accept/request/approve/follow actions | ISC-156..161 | p4-groups-lib | no |
+| p4-pages | /groups tab + /g/[slug] group page + feed | ISC-154..155, 162..167 | p4-actions | yes |
+| p4-crosslink | composer tagging + publishPost groups + feed markers | ISC-168..171 | p4-actions | yes |
 
 ## Decisions
 

@@ -67,5 +67,10 @@ three tabs are auth-gated when Supabase is configured.
   display variants served via srcset with blur-up placeholders, "view full
   resolution" on post detail, and per-post frame/span/aspect controls
   (typed `PostDisplay` config). Uploads go client→storage directly.
-- ⬜ Phase 4 — groups & group feeds (next)
-- ⬜ Phase 5+ — see the build plan
+- ✅ **Phase 4** — groups & group feeds: create groups (public or private
+  feed), member-vs-follower relationships (structurally distinct tables),
+  invite + request-to-join flows with three RLS insert paths, post→group
+  tagging at publish, group pages at `/g/[slug]`, and "also in [group]"
+  markers in the main feed.
+- ⬜ Phase 5 — private chat (next)
+- ⬜ Phase 6+ — see the build plan

@@ -27,3 +27,17 @@ where id = '00000000-0000-4000-a000-000000000002';
 insert into public.follows (follower_id, followee_id)
 values ('00000000-0000-4000-a000-000000000002', '00000000-0000-4000-a000-000000000001')
 on conflict do nothing;
+
+-- Demo groups (mirror src/lib/groups/demo.ts).
+insert into public.groups (id, name, slug, description, is_private, created_by)
+values
+  ('10000000-0000-4000-a000-000000000001', 'Analogue Circle', 'analogue-circle', 'Film, darkrooms, and slow process. Scans welcome — phone snaps of prints too.', false, '00000000-0000-4000-a000-000000000001'),
+  ('10000000-0000-4000-a000-000000000002', 'Clay & Wood', 'clay-wood', 'A quiet room for people who fire and carve. Private feed — members share works in progress.', true, '00000000-0000-4000-a000-000000000002')
+on conflict (id) do nothing;
+
+insert into public.group_members (group_id, profile_id, role)
+values
+  ('10000000-0000-4000-a000-000000000001', '00000000-0000-4000-a000-000000000001', 'owner'),
+  ('10000000-0000-4000-a000-000000000001', '00000000-0000-4000-a000-000000000002', 'member'),
+  ('10000000-0000-4000-a000-000000000002', '00000000-0000-4000-a000-000000000002', 'owner')
+on conflict do nothing;

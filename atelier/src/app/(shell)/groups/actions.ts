@@ -1,0 +1,185 @@
+"use server";
+
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+import { createServerSupabase } from "@/lib/supabase/server";
+import { GROUP_SLUG_RE, slugifyGroupName } from "@/lib/groups/types";
+
+/* Group lifecycle server actions. Form-friendly: they take FormData and
+   redirect with query flags; RLS enforces every rule a second time. */
+
+async function requireUser() {
+  const supabase = await createServerSupabase();
+  if (!supabase) return { supabase: null, user: null } as const;
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return { supabase, user } as const;
+}
+
+export async function createGroup(formData: FormData) {
+  const { supabase, user } = await requireUser();
+  if (!supabase || !user) redirect("/groups?error=unavailable");
+
+  const name = String(formData.get("name") ?? "").trim().slice(0, 60);
+  const description = String(formData.get("description") ?? "")
+    .trim()
+    .slice(0, 600);
+  const is_private = formData.get("is_private") === "on";
+
+  const slug = slugifyGroupName(name);
+  if (name.length < 3 || !GROUP_SLUG_RE.test(slug)) {
+    redirect("/groups?error=name");
+  }
+
+  const { data: group, error } = await supabase
+    .from("groups")
+    .insert({ name, slug, description, is_private, created_by: user.id })
+    .select("id, slug")
+    .single();
+  if (error || !group) {
+    redirect(error?.code === "23505" ? "/groups?error=taken" : "/groups?error=create");
+  }
+
+  // Bootstrap owner membership (RLS: creator-only path).
+  await supabase
+    .from("group_members")
+    .insert({ group_id: group.id, profile_id: user.id, role: "owner" });
+
+  revalidatePath("/groups");
+  redirect(`/g/${group.slug}`);
+}
+
+export async function inviteToGroup(formData: FormData) {
+  const { supabase, user } = await requireUser();
+  const slug = String(formData.get("slug") ?? "");
+  if (!supabase || !user) redirect(`/g/${slug}?error=unavailable`);
+
+  const handle = String(formData.get("handle") ?? "").trim().toLowerCase();
+  const groupId = String(formData.get("group_id") ?? "");
+
+  // Server-side guard: inviter must be a member (RLS re-checks).
+  const { data: membership } = await supabase
+    .from("group_members")
+    .select("profile_id")
+    .eq("group_id", groupId)
+    .eq("profile_id", user.id)
+    .maybeSingle();
+  if (!membership) redirect(`/g/${slug}?error=not-member`);
+
+  const { data: invitee } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("handle", handle)
+    .maybeSingle();
+  if (!invitee) redirect(`/g/${slug}?error=no-such-user`);
+
+  const { error } = await supabase.from("group_invites").insert({
+    group_id: groupId,
+    invitee_id: invitee.id,
+    inviter_id: user.id,
+  });
+  if (error && error.code !== "23505") redirect(`/g/${slug}?error=invite`);
+
+  revalidatePath(`/g/${slug}`);
+  redirect(`/g/${slug}?invited=1`);
+}
+
+export async function acceptInvite(formData: FormData) {
+  const { supabase, user } = await requireUser();
+  const slug = String(formData.get("slug") ?? "");
+  if (!supabase || !user) redirect(`/g/${slug}?error=unavailable`);
+  const groupId = String(formData.get("group_id") ?? "");
+
+  const { error } = await supabase
+    .from("group_members")
+    .insert({ group_id: groupId, profile_id: user.id, role: "member" });
+  if (error && error.code !== "23505") redirect(`/g/${slug}?error=join`);
+
+  await supabase
+    .from("group_invites")
+    .delete()
+    .eq("group_id", groupId)
+    .eq("invitee_id", user.id);
+
+  revalidatePath(`/g/${slug}`);
+  redirect(`/g/${slug}?joined=1`);
+}
+
+export async function requestToJoin(formData: FormData) {
+  const { supabase, user } = await requireUser();
+  const slug = String(formData.get("slug") ?? "");
+  if (!supabase || !user) redirect(`/g/${slug}?error=unavailable`);
+  const groupId = String(formData.get("group_id") ?? "");
+
+  const { error } = await supabase
+    .from("group_join_requests")
+    .insert({ group_id: groupId, requester_id: user.id });
+  if (error && error.code !== "23505") redirect(`/g/${slug}?error=request`);
+
+  revalidatePath(`/g/${slug}`);
+  redirect(`/g/${slug}?requested=1`);
+}
+
+export async function approveRequest(formData: FormData) {
+  const { supabase, user } = await requireUser();
+  const slug = String(formData.get("slug") ?? "");
+  if (!supabase || !user) redirect(`/g/${slug}?error=unavailable`);
+  const groupId = String(formData.get("group_id") ?? "");
+  const requesterId = String(formData.get("requester_id") ?? "");
+
+  // Owner guard (RLS enforces again via the owner-approval insert path).
+  const { data: owner } = await supabase
+    .from("group_members")
+    .select("role")
+    .eq("group_id", groupId)
+    .eq("profile_id", user.id)
+    .eq("role", "owner")
+    .maybeSingle();
+  if (!owner) redirect(`/g/${slug}?error=not-owner`);
+
+  const { error } = await supabase
+    .from("group_members")
+    .insert({ group_id: groupId, profile_id: requesterId, role: "member" });
+  if (error && error.code !== "23505") redirect(`/g/${slug}?error=approve`);
+
+  await supabase
+    .from("group_join_requests")
+    .delete()
+    .eq("group_id", groupId)
+    .eq("requester_id", requesterId);
+
+  revalidatePath(`/g/${slug}`);
+  redirect(`/g/${slug}?approved=1`);
+}
+
+export async function followGroup(formData: FormData) {
+  const { supabase, user } = await requireUser();
+  const slug = String(formData.get("slug") ?? "");
+  if (!supabase || !user) redirect(`/g/${slug}?error=unavailable`);
+  const groupId = String(formData.get("group_id") ?? "");
+
+  const { error } = await supabase
+    .from("group_followers")
+    .insert({ group_id: groupId, profile_id: user.id });
+  if (error && error.code !== "23505") redirect(`/g/${slug}?error=follow`);
+
+  revalidatePath(`/g/${slug}`);
+  redirect(`/g/${slug}`);
+}
+
+export async function unfollowGroup(formData: FormData) {
+  const { supabase, user } = await requireUser();
+  const slug = String(formData.get("slug") ?? "");
+  if (!supabase || !user) redirect(`/g/${slug}?error=unavailable`);
+  const groupId = String(formData.get("group_id") ?? "");
+
+  await supabase
+    .from("group_followers")
+    .delete()
+    .eq("group_id", groupId)
+    .eq("profile_id", user.id);
+
+  revalidatePath(`/g/${slug}`);
+  redirect(`/g/${slug}`);
+}
