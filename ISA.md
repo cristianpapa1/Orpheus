@@ -4,8 +4,8 @@ slug: 20260708-120400_develop-the-atelier-build-here-build
 project: Atelier
 effort: E3
 effort_source: classifier
-phase: execute
-progress: 76/113
+phase: complete
+progress: 110/113
 mode: interactive
 started: 2026-07-08T15:04:39Z
 updated: 2026-07-08T15:14:00Z
@@ -148,49 +148,49 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - [DEFERRED-VERIFY] ISC-78: Live save + follow round-trip against a real Supabase project [follow-up: ATELIER-P1-LIVE — after ATELIER-P0-AUTH-LIVE creds exist, save a layout and follow a user against the real DB]
 
 ### Phase 2 — posts data model
-- [ ] ISC-79: Migration 0003 creates `posts` with a category check constraint limited to art/handmade/photography/music
-- [ ] ISC-80: `posts` has RLS enabled with public-select and own-row insert/delete policies
-- [ ] ISC-81: `media` storage bucket created public, with owner-folder-only write policy on storage.objects
-- [ ] ISC-82: Feed index exists on posts (author_id, created_at desc)
-- [ ] ISC-83: `POST_CATEGORIES` exports exactly the plan's four categories
-- [ ] ISC-84: `getFeedPosts` scopes to followed authors + self, ordered created_at descending
-- [ ] ISC-85: `getPostById` returns the post joined with author handle/display name
-- [ ] ISC-86: `getPostsByAuthor` returns an author's recent posts with a limit
-- [ ] ISC-87: ≥4 demo posts exist across ines/theo for preview mode
+- [x] ISC-79: Migration 0003 creates `posts` with a category check constraint limited to art/handmade/photography/music
+- [x] ISC-80: `posts` has RLS enabled with public-select and own-row insert/delete policies
+- [x] ISC-81: `media` storage bucket created public, with owner-folder-only write policy on storage.objects
+- [x] ISC-82: Feed index exists on posts (author_id, created_at desc)
+- [x] ISC-83: `POST_CATEGORIES` exports exactly the plan's four categories
+- [x] ISC-84: `getFeedPosts` scopes to followed authors + self, ordered created_at descending
+- [x] ISC-85: `getPostById` returns the post joined with author handle/display name
+- [x] ISC-86: `getPostsByAuthor` returns an author's recent posts with a limit
+- [x] ISC-87: ≥4 demo posts exist across ines/theo for preview mode
 
 ### Phase 2 — create-post flow
-- [ ] ISC-88: `/post/new` returns HTTP 200
-- [ ] ISC-89: Composer renders image file input (accept image/*), caption field, and a category select with the four categories
-- [ ] ISC-90: Client downscale caps the longest edge at 1600px; the fit math is pure and unit-tested
-- [ ] ISC-91: `createPost` uploads to the media bucket under a user-id folder and inserts the posts row
-- [ ] ISC-92: `createPost` re-validates category against the enum and caps caption length server-side
-- [ ] ISC-93: `/post/*` is auth-gated when configured (proxy matcher extended)
-- [ ] ISC-94: Preview mode composer renders a disabled state with a notice (200, no crash)
-- [ ] ISC-95: Successful create redirects to the new post's detail page
+- [x] ISC-88: `/post/new` returns HTTP 200
+- [x] ISC-89: Composer renders image file input (accept image/*), caption field, and a category select with the four categories
+- [x] ISC-90: Client downscale caps the longest edge at 1600px; the fit math is pure and unit-tested
+- [x] ISC-91: `createPost` uploads to the media bucket under a user-id folder and inserts the posts row
+- [x] ISC-92: `createPost` re-validates category against the enum and caps caption length server-side
+- [x] ISC-93: `/post/*` is auth-gated when configured (proxy matcher extended)
+- [x] ISC-94: Preview mode composer renders a disabled state with a notice (200, no crash)
+- [x] ISC-95: Successful create redirects to the new post's detail page
 
 ### Phase 2 — main feed
-- [ ] ISC-96: `/feed` renders posts as Window units with data-post markers
-- [ ] ISC-97: Feed is chronological — newest post appears first in served HTML
-- [ ] ISC-98: Each feed card links to the author's public profile
-- [ ] ISC-99: Each feed card links to the post detail page
-- [ ] ISC-100: Feed cards show category label and date
-- [ ] ISC-101: Follow-nobody state shows guidance instead of an empty void
-- [ ] ISC-102: A create-post entry point is visible on the feed
+- [x] ISC-96: `/feed` renders posts as Window units with data-post markers
+- [x] ISC-97: Feed is chronological — newest post appears first in served HTML
+- [x] ISC-98: Each feed card links to the author's public profile
+- [x] ISC-99: Each feed card links to the post detail page
+- [x] ISC-100: Feed cards show category label and date
+- [x] ISC-101: Follow-nobody state shows guidance instead of an empty void
+- [x] ISC-102: A create-post entry point is visible on the feed
 
 ### Phase 2 — detail & gallery wiring
-- [ ] ISC-103: `/p/[id]` returns 200 rendering image, caption, author, and category
-- [ ] ISC-104: Unknown post id returns 404
-- [ ] ISC-105: Post detail page title includes the author's display name
-- [ ] ISC-106: `/u/ines` gallery block renders real (demo) post thumbnails linking to detail pages
-- [ ] ISC-107: Gallery block for an author with no posts still renders placeholders (no crash)
+- [x] ISC-103: `/p/[id]` returns 200 rendering image, caption, author, and category
+- [x] ISC-104: Unknown post id returns 404
+- [x] ISC-105: Post detail page title includes the author's display name
+- [x] ISC-106: `/u/ines` gallery block renders real (demo) post thumbnails linking to detail pages
+- [x] ISC-107: Gallery block for an author with no posts still renders placeholders (no crash)
 
 ### Phase 2 — guards & regression
-- [ ] ISC-108: Anti: feed ordering uses created_at only — no score/weight/rank column or logic exists
-- [ ] ISC-109: Anti: sponsored/boost/promote/advertis grep across src still returns zero
-- [ ] ISC-110: Build, typecheck, lint, and full bun test suite all pass
-- [ ] ISC-111: All Phase 0/1 routes re-probed at their expected status codes
-- [ ] ISC-112: Live create-post round-trip against real Supabase [DEFERRED-VERIFY — follow-up: ATELIER-P2-LIVE]
-- [ ] ISC-113: Antecedent: feed cards and post detail compose the Window primitive (facade consistency)
+- [x] ISC-108: Anti: feed ordering uses created_at only — no score/weight/rank column or logic exists
+- [x] ISC-109: Anti: sponsored/boost/promote/advertis grep across src still returns zero
+- [x] ISC-110: Build, typecheck, lint, and full bun test suite all pass
+- [x] ISC-111: All Phase 0/1 routes re-probed at their expected status codes
+- [DEFERRED-VERIFY] ISC-112: Live create-post round-trip against real Supabase [follow-up: ATELIER-P2-LIVE — after creds exist: publish an image post, confirm storage object + feed row]
+- [x] ISC-113: Antecedent: feed cards and post detail compose the Window primitive (facade consistency)
 
 ## Test Strategy
 
@@ -246,6 +246,8 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - 2026-07-08 16:05 — Phase 1: delegation floor (E3 ≥2) relaxed again, show-your-math: environment unchanged (no codex), and the layout schema defined this run is the dependency of every other Phase 1 file — parallel agents would have serialized on it. Advisor not re-attempted: binary still absent (verified this session); retry would add latency with zero new information.
 - 2026-07-08 16:05 — Custom pure-TS grid engine chosen over react-grid-layout: react-draggable depends on findDOMNode, removed in React 19 — dependency risk traded for ~150 unit-tested lines.
 - 2026-07-08 16:05 — Next 16 eslint (React Compiler rules) rejected sync setState in effect and self-referencing listener cleanup; fixed with deferred localStorage restore and AbortController-scoped drag listeners. Pattern worth reusing in later phases.
+- 2026-07-08 16:25 — Phase 2: delegation floor relaxed (same math: no codex; post schema single-sourced this run). Advisor still unavailable (binary absent). Plain `<img>` chosen over next/image: the media pipeline (responsive sizes, blur-up, remote patterns) is explicitly Phase 3's deliverable — premature config now would be churn.
+- 2026-07-08 16:25 — Client-side canvas downscale (WebP 0.85, ≤1600px) instead of server-side image processing: no server image lib in the stack, and Phase 3 moves optimization to a CDN anyway. Pure fitWithin math extracted for headless testing.
 
 ## Changelog
 
@@ -332,3 +334,35 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - ISC-76: Bash — `bun run build` exit 0 (10 routes + proxy), `tsc --noEmit` TSC_OK, eslint clean
 - ISC-77: curl — Phase-0 routes re-probed: / 307, feed/groups/profile/design/login all 200
 - ISC-78: DEFERRED — no Supabase credentials; follow-up ATELIER-P1-LIVE
+
+### Phase 2 (verified 2026-07-08, commit 73e56b1)
+- ISC-79..82: Grep — migration 0003: category check (art/handmade/photography/music), RLS + 3 policies, media bucket + storage.foldername owner-folder policies, posts_author_created_idx
+- ISC-83: Read — POST_CATEGORIES = ["art","handmade","photography","music"] as const
+- ISC-84: Grep — getFeedPosts: followee_id subselect + own id, `.order("created_at", { ascending: false })`
+- ISC-85/86: Read — getPostById/getPostsByAuthor join `author:profiles(handle, display_name)` with limit
+- ISC-87: Read — 5 demo posts (3 ines, 2 theo) with local SVG media
+- ISC-88: curl — GET /post/new → 200
+- ISC-89: curl — composer HTML: `accept="image/*"` input, #caption, category select (4 categories + placeholder)
+- ISC-90: Bash — fitWithin unit tests: 7 pass (landscape/portrait/square/aspect/zero cases); downscaleImage caps at MAX_DISPLAY_EDGE=1600
+- ISC-91: Grep — `.upload(path, image, ...)` to media bucket, path = `${user.id}/${uuid}.{ext}`, then posts insert
+- ISC-92: Grep — isPostCategory(category) + caption `.slice(0, 1000)` + type/size checks server-side
+- ISC-93: Grep — proxy matcher includes "/post/:path*", PROTECTED includes "/post"
+- ISC-94: curl — /post/new in preview: 200 with data-setup-notice, publish button disabled state
+- ISC-95: Grep — `redirect(\`/p/${data.id}\`)` after successful insert
+- ISC-96: curl — /feed serves 5 data-post windows (data-window ×5)
+- ISC-97: curl — served order: theo-1 (Jul 7) → ines-1 (Jul 6) → ines-2 (Jul 3) → theo-2 (Jul 1) → ines-3 (Jun 28) — strictly chronological
+- ISC-98/99: curl — cards link href="/u/ines|/u/theo" and 5× href="/p/demo-*"
+- ISC-100: curl — category labels + fixed-locale dates ("07 Jul 2026") rendered
+- ISC-101: Read — empty-feed branch renders follow guidance windows
+- ISC-102: curl — data-new-post button → /post/new on feed header
+- ISC-103: curl — /p/demo-ines-1 → 200 with image, caption, author, category dl
+- ISC-104: curl — /p/nope → 404
+- ISC-105: curl — `<title>Inês Almeida: Fira, morning…— Atelier</title>`
+- ISC-106: curl — /u/ines gallery renders data-gallery-post thumbs for her 3 demo posts linking to /p/[id]
+- ISC-107: Read — gallery/posts blocks render placeholder branch when posts.length === 0
+- ISC-108: Grep — only ordering in queries.ts is created_at; sole rank/score/weight match is the comment stating the principle
+- ISC-109: Grep — sponsored|boost|promote|advertis across src → 0
+- ISC-110: Bash — build (12 routes + proxy), TSC_OK, 24 tests pass, eslint clean
+- ISC-111: curl — all Phase 0/1 routes re-probed at expected codes (/, tabs, design, login, edit, /u/*)
+- ISC-112: DEFERRED — no Supabase creds; follow-up ATELIER-P2-LIVE
+- ISC-113: curl — feed cards and detail compose Window (data-window present on both surfaces)
