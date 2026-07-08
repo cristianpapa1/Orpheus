@@ -7,6 +7,7 @@ import {
   getViewerId,
   isFollowing,
 } from "@/lib/profile/queries";
+import { getPostsByAuthor } from "@/lib/posts/queries";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 interface Props {
@@ -27,6 +28,8 @@ export default async function PublicProfilePage({ params }: Props) {
   const { handle } = await params;
   const profile = await getProfileByHandle(handle);
   if (!profile) notFound();
+
+  const posts = await getPostsByAuthor(profile.id, 6);
 
   let state: FollowState;
   if (!isSupabaseConfigured()) {
@@ -52,7 +55,7 @@ export default async function PublicProfilePage({ params }: Props) {
           initialState={state}
         />
       </div>
-      <ProfileCanvas profile={profile} />
+      <ProfileCanvas profile={profile} posts={posts} />
     </div>
   );
 }

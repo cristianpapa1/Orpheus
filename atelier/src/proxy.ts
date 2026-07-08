@@ -6,7 +6,7 @@ import {
   isSupabaseConfigured,
 } from "@/lib/supabase/config";
 
-const PROTECTED = ["/feed", "/groups", "/profile"];
+const PROTECTED = ["/feed", "/groups", "/profile", "/post"];
 
 /**
  * Refreshes the Supabase session on every navigation and gates the three
@@ -60,5 +60,11 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/feed/:path*", "/groups/:path*", "/profile/:path*", "/login"],
+  matcher: [
+    "/feed/:path*",
+    "/groups/:path*",
+    "/profile/:path*",
+    "/post/:path*",
+    "/login",
+  ],
 };

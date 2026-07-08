@@ -57,5 +57,10 @@ three tabs are auth-gated when Supabase is configured.
 - ✅ **Phase 1** — profiles: drag/resize windowed editor (`/profile/edit`),
   server-rendered public pages (`/u/[handle]`), follow/unfollow. Layout engine
   is pure TS (`src/lib/profile/layout.ts`) with a bun test suite.
-- ⬜ Phase 2 — posts & the main feed (next)
-- ⬜ Phase 3+ — see the build plan
+- ✅ **Phase 2** — posts & the main feed: create-post flow with client-side
+  display optimization (`/post/new`), chronological follow-scoped feed,
+  post detail (`/p/[id]`), profile gallery wired to real posts. Migration
+  0003 adds `posts` + the public `media` storage bucket with owner-folder
+  write policies.
+- ⬜ Phase 3 — high-res media pipeline & post-layout personalization (next)
+- ⬜ Phase 4+ — see the build plan

@@ -1,11 +1,11 @@
 ---
-task: "Build Atelier Phase 1 profiles, editor, follows"
+task: "Build Atelier Phase 2 posts and main feed"
 slug: 20260708-120400_develop-the-atelier-build-here-build
 project: Atelier
 effort: E3
 effort_source: classifier
-phase: complete
-progress: 76/78
+phase: execute
+progress: 76/113
 mode: interactive
 started: 2026-07-08T15:04:39Z
 updated: 2026-07-08T15:14:00Z
@@ -147,6 +147,51 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - [x] ISC-77: All Phase-0 routes still return their Phase-0 status codes (regression)
 - [DEFERRED-VERIFY] ISC-78: Live save + follow round-trip against a real Supabase project [follow-up: ATELIER-P1-LIVE — after ATELIER-P0-AUTH-LIVE creds exist, save a layout and follow a user against the real DB]
 
+### Phase 2 — posts data model
+- [ ] ISC-79: Migration 0003 creates `posts` with a category check constraint limited to art/handmade/photography/music
+- [ ] ISC-80: `posts` has RLS enabled with public-select and own-row insert/delete policies
+- [ ] ISC-81: `media` storage bucket created public, with owner-folder-only write policy on storage.objects
+- [ ] ISC-82: Feed index exists on posts (author_id, created_at desc)
+- [ ] ISC-83: `POST_CATEGORIES` exports exactly the plan's four categories
+- [ ] ISC-84: `getFeedPosts` scopes to followed authors + self, ordered created_at descending
+- [ ] ISC-85: `getPostById` returns the post joined with author handle/display name
+- [ ] ISC-86: `getPostsByAuthor` returns an author's recent posts with a limit
+- [ ] ISC-87: ≥4 demo posts exist across ines/theo for preview mode
+
+### Phase 2 — create-post flow
+- [ ] ISC-88: `/post/new` returns HTTP 200
+- [ ] ISC-89: Composer renders image file input (accept image/*), caption field, and a category select with the four categories
+- [ ] ISC-90: Client downscale caps the longest edge at 1600px; the fit math is pure and unit-tested
+- [ ] ISC-91: `createPost` uploads to the media bucket under a user-id folder and inserts the posts row
+- [ ] ISC-92: `createPost` re-validates category against the enum and caps caption length server-side
+- [ ] ISC-93: `/post/*` is auth-gated when configured (proxy matcher extended)
+- [ ] ISC-94: Preview mode composer renders a disabled state with a notice (200, no crash)
+- [ ] ISC-95: Successful create redirects to the new post's detail page
+
+### Phase 2 — main feed
+- [ ] ISC-96: `/feed` renders posts as Window units with data-post markers
+- [ ] ISC-97: Feed is chronological — newest post appears first in served HTML
+- [ ] ISC-98: Each feed card links to the author's public profile
+- [ ] ISC-99: Each feed card links to the post detail page
+- [ ] ISC-100: Feed cards show category label and date
+- [ ] ISC-101: Follow-nobody state shows guidance instead of an empty void
+- [ ] ISC-102: A create-post entry point is visible on the feed
+
+### Phase 2 — detail & gallery wiring
+- [ ] ISC-103: `/p/[id]` returns 200 rendering image, caption, author, and category
+- [ ] ISC-104: Unknown post id returns 404
+- [ ] ISC-105: Post detail page title includes the author's display name
+- [ ] ISC-106: `/u/ines` gallery block renders real (demo) post thumbnails linking to detail pages
+- [ ] ISC-107: Gallery block for an author with no posts still renders placeholders (no crash)
+
+### Phase 2 — guards & regression
+- [ ] ISC-108: Anti: feed ordering uses created_at only — no score/weight/rank column or logic exists
+- [ ] ISC-109: Anti: sponsored/boost/promote/advertis grep across src still returns zero
+- [ ] ISC-110: Build, typecheck, lint, and full bun test suite all pass
+- [ ] ISC-111: All Phase 0/1 routes re-probed at their expected status codes
+- [ ] ISC-112: Live create-post round-trip against real Supabase [DEFERRED-VERIFY — follow-up: ATELIER-P2-LIVE]
+- [ ] ISC-113: Antecedent: feed cards and post detail compose the Window primitive (facade consistency)
+
 ## Test Strategy
 
 | isc | type | check | threshold | tool |
@@ -180,6 +225,11 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 | p1-editor | drag/resize canvas, palette, identity form, save action | ISC-53..62, 74 | p1-layout-engine, auth | no |
 | p1-public-view | /u/[handle] SSR renderer + demo profiles | ISC-63..69, 75 | p1-layout-engine | yes |
 | p1-follow | follow/unfollow actions + button + count | ISC-70..73 | p1-data-model | yes |
+| p2-data-model | migration 0003: posts table, storage bucket + policies | ISC-79..82 | p1-data-model | yes |
+| p2-post-lib | types, demo posts, queries, downscale math + tests | ISC-83..87, 90 | p2-data-model | yes |
+| p2-composer | /post/new upload flow + createPost action + gating | ISC-88..95 | p2-post-lib, auth | no |
+| p2-feed | chronological windowed feed + entry point | ISC-96..102, 108 | p2-post-lib | yes |
+| p2-detail-gallery | /p/[id] + profile gallery wiring | ISC-103..107 | p2-post-lib | yes |
 
 ## Decisions
 
