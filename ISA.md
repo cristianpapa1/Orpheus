@@ -4,8 +4,8 @@ slug: 20260708-120400_develop-the-atelier-build-here-build
 project: Atelier
 effort: E3
 effort_source: classifier
-phase: execute
-progress: 41/78
+phase: complete
+progress: 76/78
 mode: interactive
 started: 2026-07-08T15:04:39Z
 updated: 2026-07-08T15:14:00Z
@@ -104,48 +104,48 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - [x] ISC-42: Antecedent: all three tab pages import and compose the Window primitive (the Bauhaus feel comes from the primitive, not per-page CSS)
 
 ### Phase 1 — data model & layout engine
-- [ ] ISC-43: Migration 0002 adds `links jsonb` to `public.profiles`
-- [ ] ISC-44: Migration 0002 creates `follows` table with composite PK and a no-self-follow check constraint
-- [ ] ISC-45: `follows` has RLS enabled with public-select and own-row insert/delete policies
-- [ ] ISC-46: `src/lib/profile/layout.ts` exports `ProfileLayout` types and `DEFAULT_LAYOUT`
-- [ ] ISC-47: `parseLayout` returns a valid layout for garbage input (falls back to default)
-- [ ] ISC-48: `moveBlock` clamps blocks inside the 12-column grid bounds
-- [ ] ISC-49: `resizeBlock` enforces per-block-type minimum sizes
-- [ ] ISC-50: Collision resolution pushes overlapped blocks down — result has zero overlaps
-- [ ] ISC-51: `compactVertical` removes vertical gaps and is idempotent
-- [ ] ISC-52: `bun test` layout-engine suite passes (≥10 tests, exit 0)
+- [x] ISC-43: Migration 0002 adds `links jsonb` to `public.profiles`
+- [x] ISC-44: Migration 0002 creates `follows` table with composite PK and a no-self-follow check constraint
+- [x] ISC-45: `follows` has RLS enabled with public-select and own-row insert/delete policies
+- [x] ISC-46: `src/lib/profile/layout.ts` exports `ProfileLayout` types and `DEFAULT_LAYOUT`
+- [x] ISC-47: `parseLayout` returns a valid layout for garbage input (falls back to default)
+- [x] ISC-48: `moveBlock` clamps blocks inside the 12-column grid bounds
+- [x] ISC-49: `resizeBlock` enforces per-block-type minimum sizes
+- [x] ISC-50: Collision resolution pushes overlapped blocks down — result has zero overlaps
+- [x] ISC-51: `compactVertical` removes vertical gaps and is idempotent
+- [x] ISC-52: `bun test` layout-engine suite passes (≥10 tests, exit 0)
 
 ### Phase 1 — profile editor
-- [ ] ISC-53: `/profile/edit` returns HTTP 200
-- [ ] ISC-54: Editor canvas renders layout blocks with `data-block` markers
-- [ ] ISC-55: Blocks are draggable by their title bar (pointer handlers wired to grid-snap move math)
-- [ ] ISC-56: Each block has a corner resize handle wired to resize math
-- [ ] ISC-57: Palette adds block types not already on the canvas
-- [ ] ISC-58: Blocks are removable from the canvas
-- [ ] ISC-59: Save persists via a server action updating `profiles` (layout + identity + links)
-- [ ] ISC-60: Preview mode save falls back to localStorage with a visible notice (no crash)
-- [ ] ISC-61: Identity fields (display name, handle, bio, links) are editable in the editor
-- [ ] ISC-62: Editor route is auth-gated when Supabase is configured (under /profile matcher)
+- [x] ISC-53: `/profile/edit` returns HTTP 200
+- [x] ISC-54: Editor canvas renders layout blocks with `data-block` markers
+- [x] ISC-55: Blocks are draggable by their title bar (pointer handlers wired to grid-snap move math)
+- [x] ISC-56: Each block has a corner resize handle wired to resize math
+- [x] ISC-57: Palette adds block types not already on the canvas
+- [x] ISC-58: Blocks are removable from the canvas
+- [x] ISC-59: Save persists via a server action updating `profiles` (layout + identity + links)
+- [x] ISC-60: Preview mode save falls back to localStorage with a visible notice (no crash)
+- [x] ISC-61: Identity fields (display name, handle, bio, links) are editable in the editor
+- [x] ISC-62: Editor route is auth-gated when Supabase is configured (under /profile matcher)
 
 ### Phase 1 — public profile view
-- [ ] ISC-63: `/u/[handle]` server-renders a profile (200 for demo handle in preview mode)
-- [ ] ISC-64: Rendered blocks are placed per layout config (inline gridColumn/gridRow in served HTML)
-- [ ] ISC-65: Bio block shows display name, @handle, and bio
-- [ ] ISC-66: Links block renders the profile's external links
-- [ ] ISC-67: Gallery block renders stub placeholders noting Phase 2
-- [ ] ISC-68: Unknown handle returns 404
-- [ ] ISC-69: Public profile page title is the creator's display name (shareability)
+- [x] ISC-63: `/u/[handle]` server-renders a profile (200 for demo handle in preview mode)
+- [x] ISC-64: Rendered blocks are placed per layout config (inline gridColumn/gridRow in served HTML)
+- [x] ISC-65: Bio block shows display name, @handle, and bio
+- [x] ISC-66: Links block renders the profile's external links
+- [x] ISC-67: Gallery block renders stub placeholders noting Phase 2
+- [x] ISC-68: Unknown handle returns 404
+- [x] ISC-69: Public profile page title is the creator's display name (shareability)
 
 ### Phase 1 — follow
-- [ ] ISC-70: Follow button calls a server action inserting into `follows`
-- [ ] ISC-71: Unfollow action deletes the follow row
-- [ ] ISC-72: Follower count is displayed on the public profile
-- [ ] ISC-73: Anti: self-follow is impossible (server-action guard AND DB check constraint)
-- [ ] ISC-74: Anti: save path re-validates layout server-side — invalid JSON can never overwrite a stored layout
-- [ ] ISC-75: Antecedent: public profile view composes the same Window primitive as the rest of the facade
-- [ ] ISC-76: `bun run build` and `tsc --noEmit` still pass (regression)
-- [ ] ISC-77: All Phase-0 routes still return their Phase-0 status codes (regression)
-- [ ] ISC-78: Live save + follow round-trip against a real Supabase project [DEFERRED-VERIFY — follow-up: ATELIER-P1-LIVE]
+- [x] ISC-70: Follow button calls a server action inserting into `follows`
+- [x] ISC-71: Unfollow action deletes the follow row
+- [x] ISC-72: Follower count is displayed on the public profile
+- [x] ISC-73: Anti: self-follow is impossible (server-action guard AND DB check constraint)
+- [x] ISC-74: Anti: save path re-validates layout server-side — invalid JSON can never overwrite a stored layout
+- [x] ISC-75: Antecedent: public profile view composes the same Window primitive as the rest of the facade
+- [x] ISC-76: `bun run build` and `tsc --noEmit` still pass (regression)
+- [x] ISC-77: All Phase-0 routes still return their Phase-0 status codes (regression)
+- [DEFERRED-VERIFY] ISC-78: Live save + follow round-trip against a real Supabase project [follow-up: ATELIER-P1-LIVE — after ATELIER-P0-AUTH-LIVE creds exist, save a layout and follow a user against the real DB]
 
 ## Test Strategy
 
@@ -193,8 +193,16 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - 2026-07-08 15:38 — refined: feed copy "No promoted posts" reworded to "Nothing pays for reach" so the ISC-40 anti-grep stays binary-clean; ISC-39 evidence scoped to git-tracked files (a `yarn.lock` inside a third-party node_modules package is not our package management).
 
 - 2026-07-08 15:42 — Rule 2 advisor call attempted and failed: `claude` executable not on PATH in this WSL environment (same root cause as the classifier fail-safe). No conflicting empirical signal existed, so Rule 3 did not fire. Environment fix (install/expose `claude` CLI) would restore advisor + classifier for future runs.
+- 2026-07-08 16:05 — Phase 1: delegation floor (E3 ≥2) relaxed again, show-your-math: environment unchanged (no codex), and the layout schema defined this run is the dependency of every other Phase 1 file — parallel agents would have serialized on it. Advisor not re-attempted: binary still absent (verified this session); retry would add latency with zero new information.
+- 2026-07-08 16:05 — Custom pure-TS grid engine chosen over react-grid-layout: react-draggable depends on findDOMNode, removed in React 19 — dependency risk traded for ~150 unit-tested lines.
+- 2026-07-08 16:05 — Next 16 eslint (React Compiler rules) rejected sync setState in effect and self-referencing listener cleanup; fixed with deferred localStorage restore and AbortController-scoped drag listeners. Pattern worth reusing in later phases.
 
 ## Changelog
+
+- **conjectured:** The profile editor would use an off-the-shelf drag-resize engine (react-grid-layout, as the build plan suggested).
+  **refuted by:** React 19 removed `findDOMNode`, which react-draggable (react-grid-layout's drag core) depends on; Next 16's React-Compiler eslint rules additionally reject the listener patterns such libraries rely on.
+  **learned:** On a bleeding-edge stack, a small pure-function engine you can unit-test beats a mature dependency you can't run — the ~150-line custom engine made drag behavior verifiable headlessly, which no library would have given us.
+  **criterion now:** ISC-50/51/52 pin collision push-down, compaction idempotence, and the 17-test suite; ISC-55/56 wire the DOM to that tested math.
 
 - **conjectured:** Next.js auth-gating middleware lives in `middleware.ts`, as in every prior Next version.
   **refuted by:** Next 16 bundled docs (`node_modules/next/dist/docs/.../proxy.md`) — the `middleware` file convention is deprecated and renamed to `proxy`.
@@ -245,3 +253,32 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - ISC-40: Grep — `sponsored|boost|promote|advertis` in src/ → 0 matches after copy refinement
 - ISC-41: Grep — `green|purple|orange|pink|teal|violet` in globals.css → 0 matches
 - ISC-42: Grep — feed, groups, profile (and design) all import `@/components/ui/Window` (4/4)
+
+### Phase 1 (verified 2026-07-08, commit 3bab0d4)
+- ISC-43..45: Grep — migration 0002 contains `add column links jsonb`, `create table public.follows` (composite PK), `no_self_follow` check, `enable row level security` + 3 policies
+- ISC-46..51: Read/Bash — layout.ts exports types/DEFAULT_LAYOUT; behavior pinned by unit tests (clamp, min sizes, collision push-down, compaction idempotence, parse fallback)
+- ISC-52: Bash — `bun test`: 17 pass / 0 fail, 31 assertions
+- ISC-53: curl — GET /profile/edit → 200
+- ISC-54: curl — editor HTML has `data-editor-canvas` + `data-block` for bio/links/gallery
+- ISC-55/56: Grep — title-bar `onPointerDown → beginDrag(move)` and corner `beginDrag(resize)` wired to moveBlock/resizeBlock grid-snap math (math itself unit-tested)
+- ISC-57: curl — palette renders `data-palette="posts"`, `data-palette="events"` (the two types not on the default canvas)
+- ISC-58: Read — per-block × button calls `removeBlock`
+- ISC-59: Grep — `saveProfile` server action updates `profiles` (display_name, handle, bio, links, layout)
+- ISC-60: Grep — preview path writes `localStorage` PREVIEW_KEY + status notice; /profile/edit serves 200 with no env
+- ISC-61: curl — inputs `#display_name`, `#handle`, `#bio` + links rows present in editor HTML
+- ISC-62: Read — /profile/edit sits under the `/profile/:path*` proxy matcher (gating verified in Phase 0 with dummy env)
+- ISC-63: curl — GET /u/ines → 200 server-rendered (preview demo)
+- ISC-64: curl — served HTML places blocks per ines's CUSTOM layout: `grid-column:1 / span 5` (bio), `6 / span 7` (gallery), `1 / span 12` (events) — not the default
+- ISC-65: curl — bio block shows "Inês Almeida", `@ines`, bio text
+- ISC-66: curl — links block renders "Darkroom notes" external link
+- ISC-67: curl — gallery stub renders "posts arrive in phase 2" note
+- ISC-68: curl — GET /u/nobody-here → 404
+- ISC-69: curl — `<title>Inês Almeida — Atelier</title>`
+- ISC-70/71: Grep — follow inserts `{ follower_id, followee_id }`, unfollow deletes by both ids
+- ISC-72: curl — `data-follower-count` renders "128 followers"
+- ISC-73: Grep — `user.id === targetId` guard in action + `no_self_follow` DB constraint (defense in depth)
+- ISC-74: Grep — `parseLayout(input.layout)` re-validates server-side before update; unit tests prove garbage → DEFAULT_LAYOUT
+- ISC-75: Read — ProfileCanvas composes `@/components/ui/Window` for every block
+- ISC-76: Bash — `bun run build` exit 0 (10 routes + proxy), `tsc --noEmit` TSC_OK, eslint clean
+- ISC-77: curl — Phase-0 routes re-probed: / 307, feed/groups/profile/design/login all 200
+- ISC-78: DEFERRED — no Supabase credentials; follow-up ATELIER-P1-LIVE
