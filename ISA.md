@@ -4,8 +4,8 @@ slug: 20260708-120400_develop-the-atelier-build-here-build
 project: Atelier
 effort: E3
 effort_source: classifier
-phase: execute
-progress: 110/142
+phase: complete
+progress: 141/142
 mode: interactive
 started: 2026-07-08T15:04:39Z
 updated: 2026-07-08T15:14:00Z
@@ -193,41 +193,41 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - [x] ISC-113: Antecedent: feed cards and post detail compose the Window primitive (facade consistency)
 
 ### Phase 3 — media pipeline (respect the work)
-- [ ] ISC-114: Migration 0004 adds `original_path`, `variants`, `blur_data`, `display` columns to posts
-- [ ] ISC-115: The original file is uploaded byte-for-byte untouched (no re-encode on the original path)
-- [ ] ISC-116: Original and variant upload paths are both rooted in the uploader's user-id folder (existing storage policy covers them)
-- [ ] ISC-117: `prepareUpload` produces the untouched original + multiple downscaled WebP variants + a blur placeholder
-- [ ] ISC-118: `variantWidthsFor` never upscales — pure and unit-tested
-- [ ] ISC-119: Uploads go client→storage directly; the server action receives only paths/metadata (1MB action-body limit respected)
-- [ ] ISC-120: `publishPost` rejects any path not rooted in the caller's own folder (ownership guard)
-- [ ] ISC-121: `publishPost` re-validates display config via `parseDisplay` and caps blur_data size server-side
+- [x] ISC-114: Migration 0004 adds `original_path`, `variants`, `blur_data`, `display` columns to posts
+- [x] ISC-115: The original file is uploaded byte-for-byte untouched (no re-encode on the original path)
+- [x] ISC-116: Original and variant upload paths are both rooted in the uploader's user-id folder (existing storage policy covers them)
+- [x] ISC-117: `prepareUpload` produces the untouched original + multiple downscaled WebP variants + a blur placeholder
+- [x] ISC-118: `variantWidthsFor` never upscales — pure and unit-tested
+- [x] ISC-119: Uploads go client→storage directly; the server action receives only paths/metadata (1MB action-body limit respected)
+- [x] ISC-120: `publishPost` rejects any path not rooted in the caller's own folder (ownership guard)
+- [x] ISC-121: `publishPost` re-validates display config via `parseDisplay` and caps blur_data size server-side
 
 ### Phase 3 — display personalization (bold, not a toggle)
-- [ ] ISC-122: `display.ts` exports ≥3 frames, ≥3 spans, ≥4 aspect presets as typed enums
-- [ ] ISC-123: `parseDisplay` falls back to defaults on garbage input
-- [ ] ISC-124: span/aspect/frame class mappers are pure and unit-tested
-- [ ] ISC-125: Composer exposes frame, span, and aspect controls
-- [ ] ISC-126: Feed honors per-post span — wide/full posts span more columns in served HTML
-- [ ] ISC-127: Frame variants render distinct treatments (inset / full-bleed / plate) in served HTML
-- [ ] ISC-128: Aspect presets apply crop classes to the image
-- [ ] ISC-129: Demo posts exercise ≥3 distinct display configs (visible variety in preview feed)
-- [ ] ISC-130: Composer discloses that the original is preserved and display copies are optimized
+- [x] ISC-122: `display.ts` exports ≥3 frames, ≥3 spans, ≥4 aspect presets as typed enums
+- [x] ISC-123: `parseDisplay` falls back to defaults on garbage input
+- [x] ISC-124: span/aspect/frame class mappers are pure and unit-tested
+- [x] ISC-125: Composer exposes frame, span, and aspect controls
+- [x] ISC-126: Feed honors per-post span — wide/full posts span more columns in served HTML
+- [x] ISC-127: Frame variants render distinct treatments (inset / full-bleed / plate) in served HTML
+- [x] ISC-128: Aspect presets apply crop classes to the image
+- [x] ISC-129: Demo posts exercise ≥3 distinct display configs (visible variety in preview feed)
+- [x] ISC-130: Composer discloses that the original is preserved and display copies are optimized
 
 ### Phase 3 — responsive serving & performance
-- [ ] ISC-131: `ResponsiveImage` renders srcset with multiple widths and a sizes attribute
-- [ ] ISC-132: Blur-up placeholder renders as inline background until the image loads
-- [ ] ISC-133: Feed images are lazy with async decoding
-- [ ] ISC-134: Detail image loads eager with high fetch priority
-- [ ] ISC-135: Post detail offers a "View full resolution" link to the untouched original when present
-- [ ] ISC-136: Full bun test suite (≥32 tests) passes
+- [x] ISC-131: `ResponsiveImage` renders srcset with multiple widths and a sizes attribute
+- [x] ISC-132: Blur-up placeholder renders as inline background until the image loads
+- [x] ISC-133: Feed images are lazy with async decoding
+- [x] ISC-134: Detail image loads eager with high fetch priority
+- [x] ISC-135: Post detail offers a "View full resolution" link to the untouched original when present
+- [x] ISC-136: Full bun test suite (≥32 tests) passes
 
 ### Phase 3 — guards & regression
-- [ ] ISC-137: Anti: no canvas/re-encode call ever touches the original file object
-- [ ] ISC-138: Anti: sponsored/boost/promote/advertis grep across src still zero
-- [ ] ISC-139: Build, typecheck, and lint all pass
-- [ ] ISC-140: All prior routes re-probed at expected status codes
-- [ ] ISC-141: Live high-res upload round-trip [DEFERRED-VERIFY — follow-up: ATELIER-P3-LIVE]
-- [ ] ISC-142: Antecedent: all personalization flows through the typed PostDisplay config — no ad-hoc per-post CSS
+- [x] ISC-137: Anti: no canvas/re-encode call ever touches the original file object
+- [x] ISC-138: Anti: sponsored/boost/promote/advertis grep across src still zero
+- [x] ISC-139: Build, typecheck, and lint all pass
+- [x] ISC-140: All prior routes re-probed at expected status codes
+- [DEFERRED-VERIFY] ISC-141: Live high-res upload round-trip [follow-up: ATELIER-P3-LIVE — after creds: upload a >10MB photo, confirm original object bytes identical + variants + blur + display config round-trip]
+- [x] ISC-142: Antecedent: all personalization flows through the typed PostDisplay config — no ad-hoc per-post CSS
 
 ## Test Strategy
 
@@ -290,6 +290,8 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - 2026-07-08 16:05 — Next 16 eslint (React Compiler rules) rejected sync setState in effect and self-referencing listener cleanup; fixed with deferred localStorage restore and AbortController-scoped drag listeners. Pattern worth reusing in later phases.
 - 2026-07-08 16:25 — Phase 2: delegation floor relaxed (same math: no codex; post schema single-sourced this run). Advisor still unavailable (binary absent). Plain `<img>` chosen over next/image: the media pipeline (responsive sizes, blur-up, remote patterns) is explicitly Phase 3's deliverable — premature config now would be churn.
 - 2026-07-08 16:25 — Client-side canvas downscale (WebP 0.85, ≤1600px) instead of server-side image processing: no server image lib in the stack, and Phase 3 moves optimization to a CDN anyway. Pure fitWithin math extracted for headless testing.
+- 2026-07-08 17:00 — Phase 3: uploads restructured client→storage direct after verifying Next's 1MB server-action body limit — originals can never ship through actions. publishPost gained the own-folder path guard as a consequence (client-supplied paths are untrusted input).
+- 2026-07-08 17:00 — Variant generation kept in-app (no CDN account exists); migration 0004 documents the CDN swap point as a URL change, not a schema change. Delegation floor relaxed (same math as prior phases); advisor binary still absent.
 
 ## Changelog
 
@@ -408,3 +410,32 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - ISC-111: curl — all Phase 0/1 routes re-probed at expected codes (/, tabs, design, login, edit, /u/*)
 - ISC-112: DEFERRED — no Supabase creds; follow-up ATELIER-P2-LIVE
 - ISC-113: curl — feed cards and detail compose Window (data-window present on both surfaces)
+
+### Phase 3 (verified 2026-07-08, commit 0a43646)
+- ISC-114: Read — migration 0004 adds original_path, variants, blur_data (≤6000 check), display
+- ISC-115/137: Grep — media.ts returns `original: file` untouched; canvas only draws the decoded bitmap copy; composer uploads `prepared.original` as-is with its own contentType
+- ISC-116: Grep — originalPath=`${user.id}/originals/…`, variants=`${user.id}/display/…` — both inside the owner folder covered by 0003's storage policies
+- ISC-117: Read — prepareUpload → untouched original + WebP variants + data-URI blur
+- ISC-118: Bash — variantWidthsFor unit tests: 4 pass (typical/no-upscale/tiny/zero)
+- ISC-119: Grep — composer calls supabase.storage.upload ×2 client-side; actions.ts contains no File/formData handling
+- ISC-120: Grep — `paths.some(p => !p.startsWith(ownFolder) || p.includes(".."))` rejects foreign/traversal paths
+- ISC-121: Grep — parseDisplay(input.display) + blur `data:image/` prefix check + slice(0, 6000)
+- ISC-122: Bash — display.test: FRAMES ≥3, SPANS ≥3, ASPECTS ≥4 asserted
+- ISC-123/124: Bash — parseDisplay fallback + span/aspect/frame mapper tests pass (distinctness asserted)
+- ISC-125: curl — composer HTML: 3 data-frame-option, 3 data-span-option, 4 data-aspect-option buttons
+- ISC-126: curl — feed spans: 1 full, 1 wide, 3 standard (col-span driven by config)
+- ISC-127: curl — frames render distinctly: data-frame inset/full-bleed/plate; plate's `bg-ink p-6` mat present
+- ISC-128: curl — aspect classes in served HTML: aspect-[3/2] ×4, aspect-square ×2
+- ISC-129: curl — demo feed exercises 3 frames × 3 spans × 3 aspects simultaneously
+- ISC-130: curl — data-pipeline-note: "original is stored untouched… display copies generated"
+- ISC-131: curl — img tag carries srcSet="…480w, …800w" + sizes (camelCase in SSR stream; HTML attrs case-insensitive)
+- ISC-132: curl — style="background-image:url(data:image/svg…);background-size:cover" blur-up present
+- ISC-133: curl — loading="lazy" ×5 + decoding="async" ×5 in feed
+- ISC-134: curl — detail img: loading="eager" + fetchPriority="high"
+- ISC-135: curl — data-full-resolution link → untouched original on /p/demo-ines-1
+- ISC-136: Bash — bun test: 35 pass / 0 fail across 4 suites
+- ISC-138: Grep — promo grep across src → 0
+- ISC-139: Bash — build (12 routes + proxy), TSC_OK, eslint clean
+- ISC-140: curl — /, feed, profile, design, login, edit, /u/ines, /post/new, /p/* all at expected codes
+- ISC-141: DEFERRED — no Supabase creds; follow-up ATELIER-P3-LIVE
+- ISC-142: Grep — PostCard/detail read span/frame/aspect exclusively via display.ts mappers; no per-post CSS anywhere
