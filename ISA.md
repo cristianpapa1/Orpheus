@@ -4,8 +4,8 @@ slug: 20260708-120400_develop-the-atelier-build-here-build
 project: Atelier
 effort: E3
 effort_source: classifier
-phase: execute
-progress: 141/175
+phase: complete
+progress: 174/175
 mode: interactive
 started: 2026-07-08T15:04:39Z
 updated: 2026-07-08T15:14:00Z
@@ -230,49 +230,49 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - [x] ISC-142: Antecedent: all personalization flows through the typed PostDisplay config — no ad-hoc per-post CSS
 
 ### Phase 4 — groups data model
-- [ ] ISC-143: Migration 0005 creates `groups` with name/slug constraints and an `is_private` feed-privacy flag
-- [ ] ISC-144: `group_members` has an owner/member role check and composite PK
-- [ ] ISC-145: `group_invites` and `group_join_requests` tables exist with composite PKs
-- [ ] ISC-146: `post_groups` join table links posts to groups (cascade deletes)
-- [ ] ISC-147: RLS enabled on all five new tables with policies
-- [ ] ISC-148: Member vs follower are structurally distinct (`group_members` vs `group_followers`)
-- [ ] ISC-149: group_members allows three insert paths: creator bootstrap, invited self-join, owner-approved requester
+- [x] ISC-143: Migration 0005 creates `groups` with name/slug constraints and an `is_private` feed-privacy flag
+- [x] ISC-144: `group_members` has an owner/member role check and composite PK
+- [x] ISC-145: `group_invites` and `group_join_requests` tables exist with composite PKs
+- [x] ISC-146: `post_groups` join table links posts to groups (cascade deletes)
+- [x] ISC-147: RLS enabled on all five new tables with policies
+- [x] ISC-148: Member vs follower are structurally distinct (`group_members` vs `group_followers`)
+- [x] ISC-149: group_members allows three insert paths: creator bootstrap, invited self-join, owner-approved requester
 
 ### Phase 4 — lib & demo
-- [ ] ISC-150: Group types export the viewer-relation enum (owner/member/follower/invited/requested/none)
-- [ ] ISC-151: ≥2 demo groups with members and tagged posts (one private) for preview mode
-- [ ] ISC-152: `getGroupsForPosts` maps post→groups in a single query (feed markers)
-- [ ] ISC-153: `getGroupPosts` returns a group's tagged posts chronologically
+- [x] ISC-150: Group types export the viewer-relation enum (owner/member/follower/invited/requested/none)
+- [x] ISC-151: ≥2 demo groups with members and tagged posts (one private) for preview mode
+- [x] ISC-152: `getGroupsForPosts` maps post→groups in a single query (feed markers)
+- [x] ISC-153: `getGroupPosts` returns a group's tagged posts chronologically
 
 ### Phase 4 — create, invite, join, follow
-- [ ] ISC-154: `/groups` lists groups with member/follower counts
-- [ ] ISC-155: Create-group form on `/groups` (name, description, privacy)
-- [ ] ISC-156: `createGroup` slugifies, inserts group + owner membership
-- [ ] ISC-157: Invite form is member-only; `inviteToGroup` validates inviter membership server-side
-- [ ] ISC-158: `acceptInvite` turns an invite into membership and removes the invite
-- [ ] ISC-159: `requestToJoin` + owner-guarded `approveRequest` actions exist
-- [ ] ISC-160: `followGroup`/`unfollowGroup` actions exist (follower can never tag)
-- [ ] ISC-161: Anti: publishing validates group membership server-side — a non-member can never tag a post into a group
+- [x] ISC-154: `/groups` lists groups with member/follower counts
+- [x] ISC-155: Create-group form on `/groups` (name, description, privacy)
+- [x] ISC-156: `createGroup` slugifies, inserts group + owner membership
+- [x] ISC-157: Invite form is member-only; `inviteToGroup` validates inviter membership server-side
+- [x] ISC-158: `acceptInvite` turns an invite into membership and removes the invite
+- [x] ISC-159: `requestToJoin` + owner-guarded `approveRequest` actions exist
+- [x] ISC-160: `followGroup`/`unfollowGroup` actions exist (follower can never tag)
+- [x] ISC-161: Anti: publishing validates group membership server-side — a non-member can never tag a post into a group
 
 ### Phase 4 — group page & feed
-- [ ] ISC-162: `/g/[slug]` returns 200 with name, description, windowed layout (public route)
-- [ ] ISC-163: Group feed renders the posts tagged into that group
-- [ ] ISC-164: Unknown group slug returns 404
-- [ ] ISC-165: Member list renders with handles
-- [ ] ISC-166: Private group feed is hidden from non-members with a notice
-- [ ] ISC-167: Non-members see follow and request-to-join controls
+- [x] ISC-162: `/g/[slug]` returns 200 with name, description, windowed layout (public route)
+- [x] ISC-163: Group feed renders the posts tagged into that group
+- [x] ISC-164: Unknown group slug returns 404
+- [x] ISC-165: Member list renders with handles
+- [x] ISC-166: Private group feed is hidden from non-members with a notice
+- [x] ISC-167: Non-members see follow and request-to-join controls
 
 ### Phase 4 — cross-linking
-- [ ] ISC-168: Composer offers group-tagging checkboxes for the author's member groups
-- [ ] ISC-169: `publishPost` accepts group_ids and inserts post_groups rows
-- [ ] ISC-170: Main feed shows an "also in [group]" marker on tagged posts
-- [ ] ISC-171: The marker links to that group's feed at /g/[slug]
+- [x] ISC-168: Composer offers group-tagging checkboxes for the author's member groups
+- [x] ISC-169: `publishPost` accepts group_ids and inserts post_groups rows
+- [x] ISC-170: Main feed shows an "also in [group]" marker on tagged posts
+- [x] ISC-171: The marker links to that group's feed at /g/[slug]
 
 ### Phase 4 — guards & regression
-- [ ] ISC-172: Build, typecheck, lint, and full test suite pass
-- [ ] ISC-173: All prior routes re-probed at expected status codes
-- [ ] ISC-174: Live group round-trip (create→invite→join→tag→both feeds) [DEFERRED-VERIFY — follow-up: ATELIER-P4-LIVE]
-- [ ] ISC-175: Antecedent: group pages compose the Window primitive; Anti: promo grep still zero
+- [x] ISC-172: Build, typecheck, lint, and full test suite pass
+- [x] ISC-173: All prior routes re-probed at expected status codes
+- [DEFERRED-VERIFY] ISC-174: Live group round-trip (create→invite→join→tag→both feeds) [follow-up: ATELIER-P4-LIVE — after creds: run the full DoD sequence against real RLS]
+- [x] ISC-175: Antecedent: group pages compose the Window primitive; Anti: promo grep still zero
 
 ## Test Strategy
 
@@ -342,6 +342,8 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - 2026-07-08 16:25 — Client-side canvas downscale (WebP 0.85, ≤1600px) instead of server-side image processing: no server image lib in the stack, and Phase 3 moves optimization to a CDN anyway. Pure fitWithin math extracted for headless testing.
 - 2026-07-08 17:00 — Phase 3: uploads restructured client→storage direct after verifying Next's 1MB server-action body limit — originals can never ship through actions. publishPost gained the own-folder path guard as a consequence (client-supplied paths are untrusted input).
 - 2026-07-08 17:00 — Variant generation kept in-app (no CDN account exists); migration 0004 documents the CDN swap point as a URL change, not a schema change. Delegation floor relaxed (same math as prior phases); advisor binary still absent.
+- 2026-07-08 17:40 — Phase 4: private-group feed privacy enforced at the page query (posts/post_groups selects stay public because the main feed needs them). Full column-level RLS depth for private-group content is logged as Phase 9 trust-&-safety hardening — the current gate hides content in every rendered surface but a direct API reader with the anon key could enumerate post_groups rows of private groups (post rows themselves were already public by design).
+- 2026-07-08 17:40 — Member vs follower modeled as separate tables rather than a role column: the "followers can't tag" rule then falls out of the post_groups RLS policy referencing group_members only — impossible to bypass by flipping a role value.
 
 ## Changelog
 
@@ -489,3 +491,35 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - ISC-140: curl — /, feed, profile, design, login, edit, /u/ines, /post/new, /p/* all at expected codes
 - ISC-141: DEFERRED — no Supabase creds; follow-up ATELIER-P3-LIVE
 - ISC-142: Grep — PostCard/detail read span/frame/aspect exclusively via display.ts mappers; no per-post CSS anywhere
+
+### Phase 4 (verified 2026-07-08, commit 0e1baae)
+- ISC-143..146: Grep — migration 0005: is_private flag, owner/member role check, invites + join_requests + post_groups tables (composite PKs, cascades)
+- ISC-147: Grep — `enable row level security` ×6 (all new tables) with select/insert/delete policies
+- ISC-148: Read — group_members and group_followers are separate tables; post_groups insert policy requires MEMBERSHIP, structurally excluding followers
+- ISC-149: Grep — exactly 3 named membership insert policies: creator bootstrap / invited self-join / owner-admits-requester
+- ISC-150: Read — GroupRelation = owner|member|follower|invited|requested|none
+- ISC-151: Read — 2 demo groups (analogue-circle public, clay-wood private) with members + tagged posts
+- ISC-152: Read — getGroupsForPosts: single `.in("post_id", ids)` query with groups join
+- ISC-153: Read — getGroupPosts → getPostsByIds ordered created_at desc
+- ISC-154: curl — /groups renders both cards with "3 members · 23 followers" style counts
+- ISC-155: curl — data-create-group form with name/description/is_private
+- ISC-156: Read — createGroup: slugifyGroupName + group insert + owner membership bootstrap
+- ISC-157: curl/Read — invite Window renders form only for members; inviteToGroup checks inviter membership before insert
+- ISC-158: Read — acceptInvite inserts membership then deletes the invite row
+- ISC-159: Read — requestToJoin (self) + approveRequest (owner-guarded, deletes request after admit)
+- ISC-160: Read — followGroup/unfollowGroup manage group_followers only — no tagging power
+- ISC-161: Grep — publishPost: membership count must equal requested group_ids ("only tag groups you're a member of"); post_groups RLS re-checks
+- ISC-162: curl — /g/analogue-circle → 200, 5 windows, name + description
+- ISC-163: curl — group feed shows data-post demo-ines-1 + demo-ines-2 (the tagged posts)
+- ISC-164: curl — /g/nope → 404
+- ISC-165: curl — member list renders @ines (owner), @theo, @you with roles
+- ISC-166: curl — clay-wood (private, viewer=none): data-private-notice present, 0 data-post elements leaked
+- ISC-167: curl — data-follow-group + data-request-join both render for relation=none
+- ISC-168: curl — composer data-group-tagging fieldset with Analogue Circle checkbox (preview member)
+- ISC-169: Grep — publishPost inserts post_groups rows for validated groupIds
+- ISC-170: curl — feed shows data-also-in ×3 (analogue-circle ×2, clay-wood ×1)
+- ISC-171: curl — markers are links href="/g/analogue-circle" / "/g/clay-wood"
+- ISC-172: Bash — build (13 routes + proxy), TSC_OK, 35 tests, eslint clean
+- ISC-173: curl — /feed /post/new /u/ines /p/demo-ines-1 + all priors at expected codes
+- ISC-174: DEFERRED — no Supabase creds; follow-up ATELIER-P4-LIVE
+- ISC-175: curl/Grep — group pages compose Window (5 windows on /g/*); promo grep → 0
