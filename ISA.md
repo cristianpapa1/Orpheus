@@ -1,11 +1,11 @@
 ---
-task: "Build Atelier Phase 0 foundation and auth shell"
+task: "Build Atelier Phase 1 profiles, editor, follows"
 slug: 20260708-120400_develop-the-atelier-build-here-build
 project: Atelier
 effort: E3
 effort_source: classifier
-phase: complete
-progress: 41/42
+phase: execute
+progress: 41/78
 mode: interactive
 started: 2026-07-08T15:04:39Z
 updated: 2026-07-08T15:14:00Z
@@ -103,6 +103,50 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - [x] ISC-41: Anti: token layer contains no non-Bauhaus hues (no green/purple/orange/pink tokens)
 - [x] ISC-42: Antecedent: all three tab pages import and compose the Window primitive (the Bauhaus feel comes from the primitive, not per-page CSS)
 
+### Phase 1 — data model & layout engine
+- [ ] ISC-43: Migration 0002 adds `links jsonb` to `public.profiles`
+- [ ] ISC-44: Migration 0002 creates `follows` table with composite PK and a no-self-follow check constraint
+- [ ] ISC-45: `follows` has RLS enabled with public-select and own-row insert/delete policies
+- [ ] ISC-46: `src/lib/profile/layout.ts` exports `ProfileLayout` types and `DEFAULT_LAYOUT`
+- [ ] ISC-47: `parseLayout` returns a valid layout for garbage input (falls back to default)
+- [ ] ISC-48: `moveBlock` clamps blocks inside the 12-column grid bounds
+- [ ] ISC-49: `resizeBlock` enforces per-block-type minimum sizes
+- [ ] ISC-50: Collision resolution pushes overlapped blocks down — result has zero overlaps
+- [ ] ISC-51: `compactVertical` removes vertical gaps and is idempotent
+- [ ] ISC-52: `bun test` layout-engine suite passes (≥10 tests, exit 0)
+
+### Phase 1 — profile editor
+- [ ] ISC-53: `/profile/edit` returns HTTP 200
+- [ ] ISC-54: Editor canvas renders layout blocks with `data-block` markers
+- [ ] ISC-55: Blocks are draggable by their title bar (pointer handlers wired to grid-snap move math)
+- [ ] ISC-56: Each block has a corner resize handle wired to resize math
+- [ ] ISC-57: Palette adds block types not already on the canvas
+- [ ] ISC-58: Blocks are removable from the canvas
+- [ ] ISC-59: Save persists via a server action updating `profiles` (layout + identity + links)
+- [ ] ISC-60: Preview mode save falls back to localStorage with a visible notice (no crash)
+- [ ] ISC-61: Identity fields (display name, handle, bio, links) are editable in the editor
+- [ ] ISC-62: Editor route is auth-gated when Supabase is configured (under /profile matcher)
+
+### Phase 1 — public profile view
+- [ ] ISC-63: `/u/[handle]` server-renders a profile (200 for demo handle in preview mode)
+- [ ] ISC-64: Rendered blocks are placed per layout config (inline gridColumn/gridRow in served HTML)
+- [ ] ISC-65: Bio block shows display name, @handle, and bio
+- [ ] ISC-66: Links block renders the profile's external links
+- [ ] ISC-67: Gallery block renders stub placeholders noting Phase 2
+- [ ] ISC-68: Unknown handle returns 404
+- [ ] ISC-69: Public profile page title is the creator's display name (shareability)
+
+### Phase 1 — follow
+- [ ] ISC-70: Follow button calls a server action inserting into `follows`
+- [ ] ISC-71: Unfollow action deletes the follow row
+- [ ] ISC-72: Follower count is displayed on the public profile
+- [ ] ISC-73: Anti: self-follow is impossible (server-action guard AND DB check constraint)
+- [ ] ISC-74: Anti: save path re-validates layout server-side — invalid JSON can never overwrite a stored layout
+- [ ] ISC-75: Antecedent: public profile view composes the same Window primitive as the rest of the facade
+- [ ] ISC-76: `bun run build` and `tsc --noEmit` still pass (regression)
+- [ ] ISC-77: All Phase-0 routes still return their Phase-0 status codes (regression)
+- [ ] ISC-78: Live save + follow round-trip against a real Supabase project [DEFERRED-VERIFY — follow-up: ATELIER-P1-LIVE]
+
 ## Test Strategy
 
 | isc | type | check | threshold | tool |
@@ -131,6 +175,11 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 | auth | Supabase ssr clients, login, callback, middleware, env example | ISC-24..33 | scaffold | yes |
 | db-workflow | migrations, seed, README docs | ISC-34..38 | scaffold | yes |
 | styleguide-docs | DESIGN.md + /design route | ISC-16..17 | window-primitive | yes |
+| p1-data-model | migration 0002: links column, follows table + RLS | ISC-43..45 | db-workflow | yes |
+| p1-layout-engine | pure-TS grid engine (move/resize/collide/compact) + bun tests | ISC-46..52 | scaffold | yes |
+| p1-editor | drag/resize canvas, palette, identity form, save action | ISC-53..62, 74 | p1-layout-engine, auth | no |
+| p1-public-view | /u/[handle] SSR renderer + demo profiles | ISC-63..69, 75 | p1-layout-engine | yes |
+| p1-follow | follow/unfollow actions + button + count | ISC-70..73 | p1-data-model | yes |
 
 ## Decisions
 

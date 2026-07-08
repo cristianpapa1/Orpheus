@@ -54,5 +54,8 @@ three tabs are auth-gated when Supabase is configured.
 ## Phase status
 
 - ✅ **Phase 0** — foundation, Bauhaus design system, auth shell
-- ⬜ Phase 1 — profiles (user-constructed windowed layouts)
-- ⬜ Phase 2+ — see the build plan
+- ✅ **Phase 1** — profiles: drag/resize windowed editor (`/profile/edit`),
+  server-rendered public pages (`/u/[handle]`), follow/unfollow. Layout engine
+  is pure TS (`src/lib/profile/layout.ts`) with a bun test suite.
+- ⬜ Phase 2 — posts & the main feed (next)
+- ⬜ Phase 3+ — see the build plan

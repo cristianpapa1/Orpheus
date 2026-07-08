@@ -11,9 +11,19 @@ values
 on conflict (id) do nothing;
 
 update public.profiles
-set handle = 'ines', bio = 'Analogue photographer. Lisbon.'
+set handle = 'ines',
+    bio = 'Analogue photographer. Lisbon.',
+    links = '[{"label":"Portfolio","url":"https://example.com/ines"},{"label":"Darkroom notes","url":"https://example.com/ines/notes"}]'::jsonb,
+    layout = '{"version":1,"blocks":[{"id":"bio","type":"bio","x":0,"y":0,"w":5,"h":4},{"id":"gallery","type":"gallery","x":5,"y":0,"w":7,"h":6},{"id":"links","type":"links","x":0,"y":4,"w":5,"h":2},{"id":"events","type":"events","x":0,"y":6,"w":12,"h":2}]}'::jsonb
 where id = '00000000-0000-4000-a000-000000000001';
 
 update public.profiles
-set handle = 'theo', bio = 'Ceramics & woodwork. Berlin.'
+set handle = 'theo',
+    bio = 'Ceramics & woodwork. Berlin.',
+    links = '[{"label":"Studio","url":"https://example.com/theo"}]'::jsonb
 where id = '00000000-0000-4000-a000-000000000002';
+
+-- Theo follows Inês.
+insert into public.follows (follower_id, followee_id)
+values ('00000000-0000-4000-a000-000000000002', '00000000-0000-4000-a000-000000000001')
+on conflict do nothing;
