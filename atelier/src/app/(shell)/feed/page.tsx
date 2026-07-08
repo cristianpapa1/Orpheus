@@ -40,12 +40,7 @@ export default async function FeedPage() {
       ) : (
         <WindowGrid>
           {posts.map((post, i) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              index={i}
-              span={i % 3 === 0 ? "col-span-12 md:col-span-7" : "col-span-12 md:col-span-5"}
-            />
+            <PostCard key={post.id} post={post} index={i} />
           ))}
         </WindowGrid>
       )}

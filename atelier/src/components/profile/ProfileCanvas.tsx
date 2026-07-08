@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Window } from "@/components/ui/Window";
 import { GRID_COLS, type LayoutBlock } from "@/lib/profile/layout";
 import type { PublicProfile } from "@/lib/profile/types";
-import type { Post } from "@/lib/posts/types";
+import { thumbUrl, type Post } from "@/lib/posts/types";
 
 const ROW_H = 56;
 const ACCENTS = ["red", "blue", "yellow"] as const;
@@ -120,9 +120,10 @@ function BlockBody({
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={post.image_url}
+                src={thumbUrl(post)}
                 alt={post.caption || `Work by ${profile.display_name}`}
                 loading="lazy"
+                decoding="async"
                 className="aspect-square h-auto w-full object-cover"
               />
             </Link>

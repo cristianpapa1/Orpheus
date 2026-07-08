@@ -18,6 +18,8 @@ export interface WindowProps {
   accent?: WindowAccent;
   /** Grid placement classes, e.g. "col-span-12 md:col-span-8". */
   span?: string;
+  /** Remove the content padding — children manage their own (e.g. full-bleed media). */
+  flush?: boolean;
   className?: string;
   children?: React.ReactNode;
 }
@@ -31,6 +33,7 @@ export function Window({
   title,
   accent = "red",
   span,
+  flush = false,
   className,
   children,
 }: WindowProps) {
@@ -48,7 +51,7 @@ export function Window({
           <h2 className="text-caption font-bold uppercase">{title}</h2>
         </header>
       ) : null}
-      <div className="grow p-6">{children}</div>
+      <div className={flush ? "grow" : "grow p-6"}>{children}</div>
     </motion.section>
   );
 }

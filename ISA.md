@@ -1,11 +1,11 @@
 ---
-task: "Build Atelier Phase 2 posts and main feed"
+task: "Build Atelier Phase 3 media pipeline and personalization"
 slug: 20260708-120400_develop-the-atelier-build-here-build
 project: Atelier
 effort: E3
 effort_source: classifier
-phase: complete
-progress: 110/113
+phase: execute
+progress: 110/142
 mode: interactive
 started: 2026-07-08T15:04:39Z
 updated: 2026-07-08T15:14:00Z
@@ -192,6 +192,43 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - [DEFERRED-VERIFY] ISC-112: Live create-post round-trip against real Supabase [follow-up: ATELIER-P2-LIVE — after creds exist: publish an image post, confirm storage object + feed row]
 - [x] ISC-113: Antecedent: feed cards and post detail compose the Window primitive (facade consistency)
 
+### Phase 3 — media pipeline (respect the work)
+- [ ] ISC-114: Migration 0004 adds `original_path`, `variants`, `blur_data`, `display` columns to posts
+- [ ] ISC-115: The original file is uploaded byte-for-byte untouched (no re-encode on the original path)
+- [ ] ISC-116: Original and variant upload paths are both rooted in the uploader's user-id folder (existing storage policy covers them)
+- [ ] ISC-117: `prepareUpload` produces the untouched original + multiple downscaled WebP variants + a blur placeholder
+- [ ] ISC-118: `variantWidthsFor` never upscales — pure and unit-tested
+- [ ] ISC-119: Uploads go client→storage directly; the server action receives only paths/metadata (1MB action-body limit respected)
+- [ ] ISC-120: `publishPost` rejects any path not rooted in the caller's own folder (ownership guard)
+- [ ] ISC-121: `publishPost` re-validates display config via `parseDisplay` and caps blur_data size server-side
+
+### Phase 3 — display personalization (bold, not a toggle)
+- [ ] ISC-122: `display.ts` exports ≥3 frames, ≥3 spans, ≥4 aspect presets as typed enums
+- [ ] ISC-123: `parseDisplay` falls back to defaults on garbage input
+- [ ] ISC-124: span/aspect/frame class mappers are pure and unit-tested
+- [ ] ISC-125: Composer exposes frame, span, and aspect controls
+- [ ] ISC-126: Feed honors per-post span — wide/full posts span more columns in served HTML
+- [ ] ISC-127: Frame variants render distinct treatments (inset / full-bleed / plate) in served HTML
+- [ ] ISC-128: Aspect presets apply crop classes to the image
+- [ ] ISC-129: Demo posts exercise ≥3 distinct display configs (visible variety in preview feed)
+- [ ] ISC-130: Composer discloses that the original is preserved and display copies are optimized
+
+### Phase 3 — responsive serving & performance
+- [ ] ISC-131: `ResponsiveImage` renders srcset with multiple widths and a sizes attribute
+- [ ] ISC-132: Blur-up placeholder renders as inline background until the image loads
+- [ ] ISC-133: Feed images are lazy with async decoding
+- [ ] ISC-134: Detail image loads eager with high fetch priority
+- [ ] ISC-135: Post detail offers a "View full resolution" link to the untouched original when present
+- [ ] ISC-136: Full bun test suite (≥32 tests) passes
+
+### Phase 3 — guards & regression
+- [ ] ISC-137: Anti: no canvas/re-encode call ever touches the original file object
+- [ ] ISC-138: Anti: sponsored/boost/promote/advertis grep across src still zero
+- [ ] ISC-139: Build, typecheck, and lint all pass
+- [ ] ISC-140: All prior routes re-probed at expected status codes
+- [ ] ISC-141: Live high-res upload round-trip [DEFERRED-VERIFY — follow-up: ATELIER-P3-LIVE]
+- [ ] ISC-142: Antecedent: all personalization flows through the typed PostDisplay config — no ad-hoc per-post CSS
+
 ## Test Strategy
 
 | isc | type | check | threshold | tool |
@@ -230,6 +267,11 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 | p2-composer | /post/new upload flow + createPost action + gating | ISC-88..95 | p2-post-lib, auth | no |
 | p2-feed | chronological windowed feed + entry point | ISC-96..102, 108 | p2-post-lib | yes |
 | p2-detail-gallery | /p/[id] + profile gallery wiring | ISC-103..107 | p2-post-lib | yes |
+| p3-migration | 0004: original_path, variants, blur_data, display | ISC-114 | p2-data-model | yes |
+| p3-media-lib | prepareUpload, variant math, blur + tests | ISC-115..118, 137 | p2-post-lib | yes |
+| p3-display-lib | PostDisplay enums, parse, class mappers + tests | ISC-122..124, 142 | p2-post-lib | yes |
+| p3-publish | client-direct upload + publishPost ownership guards | ISC-119..121, 125, 130 | p3-media-lib, p3-display-lib | no |
+| p3-rendering | ResponsiveImage, blur-up, frames/spans/aspects in feed+detail | ISC-126..129, 131..135 | p3-display-lib | yes |
 
 ## Decisions
 

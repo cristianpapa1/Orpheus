@@ -3,25 +3,40 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { parseDisplay } from "@/lib/posts/display";
 import { isPostCategory } from "@/lib/posts/types";
 
-const MAX_UPLOAD_BYTES = 8 * 1024 * 1024; // client downscales first; hard cap here
+const MAX_BLUR_CHARS = 6000; // matches the DB check constraint
 
-const EXT: Record<string, string> = {
-  "image/webp": "webp",
-  "image/jpeg": "jpg",
-  "image/png": "png",
-};
+export interface PublishPostInput {
+  caption: string;
+  category: string;
+  display: unknown;
+  /** Storage path of the untouched original (nullable). */
+  original_path: string | null;
+  /** Storage paths of the display variants, ascending width. */
+  variants: { width: number; height: number; path: string }[];
+  /** Largest display variant — kept as the post's primary image. */
+  image_path: string;
+  width: number | null;
+  height: number | null;
+  blur_data: string | null;
+}
 
-/**
- * Publish a post: upload the (client-downscaled) display image to the
- * media bucket under the author's folder, then insert the posts row.
- * Everything is re-validated server-side.
- */
-export async function createPost(formData: FormData): Promise<{
+export interface PublishPostResult {
   ok: boolean;
   error?: string;
-}> {
+}
+
+/**
+ * Record a post whose media the client already uploaded DIRECTLY to storage
+ * (server actions have a 1MB body limit — originals never pass through here).
+ * Ownership guard: every referenced path must live inside the caller's own
+ * folder, so nobody can publish someone else's files as their work.
+ */
+export async function publishPost(
+  input: PublishPostInput,
+): Promise<PublishPostResult> {
   const supabase = await createServerSupabase();
   if (!supabase) return { ok: false, error: "Preview mode — publishing is disabled." };
 
@@ -30,33 +45,33 @@ export async function createPost(formData: FormData): Promise<{
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Sign in to publish." };
 
-  const caption = String(formData.get("caption") ?? "")
-    .trim()
-    .slice(0, 1000);
-  const category = String(formData.get("category") ?? "");
-  if (!isPostCategory(category)) {
-    return { ok: false, error: "Pick a category." };
+  const ownFolder = `${user.id}/`;
+  const paths = [
+    input.image_path,
+    ...(input.original_path ? [input.original_path] : []),
+    ...input.variants.map((v) => v.path),
+  ];
+  if (paths.length === 0 || !input.image_path) {
+    return { ok: false, error: "Upload an image first." };
+  }
+  if (paths.some((p) => typeof p !== "string" || !p.startsWith(ownFolder) || p.includes(".."))) {
+    return { ok: false, error: "Invalid media path." };
   }
 
-  const image = formData.get("image");
-  if (!(image instanceof File) || image.size === 0) {
-    return { ok: false, error: "Choose an image." };
-  }
-  if (!EXT[image.type]) {
-    return { ok: false, error: "Unsupported image type." };
-  }
-  if (image.size > MAX_UPLOAD_BYTES) {
-    return { ok: false, error: "Image is too large (8 MB max)." };
+  const caption = String(input.caption ?? "").trim().slice(0, 1000);
+  const category = String(input.category ?? "");
+  if (!isPostCategory(category)) return { ok: false, error: "Pick a category." };
+
+  const display = parseDisplay(input.display);
+
+  let blur_data: string | null = null;
+  if (typeof input.blur_data === "string" && input.blur_data.startsWith("data:image/")) {
+    blur_data = input.blur_data.slice(0, MAX_BLUR_CHARS);
   }
 
-  const width = Number(formData.get("width")) || null;
-  const height = Number(formData.get("height")) || null;
-
-  const path = `${user.id}/${crypto.randomUUID()}.${EXT[image.type]}`;
-  const { error: uploadError } = await supabase.storage
-    .from("media")
-    .upload(path, image, { contentType: image.type });
-  if (uploadError) return { ok: false, error: uploadError.message };
+  const variants = input.variants
+    .filter((v) => typeof v.width === "number" && v.width > 0)
+    .map((v) => ({ width: Math.round(v.width), path: v.path }));
 
   const { data, error } = await supabase
     .from("posts")
@@ -64,9 +79,13 @@ export async function createPost(formData: FormData): Promise<{
       author_id: user.id,
       caption,
       category,
-      image_path: path,
-      image_width: width,
-      image_height: height,
+      image_path: input.image_path,
+      image_width: input.width,
+      image_height: input.height,
+      original_path: input.original_path,
+      variants,
+      blur_data,
+      display,
     })
     .select("id")
     .single();

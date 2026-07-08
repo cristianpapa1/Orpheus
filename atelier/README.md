@@ -62,5 +62,10 @@ three tabs are auth-gated when Supabase is configured.
   post detail (`/p/[id]`), profile gallery wired to real posts. Migration
   0003 adds `posts` + the public `media` storage bucket with owner-folder
   write policies.
-- ⬜ Phase 3 — high-res media pipeline & post-layout personalization (next)
-- ⬜ Phase 4+ — see the build plan
+- ✅ **Phase 3** — media pipeline & display personalization: originals stored
+  byte-for-byte untouched (`{user}/originals/…`), client-generated WebP
+  display variants served via srcset with blur-up placeholders, "view full
+  resolution" on post detail, and per-post frame/span/aspect controls
+  (typed `PostDisplay` config). Uploads go client→storage directly.
+- ⬜ Phase 4 — groups & group feeds (next)
+- ⬜ Phase 5+ — see the build plan

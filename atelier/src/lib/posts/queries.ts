@@ -1,14 +1,15 @@
 import { SUPABASE_URL } from "@/lib/supabase/config";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { DEMO_POSTS } from "./demo";
-import { isPostCategory, type Post } from "./types";
+import { parseDisplay } from "./display";
+import { isPostCategory, parseVariantPaths, type Post } from "./types";
 
 /* Server-side post reads. Preview mode (no Supabase) serves demo posts.
    Ordering is created_at DESC only — chronological by principle; there is
    no score, weight, or ranking of any kind (ISA anti-criterion ISC-108). */
 
 const POST_SELECT =
-  "id, author_id, caption, category, image_path, image_width, image_height, created_at, author:profiles(handle, display_name)";
+  "id, author_id, caption, category, image_path, image_width, image_height, original_path, variants, blur_data, display, created_at, author:profiles(handle, display_name)";
 
 type PostRow = {
   id: string;
@@ -18,6 +19,10 @@ type PostRow = {
   image_path: string;
   image_width: number | null;
   image_height: number | null;
+  original_path: string | null;
+  variants: unknown;
+  blur_data: string | null;
+  display: unknown;
   created_at: string;
   author: { handle: string | null; display_name: string | null } | null;
 };
@@ -38,6 +43,10 @@ function toPost(row: PostRow): Post | null {
     image_url: publicMediaUrl(row.image_path),
     image_width: row.image_width,
     image_height: row.image_height,
+    original_url: row.original_path ? publicMediaUrl(row.original_path) : null,
+    variants: parseVariantPaths(row.variants, publicMediaUrl),
+    blur_data: row.blur_data,
+    display: parseDisplay(row.display),
     created_at: row.created_at,
   };
 }
