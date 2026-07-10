@@ -4,8 +4,8 @@ slug: 20260708-120400_develop-the-atelier-build-here-build
 project: Atelier
 effort: E3
 effort_source: classifier
-phase: execute
-progress: 277/316
+phase: complete
+progress: 306/316
 mode: interactive
 started: 2026-07-08T15:04:39Z
 updated: 2026-07-09T12:00:00Z
@@ -428,44 +428,44 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - [x] ISC-286: Antecedent: jobs surfaces compose the Window primitive
 
 ### Phase 9 — trust & safety
-- [ ] ISC-287: Migration 0010 creates `reports` (subject_type/status checks; reporter-insert, admin-read/update RLS)
-- [ ] ISC-288: `blocks` table with composite PK, no-self-block check, own-managed RLS
-- [ ] ISC-289: Report control on post detail and public profiles (disclosure, never a modal)
-- [ ] ISC-290: `createReport` validates subject type + reason and inserts as the reporter
-- [ ] ISC-291: Report rate limit ≤20/day per user (server-side check)
-- [ ] ISC-292: Block/unblock on profiles, own-scoped
-- [ ] ISC-293: Feed excludes posts from blocked authors
-- [ ] ISC-294: `/admin/reports` moderation queue (admin-gated, 404 for others)
-- [ ] ISC-295: Queue actions: reviewed / dismissed / actioned
-- [ ] ISC-296: Post rate limit ≤20/hour in publishPost
-- [ ] ISC-297: Message rate limit ≤120/hour in sendMessage
+- [x] ISC-287: Migration 0010 creates `reports` (subject_type/status checks; reporter-insert, admin-read/update RLS)
+- [x] ISC-288: `blocks` table with composite PK, no-self-block check, own-managed RLS
+- [x] ISC-289: Report control on post detail and public profiles (disclosure, never a modal)
+- [x] ISC-290: `createReport` validates subject type + reason and inserts as the reporter
+- [x] ISC-291: Report rate limit ≤20/day per user (server-side check)
+- [x] ISC-292: Block/unblock on profiles, own-scoped
+- [x] ISC-293: Feed excludes posts from blocked authors
+- [x] ISC-294: `/admin/reports` moderation queue (admin-gated, 404 for others)
+- [x] ISC-295: Queue actions: reviewed / dismissed / actioned
+- [x] ISC-296: Post rate limit ≤20/hour in publishPost
+- [x] ISC-297: Message rate limit ≤120/hour in sendMessage
 
 ### Phase 9 — accessibility
-- [ ] ISC-298: Skip-to-content link is the first focusable element, targeting #main
-- [ ] ISC-299: Global :focus-visible outline defined in the token layer
-- [ ] ISC-300: Composer offers an alt-text field; stored and used as the image alt
-- [ ] ISC-301: Editor blocks are keyboard-operable — arrows move, shift+arrows resize (same tested math)
-- [ ] ISC-302: Semantic landmarks: header/nav/main/footer with aria-current preserved
+- [x] ISC-298: Skip-to-content link is the first focusable element, targeting #main
+- [x] ISC-299: Global :focus-visible outline defined in the token layer
+- [x] ISC-300: Composer offers an alt-text field; stored and used as the image alt
+- [x] ISC-301: Editor blocks are keyboard-operable — arrows move, shift+arrows resize (same tested math)
+- [x] ISC-302: Semantic landmarks: header/nav/main/footer with aria-current preserved
 
 ### Phase 9 — onboarding & personalization depth
-- [ ] ISC-303: `/welcome` returns 200 with a 3-step guide linking editor, composer, groups
-- [ ] ISC-304: Empty feed links to /welcome
-- [ ] ISC-305: Profile accent preference (red/blue/yellow) editable in the editor
-- [ ] ISC-306: Public profile bio window renders in the owner's chosen accent
+- [x] ISC-303: `/welcome` returns 200 with a 3-step guide linking editor, composer, groups
+- [x] ISC-304: Empty feed links to /welcome
+- [x] ISC-305: Profile accent preference (red/blue/yellow) editable in the editor
+- [x] ISC-306: Public profile bio window renders in the owner's chosen accent
 
 ### Phase 9 — launch prep
-- [ ] ISC-307: `/terms` returns 200, marked DRAFT for counsel review
-- [ ] ISC-308: `/privacy` returns 200 with a data inventory and deletion contact
-- [ ] ISC-309: Footer links to terms and privacy
-- [ ] ISC-310: `LAUNCH.md` covers backups, privacy-respecting monitoring, secrets inventory, moderation rota, soft-launch plan, and the full deferred-verify list
+- [x] ISC-307: `/terms` returns 200, marked DRAFT for counsel review
+- [x] ISC-308: `/privacy` returns 200 with a data inventory and deletion contact
+- [x] ISC-309: Footer links to terms and privacy
+- [x] ISC-310: `LAUNCH.md` covers backups, privacy-respecting monitoring, secrets inventory, moderation rota, soft-launch plan, and the full deferred-verify list
 
 ### Phase 9 — guards & regression
-- [ ] ISC-311: Anti: zero tracking/analytics scripts anywhere (gtag/posthog/plausible/pixel grep → 0)
-- [ ] ISC-312: Anti: moderation queue invisible to non-admins (404)
-- [ ] ISC-313: Build, typecheck, tests, lint pass
-- [ ] ISC-314: Full route regression battery green
-- [ ] ISC-315: Live moderation round-trip [DEFERRED-VERIFY — follow-up: ATELIER-P9-LIVE]
-- [ ] ISC-316: Antecedent: new surfaces compose the Window primitive
+- [x] ISC-311: Anti: zero tracking/analytics scripts anywhere (gtag/posthog/plausible/pixel grep → 0)
+- [x] ISC-312: Anti: moderation queue invisible to non-admins (404)
+- [x] ISC-313: Build, typecheck, tests, lint pass
+- [x] ISC-314: Full route regression battery green
+- [DEFERRED-VERIFY] ISC-315: Live moderation round-trip [follow-up: ATELIER-P9-LIVE — after creds: report → queue → action; block → feed exclusion with two users]
+- [x] ISC-316: Antecedent: new surfaces compose the Window primitive
 
 ## Test Strategy
 
@@ -552,6 +552,8 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - 2026-07-09 — Donations table deliberately has NO client insert policy: the Stripe webhook (service role) is the only writer, making forged donations impossible from the anon key. Admin gate returns 404 (not 403) so the surface isn't enumerable.
 - 2026-07-09 — refined: ISC-282 (promo anti-grep) sharpened from "zero matches" to "no promotional MECHANISM — matches must all be negation copy." The /donate and /jobs pages honestly state "no promoted posts / no boosted reach / nothing here can be promoted," which is exactly the copy the plan demands; rewording product copy to satisfy a grep would invert the criterion's purpose. Phase 2's rewording of feed copy is superseded by this refinement.
 - 2026-07-09 — Phase 8: 'jobs' added to the layout block enum (additive — parseLayout already drops unknown types for stale clients); MessageButton gained a label prop instead of a parallel ApplyButton component (one chat entry point, two labels).
+- 2026-07-09 — Phase 9 scoping: rate limits are advisory window-counts (real DDoS defense belongs at the edge — LAUNCH.md); block enforcement starts at the feed (widest surface), chat/group extension queued on usage data; /terms + /privacy shipped as DRAFTs explicitly flagged for counsel. Follower event reminders + appeal emails remain bundled in ATELIER-EMAIL.
+- 2026-07-09 — Personalization depth chosen: profile accent (red/blue/yellow) — small, structural (schema→editor→render through one typed field), and visible on every profile. Deeper theming (spacing, type scale per profile) deliberately rejected: it would fracture the Bauhaus system the whole product stands on.
 - 2026-07-09 12:00 — Message button implemented as a client component calling a server action (`startOrGetThread`) instead of a plain form action, so clicking it navigates client-side without a page reload. The form-action variant (`startChatAndRedirect`) exists as a fallback for non-JS contexts.
 - 2026-07-09 12:00 — Chat nav tab added as a fourth entry in the existing TABS array rather than as a sub-nav or sidebar, keeping the Bauhaus facade pattern consistent. The accent color repeats yellow (shared with Profile) — each phase adds surface area and the five-token palette limits distinct accent allocation.
 
@@ -848,3 +850,33 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - ISC-284: curl — 12-route regression battery all green
 - ISC-285: DEFERRED — ATELIER-P8-LIVE
 - ISC-286: curl — /jobs and jobs block compose Window (data-window)
+
+### Phase 9 (verified 2026-07-09, commit 3a5d35f)
+- ISC-287/288: Read — migration 0010: reports (5 reasons, 4 statuses, reporter-insert + admin-read/update RLS), blocks (composite PK, no_self_block, own-managed RLS)
+- ISC-289: curl/Read — ReportControl (<details>, no modal) on /p/[id] and /u/[handle]; hidden in preview (probed 0), gated on configured
+- ISC-290: Read — createReport validates subject/reason enums, inserts as reporter
+- ISC-291: Grep — 24h window count vs RATE_LIMITS.reports_per_day (20)
+- ISC-292: Read — block/unblock own-scoped with self-block guard + DB constraint
+- ISC-293: Grep — getFeedPosts filters authorIds through blocked set (`!blocked.has(id)`)
+- ISC-294: curl — /admin/reports 200 (admin/preview), notFound() for non-admins; demo report renders
+- ISC-295: curl — reviewed/dismissed/actioned buttons ×3 in queue
+- ISC-296: Grep — publishPost: hourly count `(recentPosts ?? 0) >= 20` rejects
+- ISC-297: Grep — sendMessage: hourly count ≥120 rejects (second agent's file read before edit)
+- ISC-298: curl — "Skip to content" first focusable, href="#main"; #main on shell main
+- ISC-299: Grep — :focus-visible 3px blue outline in globals.css
+- ISC-300: curl/Read — composer #alt_text field; publishPost stores (≤300); ResponsiveImage alt priority alt_text→caption; demo alt renders on /p/demo-ines-1
+- ISC-301: Read — header tabIndex=0, role=button, aria-label, onKeyDown arrows→moveBlock / shift+arrows→resizeBlock (same tested math)
+- ISC-302: Read — header/nav/main/footer landmarks; aria-current preserved on tabs
+- ISC-303: curl — /welcome 200, 3 steps, links to editor/composer/groups (4 links)
+- ISC-304: Read — empty feed renders data-welcome-link → /welcome
+- ISC-305: curl — 3 data-accent-option radios in editor identity panel
+- ISC-306: curl — /u/ines Bio window accent square renders bg-blue (her choice)
+- ISC-307/308: curl — /terms + /privacy 200 with data-draft-notice; privacy has data-data-inventory + deletion contact
+- ISC-309: curl — data-footer-terms + data-footer-privacy links
+- ISC-310: Read — LAUNCH.md: creds unlock list, backups (PITR + dumps), privacy-respecting monitoring, moderation rota, perf posture, soft-launch sequence, deferred-verify pointer
+- ISC-311: Grep — gtag/posthog/plausible/analytics.js/pixel → 2 matches: a geometry doc-comment ("pixels") and privacy negation copy; zero mechanisms
+- ISC-312: Read — /admin/reports uses the same 404 gate as /admin/appeals
+- ISC-313: Bash — build (23 routes + proxy), TSC_OK, 50 tests, eslint clean (after removing a JSX inline-await)
+- ISC-314: curl — 14-route regression battery all green
+- ISC-315: DEFERRED — ATELIER-P9-LIVE
+- ISC-316: curl — welcome/terms/privacy/admin-reports all compose Window
