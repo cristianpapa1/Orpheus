@@ -1,5 +1,9 @@
 {
   "name": "orpheus",
   "private": true,
-  "workspaces": ["atelier", "packages/*"]
+  "workspaces": [
+    "atelier",
+    "packages/*",
+    "mobile"
+  ]
 }
