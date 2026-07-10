@@ -54,3 +54,9 @@ Orpheus is a workspace utilizing **Bun** for package management, structured arou
 
 ### Mobbin.com (UI/UX Pattern Library)
 - **Idea**: **Critical for Orpheus**. Since Orpheus mandates a "premium and dynamic UI" utilizing Tailwind v4 and Framer Motion, Mobbin will be the primary research tool. By studying the micro-interactions, layouts, and typography of top iOS and Web apps on Mobbin, the team can translate those designs into Framer Motion animations.
+
+### Local-First Architecture (PowerSync / RxDB)
+- **Idea**: To achieve the ultimate "premium" feel (instantaneous UI, zero loading spinners), adopt a Local-First architecture. Tools like PowerSync integrate directly with Supabase. It uses a local SQLite database (via WASM in the browser) for instant reads/writes, and syncs to Supabase Postgres in the background. It allows the app to work flawlessly offline and feel as fast as a native iOS app.
+
+### Generative UI (Vercel AI SDK)
+- **Idea**: Since Orpheus focuses heavily on Tailwind v4 and Framer Motion, you could build a feature where users prompt an LLM, and instead of streaming back text, it streams back actual React components (Generative UI). You could dynamically render interactive Framer Motion components on the fly based on user input, creating a truly next-generation interface.
