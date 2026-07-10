@@ -5,7 +5,7 @@ project: Atelier
 effort: E3
 effort_source: classifier
 phase: complete
-progress: 341/351
+progress: 363/373
 mode: interactive
 started: 2026-07-08T15:04:39Z
 updated: 2026-07-09T12:00:00Z
@@ -518,15 +518,15 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - [x] ISC-356: curl — editor has 0 school/accent pickers, pointer text links to Settings
 - [x] ISC-357: Bash — 56 tests, TSC_OK, lint, build (25 routes) green
 
-### M0 — packages/core extraction (bun workspaces)
-- [ ] ISC-358: Root package.json declares bun workspaces: atelier + packages/core
-- [ ] ISC-359: @atelier/core exports the 9 pure module groups + geometry, with zero react/next/DOM imports inside the package
-- [ ] ISC-360: Core's test suite (all pure tests) runs green from packages/core
-- [ ] ISC-361: Web imports moved modules ONLY via @atelier/core — zero stale @/lib paths to moved files
-- [ ] ISC-362: Browser-only code (canvas, media elements) remains in the web app; pure geometry lives in core
-- [ ] ISC-363: next build green (transpilePackages + tsconfig paths)
-- [ ] ISC-364: Full route regression unchanged after the move
-- [ ] ISC-365: Anti: no module body exists in two places (old paths are moves, not copies)
+### M0 — packages/core extraction (verified 2026-07-10, commit 47ede35)
+- [x] ISC-358: Root package.json workspaces [atelier, packages/*]; `bun pm ls` shows @atelier/core@workspace:packages/core
+- [x] ISC-359: 10 module groups in core (incl. new posts/geometry); purity grep react/next/document/window → 0
+- [x] ISC-360: `bun test` in packages/core: 56 pass / 0 fail (every pure test moved; web has none left, correctly)
+- [x] ISC-361: sed sweep + probe — zero stale @/lib or relative imports to moved files (groups/chat types intentionally stayed web-side)
+- [x] ISC-362: media.ts keeps canvas/media-element code, imports geometry from core; image.ts deleted (unused after split)
+- [x] ISC-363: next build green with transpilePackages ["@atelier/core"] + tsconfig paths
+- [x] ISC-364: 23-route regression all green; /u/ines still data-school="de-stijl"
+- [x] ISC-365: Anti — geometry constants/functions exist only in core (media.ts re-imports; git rm on image.ts)
 
 ## Test Strategy
 

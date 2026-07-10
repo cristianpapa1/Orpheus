@@ -4,7 +4,7 @@
 > Context: all 9 web phases complete (see ISA.md). Mobile top-nav is cramped
 > (4 tabs out of thumb reach); Cristian wants a native app via Expo, not web-only.
 
-## M0 — Extract shared core (~1 session) — DO FIRST
+## M0 — Extract shared core — ✅ DONE 2026-07-10 (commit 47ede35)
 Convert repo to **bun workspaces**. Create `packages/core` and move the pure-TS,
 zero-DOM modules there (with their ~50 bun tests):
 `atelier/src/lib/profile/layout.ts`, `lib/posts/{types,display,image(fitWithin),media(variantWidthsFor)}`,
@@ -12,7 +12,7 @@ zero-DOM modules there (with their ~50 bun tests):
 plus shared type files. `apps/web` = current `atelier/` (imports switch to `@atelier/core`).
 Gate: all 50 tests pass from the package; web build/routes unchanged.
 
-## M1 — Web bottom tab bar (~1 session) — fixes the screenshot
+## M1 — Web bottom tab bar — ✅ DONE 2026-07-10 (commit c98dd3e)
 - `< md`: fixed bottom bar — Feed / Groups / Chat / Profile, icon+label,
   accent-square active indicator, `padding-bottom: env(safe-area-inset-bottom)`.
 - Top header shrinks to wordmark + contextual actions; desktop keeps current nav.
