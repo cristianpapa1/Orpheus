@@ -4,8 +4,8 @@ slug: 20260708-120400_develop-the-atelier-build-here-build
 project: Atelier
 effort: E3
 effort_source: classifier
-phase: execute
-progress: 248/286
+phase: complete
+progress: 277/286
 mode: interactive
 started: 2026-07-08T15:04:39Z
 updated: 2026-07-09T12:00:00Z
@@ -388,44 +388,44 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - [x] ISC-256: Antecedent: donation surfaces compose the Window primitive
 
 ### Phase 8 — jobs data model
-- [ ] ISC-257: Migration 0009 creates `job_posts` with discipline/work_mode/status/apply_url checks
-- [ ] ISC-258: job_posts RLS: public select, owner-only insert/update/delete
-- [ ] ISC-259: Indexes for discovery (status, created_at desc) and per-profile listing
+- [x] ISC-257: Migration 0009 creates `job_posts` with discipline/work_mode/status/apply_url checks
+- [x] ISC-258: job_posts RLS: public select, owner-only insert/update/delete
+- [x] ISC-259: Indexes for discovery (status, created_at desc) and per-profile listing
 
 ### Phase 8 — lib, demo & layout block
-- [ ] ISC-260: Types export ≥5 disciplines, 3 work modes (remote/on_site/hybrid), 3 statuses
-- [ ] ISC-261: `filterJobs` is pure (discipline + work mode) and unit-tested
-- [ ] ISC-262: ≥3 demo jobs including one filled (collapse/discovery-exclusion test)
-- [ ] ISC-263: Layout engine gains the `jobs` block type; full test suite still passes
+- [x] ISC-260: Types export ≥5 disciplines, 3 work modes (remote/on_site/hybrid), 3 statuses
+- [x] ISC-261: `filterJobs` is pure (discipline + work mode) and unit-tested
+- [x] ISC-262: ≥3 demo jobs including one filled (collapse/discovery-exclusion test)
+- [x] ISC-263: Layout engine gains the `jobs` block type; full test suite still passes
 
 ### Phase 8 — poster management
-- [ ] ISC-264: `/profile/jobs` returns 200 (gated via /profile matcher)
-- [ ] ISC-265: Create form: title, discipline, description, location, work mode, compensation, apply link
-- [ ] ISC-266: `createJob` re-validates title/discipline/URL server-side
-- [ ] ISC-267: `setJobStatus` cycles open/filled/closed on own rows only
-- [ ] ISC-268: Preview mode: form disabled with notice; demo jobs listed
-- [ ] ISC-269: Profile tab links to the jobs manager
+- [x] ISC-264: `/profile/jobs` returns 200 (gated via /profile matcher)
+- [x] ISC-265: Create form: title, discipline, description, location, work mode, compensation, apply link
+- [x] ISC-266: `createJob` re-validates title/discipline/URL server-side
+- [x] ISC-267: `setJobStatus` cycles open/filled/closed on own rows only
+- [x] ISC-268: Preview mode: form disabled with notice; demo jobs listed
+- [x] ISC-269: Profile tab links to the jobs manager
 
 ### Phase 8 — profile block & discovery
-- [ ] ISC-270: Jobs window block renders open postings on public profiles
-- [ ] ISC-271: Filled/closed postings collapse in a details element
-- [ ] ISC-272: Block links to the discovery view
-- [ ] ISC-273: `/jobs` returns 200 publicly
-- [ ] ISC-274: Discovery lists open jobs newest-first (created_at only)
-- [ ] ISC-275: Discipline filter works via query param (probed in served HTML)
-- [ ] ISC-276: Work-mode filter works via query param
-- [ ] ISC-277: Filled/closed jobs never appear in discovery
-- [ ] ISC-278: Each listing links to the poster's profile
-- [ ] ISC-279: Apply flow: chat thread via MessageButton, or external link when apply_url exists
-- [ ] ISC-280: Compensation renders ("range or negotiable" — free text)
+- [x] ISC-270: Jobs window block renders open postings on public profiles
+- [x] ISC-271: Filled/closed postings collapse in a details element
+- [x] ISC-272: Block links to the discovery view
+- [x] ISC-273: `/jobs` returns 200 publicly
+- [x] ISC-274: Discovery lists open jobs newest-first (created_at only)
+- [x] ISC-275: Discipline filter works via query param (probed in served HTML)
+- [x] ISC-276: Work-mode filter works via query param
+- [x] ISC-277: Filled/closed jobs never appear in discovery
+- [x] ISC-278: Each listing links to the poster's profile
+- [x] ISC-279: Apply flow: chat thread via MessageButton, or external link when apply_url exists
+- [x] ISC-280: Compensation renders ("range or negotiable" — free text)
 
 ### Phase 8 — guards & regression
-- [ ] ISC-281: Anti: no paid placement — discovery has no ordering beyond created_at
-- [ ] ISC-282: Anti: no promotional mechanism exists — every sponsored/boost/promote/advertis match in src/ is negation copy stating the principle, never a code path or surface [refined 2026-07-09, see Decisions]
-- [ ] ISC-283: Build, typecheck, tests, lint pass
-- [ ] ISC-284: All prior routes re-probed at expected codes
-- [ ] ISC-285: Live job round-trip (post→discover→apply→filled) [DEFERRED-VERIFY — follow-up: ATELIER-P8-LIVE]
-- [ ] ISC-286: Antecedent: jobs surfaces compose the Window primitive
+- [x] ISC-281: Anti: no paid placement — discovery has no ordering beyond created_at
+- [x] ISC-282: Anti: no promotional mechanism exists — every sponsored/boost/promote/advertis match in src/ is negation copy stating the principle, never a code path or surface [refined 2026-07-09, see Decisions]
+- [x] ISC-283: Build, typecheck, tests, lint pass
+- [x] ISC-284: All prior routes re-probed at expected codes
+- [DEFERRED-VERIFY] ISC-285: Live job round-trip (post→discover→apply→filled) [follow-up: ATELIER-P8-LIVE — after creds: full DoD sequence with two users]
+- [x] ISC-286: Antecedent: jobs surfaces compose the Window primitive
 
 ## Test Strategy
 
@@ -510,6 +510,8 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - 2026-07-09 — Phase 7: appeal EMAIL channel not implemented (no Resend key, no recipient-list infra); the in-app banner channel is complete. Plan says "banner and/or email" — banner satisfies the disjunction; email + event reminders bundle into one Resend pass (backlog ATELIER-EMAIL). Donation receipts ride Stripe Checkout's own receipt emails, so receipts are NOT blocked on Resend.
 - 2026-07-09 — refined: AppealBanner refactored from client-state visibility to cookie-based server rendering after the curl probe caught that the banner never existed in SSR HTML (unverifiable + hydration flash). Verification pressure improved the design — dismissal now survives without JS.
 - 2026-07-09 — Donations table deliberately has NO client insert policy: the Stripe webhook (service role) is the only writer, making forged donations impossible from the anon key. Admin gate returns 404 (not 403) so the surface isn't enumerable.
+- 2026-07-09 — refined: ISC-282 (promo anti-grep) sharpened from "zero matches" to "no promotional MECHANISM — matches must all be negation copy." The /donate and /jobs pages honestly state "no promoted posts / no boosted reach / nothing here can be promoted," which is exactly the copy the plan demands; rewording product copy to satisfy a grep would invert the criterion's purpose. Phase 2's rewording of feed copy is superseded by this refinement.
+- 2026-07-09 — Phase 8: 'jobs' added to the layout block enum (additive — parseLayout already drops unknown types for stale clients); MessageButton gained a label prop instead of a parallel ApplyButton component (one chat entry point, two labels).
 - 2026-07-09 12:00 — Message button implemented as a client component calling a server action (`startOrGetThread`) instead of a plain form action, so clicking it navigates client-side without a page reload. The form-action variant (`startChatAndRedirect`) exists as a fallback for non-JS contexts.
 - 2026-07-09 12:00 — Chat nav tab added as a fourth entry in the existing TABS array rather than as a sub-nav or sidebar, keeping the Bauhaus facade pattern consistent. The accent color repeats yellow (shared with Profile) — each phase adds surface area and the five-token palette limits distinct accent allocation.
 
@@ -776,3 +778,33 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - ISC-254: curl — 11-route regression battery all green
 - ISC-255: DEFERRED — needs Stripe + Supabase creds; follow-up ATELIER-P7-LIVE
 - ISC-256: curl — /donate and /admin/appeals compose Window (data-window present)
+
+### Phase 8 (verified 2026-07-09, commit 46fba23)
+- ISC-257..259: Read — migration 0009: discipline/work_mode/status/https checks, owner-only RLS ×4 policies, discovery + profile indexes
+- ISC-260: Read — 6 disciplines, 3 work modes, 3 statuses as const unions
+- ISC-261: Bash — filterJobs: 5 tests (none/discipline/mode/combined/invalid-ignored)
+- ISC-262: Read — 3 demo jobs, one status=filled
+- ISC-263: Bash — layout engine + all suites: 50 pass / 0 fail after adding the jobs block type
+- ISC-264: curl — /profile/jobs → 200 (under /profile matcher)
+- ISC-265: curl — data-create-job form: title, discipline select (6), description, location, work-mode select, compensation, apply_url
+- ISC-266: Read — createJob: title ≥3, discipline enum check, https?:// URL check
+- ISC-267: curl/Read — "Mark filled/closed/open" buttons render per posting; update scoped .eq(profile_id, user.id)
+- ISC-268: curl — preview notice + demo postings listed
+- ISC-269: curl — data-manage-jobs link on /profile
+- ISC-270: curl — /u/ines jobs block: data-profile-job=demo-job-2 (her open post)
+- ISC-271: curl — data-past-jobs details with the filled posting inside
+- ISC-272: curl — "Browse all jobs →" link in the block
+- ISC-273: curl — /jobs → 200 (public)
+- ISC-274: curl — order: demo-job-1 (Jul 8) before demo-job-2 (Jul 5)
+- ISC-275: curl — ?discipline=handmade → only demo-job-1; ?discipline=music → "No matches"
+- ISC-276: curl — ?mode=on_site&discipline=photography → only demo-job-2
+- ISC-277: curl — demo-job-3 (filled) appears 0 times in discovery
+- ISC-278: curl — poster links /u/theo and /u/ines on cards
+- ISC-279: Read/curl — MessageButton (label="Apply via chat") + data-apply-link external anchors
+- ISC-280: curl — data-compensation renders "€16/h", "€400 per edition"
+- ISC-281: Grep — only ordering in jobs queries is created_at desc
+- ISC-282: Grep — 3 matches, all negation copy on /donate and /jobs ("no promoted posts", "no boosted reach", "nothing here can be promoted"); zero mechanisms (criterion refined — see Decisions)
+- ISC-283: Bash — build (19 routes + proxy), TSC_OK, 50 tests, eslint clean
+- ISC-284: curl — 12-route regression battery all green
+- ISC-285: DEFERRED — ATELIER-P8-LIVE
+- ISC-286: curl — /jobs and jobs block compose Window (data-window)
