@@ -88,4 +88,9 @@ three tabs are auth-gated when Supabase is configured.
   (open/filled/closed), jobs window block on profiles (open listed,
   filled/closed collapsed), chronological filterable discovery at `/jobs`
   (discipline + work mode), apply via Atelier chat or external link.
-- ⬜ Phase 9 — polish & launch prep (next)
+- ✅ **Phase 9** — polish & launch prep: reporting + blocking + moderation
+  queue (`/admin/reports`), advisory rate limits, a11y pass (skip link,
+  focus-visible, alt text on media, keyboard-operable editor), onboarding
+  (`/welcome`), profile accent personalization, /terms + /privacy drafts,
+  and [`LAUNCH.md`](LAUNCH.md). **All nine phases complete** — launch is
+  gated on credentials (see LAUNCH.md).

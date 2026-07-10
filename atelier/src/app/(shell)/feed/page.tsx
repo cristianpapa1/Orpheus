@@ -31,6 +31,13 @@ export default async function FeedPage() {
               the order it was made. Start by exploring a profile and hitting
               Follow.
             </p>
+            <Link
+              href="/welcome"
+              data-welcome-link
+              className="mt-4 inline-block border-2 border-ink px-4 py-2 text-caption font-bold uppercase hover:bg-yellow"
+            >
+              New here? Start here →
+            </Link>
           </Window>
           <Window title="How it works" accent="blue" span="col-span-12 md:col-span-4">
             <p className="text-body">

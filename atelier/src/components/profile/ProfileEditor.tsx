@@ -141,6 +141,7 @@ export function ProfileEditor({
         bio: identity.bio,
         links: identity.links,
         layout: serializeLayout(layout),
+        accent: identity.accent,
       });
       setStatus(result.ok ? "Saved." : (result.error ?? "Save failed."));
     });
@@ -196,6 +197,23 @@ export function ProfileEditor({
             onChange={(e) => setIdentity({ ...identity, bio: e.target.value })}
             className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
           />
+          <p className="text-caption font-bold uppercase">Your accent</p>
+          <div className="flex gap-2" role="radiogroup" aria-label="Profile accent color">
+            {(["red", "blue", "yellow"] as const).map((a) => (
+              <button
+                key={a}
+                type="button"
+                role="radio"
+                aria-checked={identity.accent === a}
+                aria-label={`${a} accent`}
+                data-accent-option={a}
+                onClick={() => setIdentity({ ...identity, accent: a })}
+                className={`size-8 border-2 ${
+                  a === "red" ? "bg-red" : a === "blue" ? "bg-blue" : "bg-yellow"
+                } ${identity.accent === a ? "border-ink ring-2 ring-ink ring-offset-2" : "border-ink/30"}`}
+              />
+            ))}
+          </div>
           <p className="text-caption font-bold uppercase">Links</p>
           {identity.links.map((link, i) => (
             <div key={i} className="flex gap-2">
@@ -301,7 +319,21 @@ export function ProfileEditor({
             >
               <header
                 data-drag-handle
+                tabIndex={0}
+                role="button"
+                aria-label={`${BLOCK_LABEL[block.type]} window — arrows move, shift+arrows resize`}
                 onPointerDown={(e) => beginDrag(e, block, "move")}
+                onKeyDown={(e) => {
+                  const dx = e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : 0;
+                  const dy = e.key === "ArrowUp" ? -1 : e.key === "ArrowDown" ? 1 : 0;
+                  if (dx === 0 && dy === 0) return;
+                  e.preventDefault();
+                  setLayout((l) =>
+                    e.shiftKey
+                      ? resizeBlock(l, block.id, block.w + dx, block.h + dy)
+                      : moveBlock(l, block.id, block.x + dx, block.y + dy),
+                  );
+                }}
                 className="flex cursor-grab items-center gap-2 border-b-2 border-ink px-3 py-1 active:cursor-grabbing"
               >
                 <span aria-hidden className={`size-2 ${ACCENTS[i % ACCENTS.length]}`} />

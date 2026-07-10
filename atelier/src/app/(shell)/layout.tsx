@@ -31,7 +31,7 @@ export default async function ShellLayout({
           Preview mode — add Supabase keys to .env.local to enable sign-in
         </p>
       ) : null}
-      <main className="mx-auto w-full max-w-6xl grow px-6 py-10">
+      <main id="main" className="mx-auto w-full max-w-6xl grow px-6 py-10">
         {children}
       </main>
       <footer className="border-t-2 border-ink px-6 py-4 text-center text-caption uppercase">
@@ -42,6 +42,14 @@ export default async function ShellLayout({
         , never by ads ·{" "}
         <Link href="/jobs" data-footer-jobs className="border-b-2 border-ink font-bold hover:text-blue">
           jobs for makers
+        </Link>{" "}
+        ·{" "}
+        <Link href="/terms" data-footer-terms className="border-b-2 border-ink hover:text-blue">
+          terms
+        </Link>{" "}
+        ·{" "}
+        <Link href="/privacy" data-footer-privacy className="border-b-2 border-ink hover:text-blue">
+          privacy
         </Link>
       </footer>
     </div>

@@ -49,3 +49,9 @@ body {
   background: var(--color-yellow);
   color: var(--color-ink);
 }
+
+/* a11y — visible, on-system focus indication everywhere */
+:focus-visible {
+  outline: 3px solid var(--color-blue);
+  outline-offset: 2px;
+}

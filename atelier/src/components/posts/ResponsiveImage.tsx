@@ -29,7 +29,7 @@ export function ResponsiveImage({
       src={src}
       srcSet={srcSet}
       sizes={srcSet ? sizes : undefined}
-      alt={post.caption || `Work by ${post.author_name}`}
+      alt={post.alt_text || post.caption || `Work by ${post.author_name}`}
       width={post.image_width ?? undefined}
       height={post.image_height ?? undefined}
       loading={eager ? "eager" : "lazy"}

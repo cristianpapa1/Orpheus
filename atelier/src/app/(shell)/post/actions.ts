@@ -21,6 +21,8 @@ export interface PublishPostInput {
   width: number | null;
   height: number | null;
   blur_data: string | null;
+  /** Author-written alt text for accessibility. */
+  alt_text?: string;
   /** Groups to tag this post into — caller must be a MEMBER of each. */
   group_ids?: string[];
 }
@@ -64,6 +66,17 @@ export async function publishPost(
   const category = String(input.category ?? "");
   if (!isPostCategory(category)) return { ok: false, error: "Pick a category." };
 
+  // Rate limit: ≤20 posts per hour (advisory basics; see LAUNCH.md).
+  const hourAgo = new Date(Date.now() - 3600_000).toISOString();
+  const { count: recentPosts } = await supabase
+    .from("posts")
+    .select("*", { count: "exact", head: true })
+    .eq("author_id", user.id)
+    .gte("created_at", hourAgo);
+  if ((recentPosts ?? 0) >= 20) {
+    return { ok: false, error: "Rate limit: max 20 posts per hour." };
+  }
+
   const display = parseDisplay(input.display);
 
   let blur_data: string | null = null;
@@ -101,6 +114,7 @@ export async function publishPost(
       original_path: input.original_path,
       variants,
       blur_data,
+      alt_text: String(input.alt_text ?? "").trim().slice(0, 300) || null,
       display,
     })
     .select("id")

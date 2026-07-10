@@ -5,12 +5,16 @@ export interface ProfileLink {
   url: string;
 }
 
+export type ProfileAccent = "red" | "blue" | "yellow";
+
 export interface ProfileIdentity {
   display_name: string;
   handle: string;
   bio: string;
   avatar_url?: string | null;
   links: ProfileLink[];
+  /** The owner's accent — colors their bio window (personalization depth). */
+  accent: ProfileAccent;
 }
 
 export interface PublicProfile extends ProfileIdentity {

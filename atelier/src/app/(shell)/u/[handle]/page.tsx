@@ -11,6 +11,9 @@ import {
 import { getPostsByAuthor } from "@/lib/posts/queries";
 import { getEventsByProfile } from "@/lib/events/queries";
 import { getJobsByProfile } from "@/lib/jobs/queries";
+import { ReportControl } from "@/components/moderation/ReportControl";
+import { blockUser, unblockUser } from "@/lib/moderation/actions";
+import { isBlocked } from "@/lib/moderation/queries";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 interface Props {
@@ -35,6 +38,7 @@ export default async function PublicProfilePage({ params }: Props) {
   const posts = await getPostsByAuthor(profile.id, 6);
   const events = await getEventsByProfile(profile.id);
   const jobs = await getJobsByProfile(profile.id);
+  const blocked = await isBlocked(profile.id);
 
   let state: FollowState;
   if (!isSupabaseConfigured()) {
@@ -60,7 +64,24 @@ export default async function PublicProfilePage({ params }: Props) {
           initialState={state}
         />
         {state !== "self" && state !== "preview" && state !== "signed-out" ? (
-          <MessageButton targetHandle={profile.handle} />
+          <>
+            <MessageButton targetHandle={profile.handle} />
+            <ReportControl
+              subjectType="profile"
+              subjectId={profile.id}
+              backTo={`/u/${profile.handle}`}
+            />
+            <form action={blocked ? unblockUser : blockUser}>
+              <input type="hidden" name="handle" value={profile.handle} />
+              <input type="hidden" name="target_id" value={profile.id} />
+              <button
+                data-block-button
+                className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-red hover:border-red hover:text-paper"
+              >
+                {blocked ? "Unblock" : "Block"}
+              </button>
+            </form>
+          </>
         ) : null}
       </div>
       <ProfileCanvas

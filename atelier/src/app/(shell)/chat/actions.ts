@@ -95,6 +95,15 @@ export async function sendMessage(formData: FormData) {
   const body = String(formData.get("body") ?? "").trim().slice(0, 2000);
   if (!threadId || !body) return;
 
+  // Rate limit: ≤120 messages per hour (advisory basics; see LAUNCH.md).
+  const hourAgo = new Date(Date.now() - 3600_000).toISOString();
+  const { count: recent } = await supabase
+    .from("chat_messages")
+    .select("*", { count: "exact", head: true })
+    .eq("sender_id", user.id)
+    .gte("created_at", hourAgo);
+  if ((recent ?? 0) >= 120) return;
+
   // RLS checks participant access.
   await supabase.from("chat_messages").insert({
     thread_id: threadId,

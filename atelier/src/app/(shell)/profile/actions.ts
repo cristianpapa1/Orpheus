@@ -11,6 +11,7 @@ export interface SaveProfileInput {
   bio: string;
   links: unknown;
   layout: string; // serialized ProfileLayout
+  accent?: string;
 }
 
 export interface SaveProfileResult {
@@ -46,6 +47,9 @@ export async function saveProfile(
   const bio = input.bio.trim().slice(0, 600);
   const links = parseLinks(input.links);
   const layout = parseLayout(input.layout);
+  const accent = ["red", "blue", "yellow"].includes(input.accent ?? "")
+    ? input.accent
+    : "red";
 
   const { error } = await supabase
     .from("profiles")
@@ -55,6 +59,7 @@ export async function saveProfile(
       bio,
       links,
       layout: JSON.parse(serializeLayout(layout)),
+      accent,
       updated_at: new Date().toISOString(),
     })
     .eq("id", user.id);

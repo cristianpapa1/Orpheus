@@ -13,7 +13,11 @@ type ProfileRow = {
   avatar_url: string | null;
   links: unknown;
   layout: unknown;
+  accent?: string | null;
 };
+
+const toAccent = (v: unknown): "red" | "blue" | "yellow" =>
+  v === "blue" || v === "yellow" ? v : "red";
 
 function toPublicProfile(row: ProfileRow, followerCount: number): PublicProfile {
   return {
@@ -24,6 +28,7 @@ function toPublicProfile(row: ProfileRow, followerCount: number): PublicProfile 
     avatar_url: row.avatar_url,
     links: parseLinks(row.links),
     layout: parseLayout(row.layout),
+    accent: toAccent(row.accent),
     follower_count: followerCount,
   };
 }
@@ -36,7 +41,7 @@ export async function getProfileByHandle(
 
   const { data } = await supabase
     .from("profiles")
-    .select("id, handle, display_name, bio, avatar_url, links, layout")
+    .select("id, handle, display_name, bio, avatar_url, links, layout, accent")
     .eq("handle", handle)
     .maybeSingle();
   if (!data) return null;
@@ -60,7 +65,7 @@ export async function getOwnProfile(): Promise<PublicProfile | null> {
 
   const { data } = await supabase
     .from("profiles")
-    .select("id, handle, display_name, bio, avatar_url, links, layout")
+    .select("id, handle, display_name, bio, avatar_url, links, layout, accent")
     .eq("id", user.id)
     .maybeSingle();
   if (!data) return null;

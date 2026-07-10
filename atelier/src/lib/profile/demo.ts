@@ -17,6 +17,7 @@ export const DEMO_PROFILES: Record<string, PublicProfile> = {
       { label: "Portfolio", url: "https://example.com/ines" },
       { label: "Darkroom notes", url: "https://example.com/ines/notes" },
     ],
+    accent: "blue",
     layout: {
       version: 1,
       blocks: [
@@ -36,6 +37,7 @@ export const DEMO_PROFILES: Record<string, PublicProfile> = {
     bio: "Ceramics & woodwork. Berlin. Everything hand-thrown, everything signed.",
     avatar_url: null,
     links: [{ label: "Studio", url: "https://example.com/theo" }],
+    accent: "yellow",
     layout: DEFAULT_LAYOUT,
     follower_count: 42,
   },
@@ -49,6 +51,7 @@ export const DEMO_SELF: PublicProfile = {
   bio: "This is preview mode — your edits save to this browser only until Supabase is connected.",
   avatar_url: null,
   links: [{ label: "Your site", url: "https://example.com" }],
+  accent: "red",
   layout: DEFAULT_LAYOUT,
   follower_count: 0,
 };

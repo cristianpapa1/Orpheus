@@ -37,6 +37,8 @@ export interface Post {
   variants: PostVariant[];
   /** Tiny inline blur-up placeholder (data URI). */
   blur_data: string | null;
+  /** Author-written alt text (a11y); falls back to caption when null. */
+  alt_text: string | null;
   display: PostDisplay;
   created_at: string; // ISO-8601
 }

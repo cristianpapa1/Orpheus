@@ -40,6 +40,7 @@ export function PostComposer({
 }) {
   const [prepared, setPrepared] = useState<Prepared | null>(null);
   const [caption, setCaption] = useState("");
+  const [altText, setAltText] = useState("");
   const [category, setCategory] = useState("");
   const [display, setDisplay] = useState<PostDisplay>(DEFAULT_DISPLAY);
   const [groupIds, setGroupIds] = useState<string[]>([]);
@@ -127,6 +128,7 @@ export function PostComposer({
           width: prepared.variants.at(-1)?.width ?? prepared.originalWidth,
           height: prepared.variants.at(-1)?.height ?? prepared.originalHeight,
           blur_data: prepared.blur,
+          alt_text: altText,
           group_ids: groupIds,
         });
         // publishPost redirects on success; reaching here means failure.
@@ -178,6 +180,18 @@ export function PostComposer({
           className="max-h-96 w-auto border-2 border-ink object-contain"
         />
       ) : null}
+
+      <label htmlFor="alt_text" className="text-caption font-bold uppercase">
+        Alt text (describe the work for screen readers)
+      </label>
+      <input
+        id="alt_text"
+        value={altText}
+        onChange={(e) => setAltText(e.target.value)}
+        maxLength={300}
+        placeholder="e.g. Wood-fired tea bowl with iron glaze, kiln scar on the rim"
+        className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
+      />
 
       <label htmlFor="caption" className="text-caption font-bold uppercase">
         Caption

@@ -1,11 +1,11 @@
 ---
-task: "Build Atelier Phase 8 job posts and discovery"
+task: "Build Atelier Phase 9 polish and launch prep"
 slug: 20260708-120400_develop-the-atelier-build-here-build
 project: Atelier
 effort: E3
 effort_source: classifier
-phase: complete
-progress: 277/286
+phase: execute
+progress: 277/316
 mode: interactive
 started: 2026-07-08T15:04:39Z
 updated: 2026-07-09T12:00:00Z
@@ -426,6 +426,46 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - [x] ISC-284: All prior routes re-probed at expected codes
 - [DEFERRED-VERIFY] ISC-285: Live job round-trip (post→discover→apply→filled) [follow-up: ATELIER-P8-LIVE — after creds: full DoD sequence with two users]
 - [x] ISC-286: Antecedent: jobs surfaces compose the Window primitive
+
+### Phase 9 — trust & safety
+- [ ] ISC-287: Migration 0010 creates `reports` (subject_type/status checks; reporter-insert, admin-read/update RLS)
+- [ ] ISC-288: `blocks` table with composite PK, no-self-block check, own-managed RLS
+- [ ] ISC-289: Report control on post detail and public profiles (disclosure, never a modal)
+- [ ] ISC-290: `createReport` validates subject type + reason and inserts as the reporter
+- [ ] ISC-291: Report rate limit ≤20/day per user (server-side check)
+- [ ] ISC-292: Block/unblock on profiles, own-scoped
+- [ ] ISC-293: Feed excludes posts from blocked authors
+- [ ] ISC-294: `/admin/reports` moderation queue (admin-gated, 404 for others)
+- [ ] ISC-295: Queue actions: reviewed / dismissed / actioned
+- [ ] ISC-296: Post rate limit ≤20/hour in publishPost
+- [ ] ISC-297: Message rate limit ≤120/hour in sendMessage
+
+### Phase 9 — accessibility
+- [ ] ISC-298: Skip-to-content link is the first focusable element, targeting #main
+- [ ] ISC-299: Global :focus-visible outline defined in the token layer
+- [ ] ISC-300: Composer offers an alt-text field; stored and used as the image alt
+- [ ] ISC-301: Editor blocks are keyboard-operable — arrows move, shift+arrows resize (same tested math)
+- [ ] ISC-302: Semantic landmarks: header/nav/main/footer with aria-current preserved
+
+### Phase 9 — onboarding & personalization depth
+- [ ] ISC-303: `/welcome` returns 200 with a 3-step guide linking editor, composer, groups
+- [ ] ISC-304: Empty feed links to /welcome
+- [ ] ISC-305: Profile accent preference (red/blue/yellow) editable in the editor
+- [ ] ISC-306: Public profile bio window renders in the owner's chosen accent
+
+### Phase 9 — launch prep
+- [ ] ISC-307: `/terms` returns 200, marked DRAFT for counsel review
+- [ ] ISC-308: `/privacy` returns 200 with a data inventory and deletion contact
+- [ ] ISC-309: Footer links to terms and privacy
+- [ ] ISC-310: `LAUNCH.md` covers backups, privacy-respecting monitoring, secrets inventory, moderation rota, soft-launch plan, and the full deferred-verify list
+
+### Phase 9 — guards & regression
+- [ ] ISC-311: Anti: zero tracking/analytics scripts anywhere (gtag/posthog/plausible/pixel grep → 0)
+- [ ] ISC-312: Anti: moderation queue invisible to non-admins (404)
+- [ ] ISC-313: Build, typecheck, tests, lint pass
+- [ ] ISC-314: Full route regression battery green
+- [ ] ISC-315: Live moderation round-trip [DEFERRED-VERIFY — follow-up: ATELIER-P9-LIVE]
+- [ ] ISC-316: Antecedent: new surfaces compose the Window primitive
 
 ## Test Strategy
 

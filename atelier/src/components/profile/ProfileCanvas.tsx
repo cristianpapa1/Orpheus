@@ -55,7 +55,7 @@ export function ProfileCanvas({
         >
           <Window
             title={blockTitle(block)}
-            accent={ACCENTS[i % ACCENTS.length]}
+            accent={block.type === "bio" ? profile.accent : ACCENTS[i % ACCENTS.length]}
             className="h-full overflow-hidden"
           >
             <BlockBody

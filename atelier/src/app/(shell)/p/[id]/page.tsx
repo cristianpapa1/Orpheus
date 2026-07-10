@@ -6,6 +6,8 @@ import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
 import { getPostById } from "@/lib/posts/queries";
 import { CATEGORY_LABEL, formatPostDate } from "@/lib/posts/types";
+import { ReportControl } from "@/components/moderation/ReportControl";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -60,6 +62,15 @@ export default async function PostDetailPage({ params }: Props) {
             @{post.author_handle}
           </p>
           <p className="mt-4 text-body">{post.caption || "Untitled work."}</p>
+          {isSupabaseConfigured() ? (
+            <div className="mt-4">
+              <ReportControl
+                subjectType="post"
+                subjectId={post.id}
+                backTo={`/p/${post.id}`}
+              />
+            </div>
+          ) : null}
           <dl className="mt-6 flex flex-col gap-1 text-caption uppercase">
             <div className="flex justify-between border-t-2 border-ink pt-2">
               <dt className="font-bold">Category</dt>

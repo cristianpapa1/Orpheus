@@ -19,6 +19,7 @@ export default async function ProfileEditPage() {
           handle: profile.handle,
           bio: profile.bio,
           links: profile.links,
+          accent: profile.accent,
         }}
         initialLayout={profile.layout}
         canPersist={configured}

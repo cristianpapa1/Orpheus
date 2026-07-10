@@ -9,7 +9,7 @@ import { isPostCategory, parseVariantPaths, type Post } from "./types";
    no score, weight, or ranking of any kind (ISA anti-criterion ISC-108). */
 
 const POST_SELECT =
-  "id, author_id, caption, category, image_path, image_width, image_height, original_path, variants, blur_data, display, created_at, author:profiles(handle, display_name)";
+  "id, author_id, caption, category, image_path, image_width, image_height, original_path, variants, blur_data, alt_text, display, created_at, author:profiles(handle, display_name)";
 
 type PostRow = {
   id: string;
@@ -22,6 +22,7 @@ type PostRow = {
   original_path: string | null;
   variants: unknown;
   blur_data: string | null;
+  alt_text: string | null;
   display: unknown;
   created_at: string;
   author: { handle: string | null; display_name: string | null } | null;
@@ -46,6 +47,7 @@ function toPost(row: PostRow): Post | null {
     original_url: row.original_path ? publicMediaUrl(row.original_path) : null,
     variants: parseVariantPaths(row.variants, publicMediaUrl),
     blur_data: row.blur_data,
+    alt_text: row.alt_text,
     display: parseDisplay(row.display),
     created_at: row.created_at,
   };
@@ -64,12 +66,17 @@ export async function getFeedPosts(limit = 30): Promise<Post[]> {
   } = await supabase.auth.getUser();
   if (!user) return [];
 
-  const { data: followRows } = await supabase
-    .from("follows")
-    .select("followee_id")
-    .eq("follower_id", user.id);
+  const [{ data: followRows }, { data: blockRows }] = await Promise.all([
+    supabase.from("follows").select("followee_id").eq("follower_id", user.id),
+    supabase.from("blocks").select("blocked_id").eq("blocker_id", user.id),
+  ]);
 
-  const authorIds = [user.id, ...(followRows ?? []).map((r) => r.followee_id)];
+  // Blocked creators never reach the feed, even if still followed.
+  const blocked = new Set((blockRows ?? []).map((b) => b.blocked_id));
+  const authorIds = [
+    user.id,
+    ...(followRows ?? []).map((r) => r.followee_id),
+  ].filter((id) => !blocked.has(id));
 
   const { data } = await supabase
     .from("posts")
