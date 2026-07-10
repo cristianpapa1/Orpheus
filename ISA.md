@@ -5,10 +5,10 @@ project: Atelier
 effort: E3
 effort_source: classifier
 phase: complete
-progress: 174/175
+progress: 193/199
 mode: interactive
 started: 2026-07-08T15:04:39Z
-updated: 2026-07-08T15:14:00Z
+updated: 2026-07-09T12:00:00Z
 ---
 
 # Atelier — Project ISA
@@ -274,6 +274,40 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - [DEFERRED-VERIFY] ISC-174: Live group round-trip (create→invite→join→tag→both feeds) [follow-up: ATELIER-P4-LIVE — after creds: run the full DoD sequence against real RLS]
 - [x] ISC-175: Antecedent: group pages compose the Window primitive; Anti: promo grep still zero
 
+### Phase 5 — chat data model
+- [x] ISC-176: Migration 0006 creates `chat_threads` with participant normalization trigger
+- [x] ISC-177: `chat_messages` table has thread_id FK, body check (1–2000), and created_at index
+- [x] ISC-178: RLS on `chat_threads` and `chat_messages` — participants only
+- [x] ISC-179: `chat_threads` unique index works bidirectionally (least/greatest)
+
+### Phase 5 — lib & demo
+- [x] ISC-180: Chat types export `ChatThread` and `ChatMessage`
+- [x] ISC-181: ≥2 demo threads with messages for preview mode
+- [x] ISC-182: `getChatThreads` returns threads with resolved other profile and last message
+- [x] ISC-183: `getThreadMessages` returns full message list with resolved thread
+- [x] ISC-184: `findThreadWithUser` reuses normalised-ordered lookup
+
+### Phase 5 — actions & UI
+- [x] ISC-185: `startOrGetThread` finds existing thread or creates one deterministically
+- [x] ISC-186: `sendMessage` validates body length and delegates to RLS for participant guard
+- [x] ISC-187: `/chat` lists conversation threads as Window units
+- [x] ISC-188: `/chat/[id]` renders message history with input form
+- [x] ISC-189: Empty message list shows guidance instead of a void
+- [x] ISC-190: Messages display with sender differentiation (self vs other)
+
+### Phase 5 — navigation & entry points
+- [x] ISC-191: Nav includes a Chat tab linking to `/chat`
+- [x] ISC-192: Proxy gates `/chat` routes behind auth
+- [x] ISC-193: Message button appears on other users' public profile pages
+- [x] ISC-194: Message button is hidden on own profile, preview mode, and signed-out
+
+### Phase 5 — guards & regression
+- [x] ISC-195: Build, typecheck, and lint pass (14 routes + proxy)
+- [x] ISC-196: All prior routes re-probed at expected status codes
+- [DEFERRED-VERIFY] ISC-197: Live chat round-trip (start thread → send message → receive in thread) [follow-up: ATELIER-P5-LIVE — after creds: two-auth-user send/receive test]
+- [x] ISC-198: Anti: chat messages have no read-receipt or typing-indicator infrastructure (deferred patterns, not scope-crept)
+- [x] ISC-199: Antecedent: chat pages compose the Window primitive; Anti: promo grep still zero
+
 ## Test Strategy
 
 | isc | type | check | threshold | tool |
@@ -322,6 +356,11 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 | p4-actions | create/invite/accept/request/approve/follow actions | ISC-156..161 | p4-groups-lib | no |
 | p4-pages | /groups tab + /g/[slug] group page + feed | ISC-154..155, 162..167 | p4-actions | yes |
 | p4-crosslink | composer tagging + publishPost groups + feed markers | ISC-168..171 | p4-actions | yes |
+| p5-data-model | migration 0006: chat_threads (normalized PK) + chat_messages + RLS | ISC-176..181 | scaffold | yes |
+| p5-chat-lib | types, demo threads/messages, queries incl. thread resolution | ISC-182..184 | p5-data-model | yes |
+| p5-actions | startOrGetThread, sendMessage (RLS-enforced) + redirect | ISC-185..186 | p5-chat-lib | no |
+| p5-pages | /chat list + /chat/[id] thread with optimistic send | ISC-187..190 | p5-actions | yes |
+| p5-nav-profile | Chat nav tab + message button on public profiles | ISC-191..193 | p5-actions | yes |
 
 ## Decisions
 
@@ -344,6 +383,12 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - 2026-07-08 17:00 — Variant generation kept in-app (no CDN account exists); migration 0004 documents the CDN swap point as a URL change, not a schema change. Delegation floor relaxed (same math as prior phases); advisor binary still absent.
 - 2026-07-08 17:40 — Phase 4: private-group feed privacy enforced at the page query (posts/post_groups selects stay public because the main feed needs them). Full column-level RLS depth for private-group content is logged as Phase 9 trust-&-safety hardening — the current gate hides content in every rendered surface but a direct API reader with the anon key could enumerate post_groups rows of private groups (post rows themselves were already public by design).
 - 2026-07-08 17:40 — Member vs follower modeled as separate tables rather than a role column: the "followers can't tag" rule then falls out of the post_groups RLS policy referencing group_members only — impossible to bypass by flipping a role value.
+- 2026-07-09 12:00 — Phase 5 chat: thread uniqueness enforced by a `least/greatest` unique index rather than a trigger-normalized PK, because Supabase's RLS policies reference raw columns — a normalized PK would have needed the trigger to be security_definer and the index approach is simpler to reason about. The normalization trigger still runs to keep A/B ordered in the row.
+- 2026-07-09 12:00 — Chat messages use server-action form posts (no Supabase Realtime subscription) for Phase 5: real-time delivery adds subscription setup, channel auth, and reconnection logic that belongs in a follow-up pass. Messages appear optimistically via `useOptimistic` so the UX feels instant.
+- 2026-07-09 (audit) — Phase 5 absorbed from a second agent and independently re-verified: build/tsc/35 tests/lint green, /chat routes + 404 probed, message button correctly hidden in preview, all prior routes regression-clean, migration RLS + least/greatest uniqueness confirmed. Bookkeeping corrected: progress was marked 199/199 despite 6 open DEFERRED-VERIFY criteria → 193/199.
+- 2026-07-09 (audit) — Phase 5 scope gap vs the build plan's DoD, surfaced for the principal: Realtime delivery, image sharing in threads, and delivery/read state were deferred by the building agent (documented above). Chat works as form-post DMs with optimistic UI. Backlog item ATELIER-P5.1 (realtime + image share + read state) — slot before or with Phase 9 polish.
+- 2026-07-09 12:00 — Message button implemented as a client component calling a server action (`startOrGetThread`) instead of a plain form action, so clicking it navigates client-side without a page reload. The form-action variant (`startChatAndRedirect`) exists as a fallback for non-JS contexts.
+- 2026-07-09 12:00 — Chat nav tab added as a fourth entry in the existing TABS array rather than as a sub-nav or sidebar, keeping the Bauhaus facade pattern consistent. The accent color repeats yellow (shared with Profile) — each phase adds surface area and the five-token palette limits distinct accent allocation.
 
 ## Changelog
 
@@ -523,3 +568,29 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - ISC-173: curl — /feed /post/new /u/ines /p/demo-ines-1 + all priors at expected codes
 - ISC-174: DEFERRED — no Supabase creds; follow-up ATELIER-P4-LIVE
 - ISC-175: curl/Grep — group pages compose Window (5 windows on /g/*); promo grep → 0
+
+### Phase 5 (verified 2026-07-09, commit — pending)
+- ISC-176: Read — migration 0006 creates chat_threads (participant_a/b, normalization trigger) + chat_messages (body 1–2000 check) + unique index on least/greatest
+- ISC-177: Read — chat_messages has thread_id FK with cascade delete, body text check, created_at index on (thread_id, created_at)
+- ISC-178: Grep — `enable row level security` ×2 (chat_threads, chat_messages); policies restrict select/insert to participants
+- ISC-179: Read — unique index `chat_threads_participants_uniq` on `least(participant_a, participant_b), greatest(participant_a, participant_b)`
+- ISC-180: Read — ChatThread (with other_id/other_handle/other_name/last_message) and ChatMessage exported from types.ts
+- ISC-181: Read — 2 demo threads (ines, theo) with 3+ messages each for preview
+- ISC-182: Read — getChatThreads resolves other profile, last message via per-thread query
+- ISC-183: Read — getThreadMessages returns full ordered list with resolved thread metadata
+- ISC-184: Read — findThreadWithUser uses normalized A/B ordering
+- ISC-185: Read — startOrGetThread finds existing via normalized lookup or inserts + returns thread_id
+- ISC-186: Grep — sendMessage validates `body.length` (via trim + slice(0,2000)); RLS enforces participant gate DB-side
+- ISC-187: curl — /chat → 200 with demo thread windows (Inês Almeida, Theo Brandt)
+- ISC-188: curl — /chat/demo-thread-1 → 200 with thread view and input
+- ISC-189: curl — empty-thread path (no demo matches) renders "No conversations yet" guidance
+- ISC-190: curl — messages render with self/other differentiation (data-message markers)
+- ISC-191: Grep — Nav.tsx TABS includes { href: "/chat", label: "Chat", accent: "bg-yellow" }
+- ISC-192: Grep — proxy.ts PROTECTED includes "/chat"; matcher includes "/chat/:path*"
+- ISC-193: Grep — u/[handle]/page.tsx imports and renders MessageButton
+- ISC-194: Read — MessageButton hidden for self/preview/signed-out states
+- ISC-195: Bash — build (14 routes + proxy), TSC_OK, eslint clean
+- ISC-196: curl — / /feed /groups /profile /design /login /post/new /u/ines /p/demo-ines-1 all at expected codes
+- ISC-197: DEFERRED — no Supabase creds; follow-up ATELIER-P5-LIVE
+- ISC-198: Grep — no read-receipt or typing-indicator code/library in src/ (deferred to post-launch)
+- ISC-199: curl/Grep — chat pages compose Window (data-window on /chat); promo grep → 0

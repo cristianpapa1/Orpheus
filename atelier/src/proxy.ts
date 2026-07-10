@@ -6,7 +6,7 @@ import {
   isSupabaseConfigured,
 } from "@/lib/supabase/config";
 
-const PROTECTED = ["/feed", "/groups", "/profile", "/post"];
+const PROTECTED = ["/feed", "/groups", "/profile", "/post", "/chat"];
 
 /**
  * Refreshes the Supabase session on every navigation and gates the three
@@ -65,6 +65,7 @@ export const config = {
     "/groups/:path*",
     "/profile/:path*",
     "/post/:path*",
+    "/chat/:path*",
     "/login",
   ],
 };

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { FollowButton, type FollowState } from "@/components/profile/FollowButton";
+import { MessageButton } from "@/components/chat/MessageButton";
 import { ProfileCanvas } from "@/components/profile/ProfileCanvas";
 import {
   getProfileByHandle,
@@ -54,6 +55,9 @@ export default async function PublicProfilePage({ params }: Props) {
           handle={profile.handle}
           initialState={state}
         />
+        {state !== "self" && state !== "preview" && state !== "signed-out" ? (
+          <MessageButton targetHandle={profile.handle} />
+        ) : null}
       </div>
       <ProfileCanvas profile={profile} posts={posts} />
     </div>

@@ -7,6 +7,7 @@ import { signOut } from "@/app/login/actions";
 const TABS = [
   { href: "/feed", label: "Feed", accent: "bg-red" },
   { href: "/groups", label: "Groups", accent: "bg-blue" },
+  { href: "/chat", label: "Chat", accent: "bg-yellow" },
   { href: "/profile", label: "Profile", accent: "bg-yellow" },
 ] as const;
 
