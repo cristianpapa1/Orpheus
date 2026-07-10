@@ -1,4 +1,7 @@
+import Link from "next/link";
+import { AppealBanner } from "@/components/AppealBanner";
 import { Nav } from "@/components/Nav";
+import { getActiveAppeal, getRaisedForAppeal } from "@/lib/donations/queries";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createServerSupabase } from "@/lib/supabase/server";
 
@@ -9,10 +12,17 @@ export default async function ShellLayout({
 }) {
   const supabase = await createServerSupabase();
   const user = supabase ? (await supabase.auth.getUser()).data.user : null;
+  const activeAppeal = await getActiveAppeal();
+  const { getDismissedAppealId } = await import("@/app/appeal-actions");
+  const dismissedId = await getDismissedAppealId();
+  const appeal =
+    activeAppeal && activeAppeal.id !== dismissedId ? activeAppeal : null;
+  const raised = appeal ? await getRaisedForAppeal(appeal.id) : 0;
 
   return (
     <div className="flex min-h-dvh flex-col">
       <Nav email={user?.email ?? null} />
+      {appeal ? <AppealBanner appeal={appeal} raisedCents={raised} /> : null}
       {!isSupabaseConfigured() ? (
         <p
           data-setup-notice
@@ -25,7 +35,11 @@ export default async function ShellLayout({
         {children}
       </main>
       <footer className="border-t-2 border-ink px-6 py-4 text-center text-caption uppercase">
-        Atelier — funded by donations, never by ads
+        Atelier —{" "}
+        <Link href="/donate" data-footer-donate className="border-b-2 border-ink font-bold hover:text-red">
+          funded by donations
+        </Link>
+        , never by ads
       </footer>
     </div>
   );

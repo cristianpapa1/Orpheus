@@ -78,5 +78,11 @@ three tabs are auth-gated when Supabase is configured.
 - ✅ **Phase 6** — events on profiles: `/profile/events` manager, events
   window block with upcoming-by-date + collapsed past events, ticket-link
   CTA (link-out only — no in-platform ticketing).
-- ⬜ Phase 7 — donations (next)
-- ⬜ Phase 8+ — see the build plan
+- ✅ **Phase 7** — donations: Stripe one-off + monthly checkout (`/donate`),
+  webhook-recorded ledger (service role only — no client insert policy),
+  admin appeals at `/admin/appeals` (manual trigger, audience targeting,
+  goal/progress, on/off, per-appeal results) with a dismissible in-app
+  banner channel. Requires STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET /
+  SUPABASE_SERVICE_ROLE_KEY (see .env.example).
+- ⬜ Phase 8 — job posts on profiles (next)
+- ⬜ Phase 9 — polish & launch prep

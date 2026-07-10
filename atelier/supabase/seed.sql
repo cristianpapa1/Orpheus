@@ -11,6 +11,10 @@ values
 on conflict (id) do nothing;
 
 update public.profiles
+set is_admin = true
+where id = '00000000-0000-4000-a000-000000000001';
+
+update public.profiles
 set handle = 'ines',
     bio = 'Analogue photographer. Lisbon.',
     links = '[{"label":"Portfolio","url":"https://example.com/ines"},{"label":"Darkroom notes","url":"https://example.com/ines/notes"}]'::jsonb,
