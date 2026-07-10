@@ -5,7 +5,7 @@ project: Atelier
 effort: E3
 effort_source: classifier
 phase: complete
-progress: 373/373
+progress: 387/387
 mode: interactive
 started: 2026-07-08T15:04:39Z
 updated: 2026-07-09T12:00:00Z
@@ -948,3 +948,16 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - ISC-314: curl — 14-route regression battery all green
 - ISC-315: DEFERRED — ATELIER-P9-LIVE
 - ISC-316: curl — welcome/terms/privacy/admin-reports all compose Window
+
+### M2 — Expo app shell (verified 2026-07-10, commit a81a2f4)
+- [x] ISC-374: mobile/ Expo workspace (expo-router, TS) added to root bun workspaces
+- [x] ISC-375: @atelier/core imported on native (post dates, splitEvents/groupEventsByMonth, School type) — M0's purpose proven
+- [x] ISC-376: RN Window primitive (2px ink frame, accent square, uppercase title)
+- [x] ISC-377: theme.ts carries the exact Bauhaus + 4 school palettes as typed constants
+- [x] ISC-378: Native bottom tabs mirror M1 (Feed/Groups/Events/Account, accent squares)
+- [x] ISC-379..381: Feed/Groups/Events read the REAL project via anon client (public RLS)
+- [x] ISC-382..383: email+password auth against live project; AsyncStorage session persistence (native), url-polyfill
+- [x] ISC-384: bunx tsc --noEmit exit 0
+- [x] ISC-385: expo export --platform web builds all routes; served dist → 200
+- [x] ISC-386: Anti — no NativeWind (config-risk deviation logged); StyleSheet + typed theme only
+- [x] ISC-387: Anti — web app untouched (spot probes green; /u/ines 404 is CORRECT: real DB has ines_live, which serves 200)
