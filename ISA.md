@@ -4,8 +4,8 @@ slug: 20260708-120400_develop-the-atelier-build-here-build
 project: Atelier
 effort: E3
 effort_source: classifier
-phase: execute
-progress: 215/256
+phase: complete
+progress: 248/256
 mode: interactive
 started: 2026-07-08T15:04:39Z
 updated: 2026-07-09T12:00:00Z
@@ -342,50 +342,50 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - [x] ISC-222: Antecedent: events render inside the Window primitive via ProfileCanvas
 
 ### Phase 7 — donations data model
-- [ ] ISC-223: Migration 0008 creates `donations` with amount/currency/kind/status checks
-- [ ] ISC-224: `appeals` table with audience check, goal, active flag, created_by
-- [ ] ISC-225: `profiles.is_admin` column added (default false)
-- [ ] ISC-226: donations RLS: readable by own donor + admins; NO client insert policy (webhook/service-role only)
-- [ ] ISC-227: appeals RLS: active appeals publicly selectable; admin-only writes
+- [x] ISC-223: Migration 0008 creates `donations` with amount/currency/kind/status checks
+- [x] ISC-224: `appeals` table with audience check, goal, active flag, created_by
+- [x] ISC-225: `profiles.is_admin` column added (default false)
+- [x] ISC-226: donations RLS: readable by own donor + admins; NO client insert policy (webhook/service-role only)
+- [x] ISC-227: appeals RLS: active appeals publicly selectable; admin-only writes
 
 ### Phase 7 — Stripe integration
-- [ ] ISC-228: `stripe` dependency installed; client lazily created only when STRIPE_SECRET_KEY exists
-- [ ] ISC-229: Checkout supports one-off (mode=payment) AND recurring (mode=subscription)
-- [ ] ISC-230: Checkout carries appeal attribution in metadata
-- [ ] ISC-231: Webhook route verifies the Stripe signature before any processing
-- [ ] ISC-232: Webhook records the succeeded donation via a service-role Supabase client
-- [ ] ISC-233: Email receipts enabled through Checkout (customer email captured)
-- [ ] ISC-234: `.env.example` documents STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, SUPABASE_SERVICE_ROLE_KEY
+- [x] ISC-228: `stripe` dependency installed; client lazily created only when STRIPE_SECRET_KEY exists
+- [x] ISC-229: Checkout supports one-off (mode=payment) AND recurring (mode=subscription)
+- [x] ISC-230: Checkout carries appeal attribution in metadata
+- [x] ISC-231: Webhook route verifies the Stripe signature before any processing
+- [x] ISC-232: Webhook records the succeeded donation via a service-role Supabase client
+- [x] ISC-233: Email receipts enabled through Checkout (customer email captured)
+- [x] ISC-234: `.env.example` documents STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, SUPABASE_SERVICE_ROLE_KEY
 
 ### Phase 7 — the donate surface
-- [ ] ISC-235: `/donate` returns 200 publicly (no auth gate)
-- [ ] ISC-236: Page explains honestly what donations fund
-- [ ] ISC-237: Amount presets + custom amount + one-off/monthly choice
-- [ ] ISC-238: Preview mode: donate action disabled with notice (200, no crash)
-- [ ] ISC-239: Shell footer links to /donate
+- [x] ISC-235: `/donate` returns 200 publicly (no auth gate)
+- [x] ISC-236: Page explains honestly what donations fund
+- [x] ISC-237: Amount presets + custom amount + one-off/monthly choice
+- [x] ISC-238: Preview mode: donate action disabled with notice (200, no crash)
+- [x] ISC-239: Shell footer links to /donate
 
 ### Phase 7 — admin appeals (deliberately manual)
-- [ ] ISC-240: `/admin/appeals` behind proxy matcher AND server-side is_admin check
-- [ ] ISC-241: Non-admin request yields 404 (existence not leaked)
-- [ ] ISC-242: Create-appeal form: title, message, goal, audience (everyone/past donors/active users), active
-- [ ] ISC-243: `toggleAppeal` switches an appeal on/off
-- [ ] ISC-244: Per-appeal results: raised sum, reach estimate, progress vs goal
-- [ ] ISC-245: Demo appeal + demo ledger render in preview mode
+- [x] ISC-240: `/admin/appeals` behind proxy matcher AND server-side is_admin check
+- [x] ISC-241: Non-admin request yields 404 (existence not leaked)
+- [x] ISC-242: Create-appeal form: title, message, goal, audience (everyone/past donors/active users), active
+- [x] ISC-243: `toggleAppeal` switches an appeal on/off
+- [x] ISC-244: Per-appeal results: raised sum, reach estimate, progress vs goal
+- [x] ISC-245: Demo appeal + demo ledger render in preview mode
 
 ### Phase 7 — in-app banner channel
-- [ ] ISC-246: Active appeal renders as a single shell banner (in-app notification channel)
-- [ ] ISC-247: Banner links to /donate carrying appeal attribution
-- [ ] ISC-248: Banner is dismissible; dismissal persists client-side per appeal
-- [ ] ISC-249: No active appeal → no banner rendered
-- [ ] ISC-250: Banner shows goal progress when the appeal has a goal
+- [x] ISC-246: Active appeal renders as a single shell banner (in-app notification channel)
+- [x] ISC-247: Banner links to /donate carrying appeal attribution
+- [x] ISC-248: Banner is dismissible; dismissal persists client-side per appeal
+- [x] ISC-249: No active appeal → no banner rendered
+- [x] ISC-250: Banner shows goal progress when the appeal has a goal
 
 ### Phase 7 — guards & regression
-- [ ] ISC-251: Anti: donations grant zero feed/rank/visibility effect (no donation reference in feed/post/group queries)
-- [ ] ISC-252: Anti: no nag walls — at most one banner, dismissible, never a modal
-- [ ] ISC-253: Build, typecheck, tests, lint pass
-- [ ] ISC-254: All prior routes re-probed at expected codes
-- [ ] ISC-255: Live Stripe donation round-trip incl. receipt [DEFERRED-VERIFY — follow-up: ATELIER-P7-LIVE, needs Stripe + Supabase creds]
-- [ ] ISC-256: Antecedent: donation surfaces compose the Window primitive
+- [x] ISC-251: Anti: donations grant zero feed/rank/visibility effect (no donation reference in feed/post/group queries)
+- [x] ISC-252: Anti: no nag walls — at most one banner, dismissible, never a modal
+- [x] ISC-253: Build, typecheck, tests, lint pass
+- [x] ISC-254: All prior routes re-probed at expected codes
+- [DEFERRED-VERIFY] ISC-255: Live Stripe donation round-trip incl. receipt [follow-up: ATELIER-P7-LIVE — needs Stripe test keys + Supabase creds: donate, verify webhook row + receipt email + ledger]
+- [x] ISC-256: Antecedent: donation surfaces compose the Window primitive
 
 ## Test Strategy
 
@@ -467,6 +467,9 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - 2026-07-09 (audit) — Phase 5 absorbed from a second agent and independently re-verified: build/tsc/35 tests/lint green, /chat routes + 404 probed, message button correctly hidden in preview, all prior routes regression-clean, migration RLS + least/greatest uniqueness confirmed. Bookkeeping corrected: progress was marked 199/199 despite 6 open DEFERRED-VERIFY criteria → 193/199.
 - 2026-07-09 (audit) — Phase 5 scope gap vs the build plan's DoD, surfaced for the principal: Realtime delivery, image sharing in threads, and delivery/read state were deferred by the building agent (documented above). Chat works as form-post DMs with optimistic UI. Backlog item ATELIER-P5.1 (realtime + image share + read state) — slot before or with Phase 9 polish.
 - 2026-07-09 — Phase 6: follower event reminders (plan-optional) skipped — needs email infra that arrives with Phase 7's Resend integration; noted as a cheap add-on then. Events store timestamptz and render fixed en-GB UTC-labeled to avoid SSR hydration drift; local-timezone rendering is a Phase 9 polish candidate.
+- 2026-07-09 — Phase 7: appeal EMAIL channel not implemented (no Resend key, no recipient-list infra); the in-app banner channel is complete. Plan says "banner and/or email" — banner satisfies the disjunction; email + event reminders bundle into one Resend pass (backlog ATELIER-EMAIL). Donation receipts ride Stripe Checkout's own receipt emails, so receipts are NOT blocked on Resend.
+- 2026-07-09 — refined: AppealBanner refactored from client-state visibility to cookie-based server rendering after the curl probe caught that the banner never existed in SSR HTML (unverifiable + hydration flash). Verification pressure improved the design — dismissal now survives without JS.
+- 2026-07-09 — Donations table deliberately has NO client insert policy: the Stripe webhook (service role) is the only writer, making forged donations impossible from the anon key. Admin gate returns 404 (not 403) so the surface isn't enumerable.
 - 2026-07-09 12:00 — Message button implemented as a client component calling a server action (`startOrGetThread`) instead of a plain form action, so clicking it navigates client-side without a page reload. The form-action variant (`startChatAndRedirect`) exists as a fallback for non-JS contexts.
 - 2026-07-09 12:00 — Chat nav tab added as a fourth entry in the existing TABS array rather than as a sub-nav or sidebar, keeping the Bauhaus facade pattern consistent. The accent color repeats yellow (shared with Profile) — each phase adds surface area and the five-token palette limits distinct accent allocation.
 
@@ -699,3 +702,37 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - ISC-220: curl — 11-route regression battery incl. /chat and /chat/demo-thread-1 all green
 - ISC-221: DEFERRED — no Supabase creds; follow-up ATELIER-P6-LIVE
 - ISC-222: curl — events render inside Window via ProfileCanvas (data-window wraps the block)
+
+### Phase 7 (verified 2026-07-09, commit d1af16c)
+- ISC-223..225: Read — migration 0008: donations checks (amount>0, kind, status), appeals (audience check, goal, active), profiles.is_admin
+- ISC-226: Grep — donations has select policy only; zero insert/update policies (webhook/service-role is the sole writer)
+- ISC-227: Read — appeals: active-or-admin select; admin-only insert/update
+- ISC-228: Bash/Read — stripe@latest installed; getStripe() returns null without STRIPE_SECRET_KEY
+- ISC-229: Grep — `mode: recurring ? "subscription" : "payment"` with per-mode price_data (monthly interval)
+- ISC-230: Grep — metadata.appeal_id from /donate?appeal= hidden field
+- ISC-231: Grep — constructEventAsync(payload, signature, secret) before any processing; missing/invalid sig → 400; unconfigured → 503 (probed live)
+- ISC-232: Read — webhook inserts via createServiceClient() (server-only, service role)
+- ISC-233: Grep — customer_email on checkout session (Stripe sends receipts)
+- ISC-234: Read — .env.example documents all three new secrets with scope warnings
+- ISC-235: curl — GET /donate → 200 with no auth gate (public route, outside proxy matcher)
+- ISC-236: curl — data-honest-copy: "the only money that comes in… no perks, no boosted reach"
+- ISC-237: curl — presets €3/€5/€10/€25 + custom field + One-off/Monthly radios
+- ISC-238: curl — preview: data-setup-notice, donate button disabled, 200 no crash
+- ISC-239: curl — data-footer-donate link in shell footer
+- ISC-240: Grep/curl — /admin in proxy PROTECTED + matcher; page calls isViewerAdmin()
+- ISC-241: Read — non-admin → notFound() (404, existence not leaked)
+- ISC-242: curl — data-create-appeal form: title, message, goal, audience (3 options), active checkbox
+- ISC-243: Read — toggleAppeal flips active + revalidates layout (banner reacts)
+- ISC-244: curl — "Raised €220.00 of €600.00 (37%) · 17 donations · reach ~412 (Everyone)" renders
+- ISC-245: curl — demo appeal card + 4-row ledger table in preview
+- ISC-246: curl — data-appeal-banner server-rendered in shell HTML (exactly one)
+- ISC-247: curl — banner "Chip in" → /donate?appeal=<id> (attribution)
+- ISC-248: Read — dismissal via cookie-setting server action; layout skips render when cookie matches (refactored from client-state after the curl probe caught the SSR-invisible banner)
+- ISC-249: Read — layout renders banner only when an active appeal exists and isn't dismissed
+- ISC-250: curl — data-appeal-progress with €220.00 / €600.00 bar
+- ISC-251: Grep — donation|appeal references in posts/groups/profile query layers → 0 (money never touches ranking)
+- ISC-252: Grep/curl — single AppealBanner render site; no dialog/modal element (only the doc comment stating the rule)
+- ISC-253: Bash — build (17 routes + proxy), TSC_OK, 45 tests / 0 fail, eslint clean
+- ISC-254: curl — 11-route regression battery all green
+- ISC-255: DEFERRED — needs Stripe + Supabase creds; follow-up ATELIER-P7-LIVE
+- ISC-256: curl — /donate and /admin/appeals compose Window (data-window present)
