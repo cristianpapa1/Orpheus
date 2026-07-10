@@ -6,6 +6,8 @@
  * it to classes through the pure functions below (no ad-hoc CSS per post).
  */
 
+import { isSchool, type School } from "@/lib/design/schools";
+
 export const FRAMES = ["inset", "full-bleed", "plate"] as const;
 export type PostFrame = (typeof FRAMES)[number];
 
@@ -19,6 +21,8 @@ export interface PostDisplay {
   frame: PostFrame;
   span: PostSpan;
   aspect: PostAspect;
+  /** Track A: pin an artistic school on this post's frame (optional). */
+  school?: School;
 }
 
 export const DEFAULT_DISPLAY: PostDisplay = {
@@ -67,6 +71,7 @@ export function parseDisplay(value: unknown): PostDisplay {
     aspect: ASPECTS.includes(raw.aspect as PostAspect)
       ? (raw.aspect as PostAspect)
       : DEFAULT_DISPLAY.aspect,
+    ...(isSchool(raw.school) ? { school: raw.school } : {}),
   };
 }
 

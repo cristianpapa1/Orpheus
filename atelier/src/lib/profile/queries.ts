@@ -1,3 +1,4 @@
+import { toSchool } from "@/lib/design/schools";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { DEMO_PROFILES, DEMO_SELF } from "./demo";
 import { parseLayout } from "./layout";
@@ -14,6 +15,7 @@ type ProfileRow = {
   links: unknown;
   layout: unknown;
   accent?: string | null;
+  school?: string | null;
 };
 
 const toAccent = (v: unknown): "red" | "blue" | "yellow" =>
@@ -29,6 +31,7 @@ function toPublicProfile(row: ProfileRow, followerCount: number): PublicProfile 
     links: parseLinks(row.links),
     layout: parseLayout(row.layout),
     accent: toAccent(row.accent),
+    school: toSchool(row.school),
     follower_count: followerCount,
   };
 }
@@ -41,7 +44,7 @@ export async function getProfileByHandle(
 
   const { data } = await supabase
     .from("profiles")
-    .select("id, handle, display_name, bio, avatar_url, links, layout, accent")
+    .select("id, handle, display_name, bio, avatar_url, links, layout, accent, school")
     .eq("handle", handle)
     .maybeSingle();
   if (!data) return null;
@@ -65,7 +68,7 @@ export async function getOwnProfile(): Promise<PublicProfile | null> {
 
   const { data } = await supabase
     .from("profiles")
-    .select("id, handle, display_name, bio, avatar_url, links, layout, accent")
+    .select("id, handle, display_name, bio, avatar_url, links, layout, accent, school")
     .eq("id", user.id)
     .maybeSingle();
   if (!data) return null;

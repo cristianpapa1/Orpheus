@@ -51,7 +51,7 @@ export default async function PublicProfilePage({ params }: Props) {
   }
 
   return (
-    <div>
+    <div data-school={profile.school} className="-m-2 p-2">
       <div className="mb-6 flex flex-wrap items-center gap-4">
         <h1 className="text-h1 font-bold uppercase">{profile.display_name}</h1>
         <span data-follower-count className="text-caption font-bold uppercase">

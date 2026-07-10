@@ -18,6 +18,7 @@ export const DEMO_PROFILES: Record<string, PublicProfile> = {
       { label: "Darkroom notes", url: "https://example.com/ines/notes" },
     ],
     accent: "blue",
+    school: "de-stijl",
     layout: {
       version: 1,
       blocks: [
@@ -38,6 +39,7 @@ export const DEMO_PROFILES: Record<string, PublicProfile> = {
     avatar_url: null,
     links: [{ label: "Studio", url: "https://example.com/theo" }],
     accent: "yellow",
+    school: "swiss",
     layout: DEFAULT_LAYOUT,
     follower_count: 42,
   },
@@ -52,6 +54,7 @@ export const DEMO_SELF: PublicProfile = {
   avatar_url: null,
   links: [{ label: "Your site", url: "https://example.com" }],
   accent: "red",
+  school: "bauhaus",
   layout: DEFAULT_LAYOUT,
   follower_count: 0,
 };

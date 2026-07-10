@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { toSchool } from "@/lib/design/schools";
 import { parseLayout, serializeLayout } from "@/lib/profile/layout";
 import { HANDLE_RE, parseLinks } from "@/lib/profile/types";
 
@@ -12,6 +13,7 @@ export interface SaveProfileInput {
   links: unknown;
   layout: string; // serialized ProfileLayout
   accent?: string;
+  school?: string;
 }
 
 export interface SaveProfileResult {
@@ -50,6 +52,7 @@ export async function saveProfile(
   const accent = ["red", "blue", "yellow"].includes(input.accent ?? "")
     ? input.accent
     : "red";
+  const school = toSchool(input.school);
 
   const { error } = await supabase
     .from("profiles")
@@ -60,6 +63,7 @@ export async function saveProfile(
       links,
       layout: JSON.parse(serializeLayout(layout)),
       accent,
+      school,
       updated_at: new Date().toISOString(),
     })
     .eq("id", user.id);

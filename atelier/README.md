@@ -94,3 +94,10 @@ three tabs are auth-gated when Supabase is configured.
   (`/welcome`), profile accent personalization, /terms + /privacy drafts,
   and [`LAUNCH.md`](LAUNCH.md). **All nine phases complete** — launch is
   gated on credentials (see LAUNCH.md).
+- ✅ **Evolution run** — M1 mobile bottom tab bar (safe-area, native-style);
+  global `/events` discovery (month-grouped, chronological); posts beyond
+  images: short video (≤2 min) + short audio (≤5 min) with tap-to-play
+  players, duration badges, never autoplay; artistic **schools** — creators
+  converge their space to Bauhaus, De Stijl, Constructivism, Swiss Style,
+  or Memphis (per-post pinning supported; try `/design?school=memphis`).
+- ⬜ Next: M0 monorepo extraction + M2–M4 Expo app (`../mobile-plan.md` — say "run M0")

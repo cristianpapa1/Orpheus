@@ -55,3 +55,50 @@ body {
   outline: 3px solid var(--color-blue);
   outline-offset: 2px;
 }
+
+/*
+  Track A — artistic schools. Each scope re-maps the SAME token contract;
+  components are untouched. Bauhaus (the :root values) stays the default
+  and the site chrome. Utility classes (bg-red, border-ink, …) resolve
+  through these variables, so everything inside a scope converges.
+*/
+[data-school="de-stijl"] {
+  /* Mondrian: pure white field, black gridlines, unmixed primaries */
+  --color-ink: #111111;
+  --color-paper: #ffffff;
+  --color-red: #dd0100;
+  --color-blue: #225095;
+  --color-yellow: #fac901;
+}
+
+[data-school="constructivism"] {
+  /* Rodchenko: agitprop red and black on aged cream, ochre accents */
+  --color-ink: #1a1614;
+  --color-paper: #e8e0d5;
+  --color-red: #c8102e;
+  --color-blue: #3d3a38;
+  --color-yellow: #d9a404;
+}
+
+[data-school="swiss"] {
+  /* Müller-Brockmann: clinical white, near-black, one disciplined red */
+  --color-ink: #000000;
+  --color-paper: #ffffff;
+  --color-red: #e30613;
+  --color-blue: #0057a8;
+  --color-yellow: #e3b505;
+}
+
+[data-school="memphis"] {
+  /* Sottsass: the playful heresy — pastel field, teal and pink accents */
+  --color-ink: #22203a;
+  --color-paper: #fff8e7;
+  --color-red: #f45b69;
+  --color-blue: #2ec4b6;
+  --color-yellow: #ffd23f;
+}
+
+[data-school] {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}

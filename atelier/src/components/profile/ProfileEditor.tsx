@@ -15,6 +15,7 @@ import {
   type ProfileLayout,
 } from "@/lib/profile/layout";
 import type { ProfileIdentity, ProfileLink } from "@/lib/profile/types";
+import { SCHOOLS, SCHOOL_LABEL } from "@/lib/design/schools";
 import { saveProfile } from "@/app/(shell)/profile/actions";
 
 const ROW_H = 56;
@@ -142,6 +143,7 @@ export function ProfileEditor({
         links: identity.links,
         layout: serializeLayout(layout),
         accent: identity.accent,
+        school: identity.school,
       });
       setStatus(result.ok ? "Saved." : (result.error ?? "Save failed."));
     });
@@ -197,6 +199,29 @@ export function ProfileEditor({
             onChange={(e) => setIdentity({ ...identity, bio: e.target.value })}
             className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
           />
+          <p className="text-caption font-bold uppercase">Your school</p>
+          <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Artistic school">
+            {SCHOOLS.map((s) => (
+              <button
+                key={s}
+                type="button"
+                role="radio"
+                aria-checked={identity.school === s}
+                data-school-option={s}
+                onClick={() => setIdentity({ ...identity, school: s })}
+                className={`border-2 px-3 py-1 text-caption font-bold uppercase ${
+                  identity.school === s
+                    ? "border-ink bg-ink text-paper"
+                    : "border-ink hover:bg-yellow"
+                }`}
+              >
+                {SCHOOL_LABEL[s]}
+              </button>
+            ))}
+          </div>
+          <p className="text-caption uppercase opacity-70">
+            Your public space converges to this school&apos;s palette
+          </p>
           <p className="text-caption font-bold uppercase">Your accent</p>
           <div className="flex gap-2" role="radiogroup" aria-label="Profile accent color">
             {(["red", "blue", "yellow"] as const).map((a) => (

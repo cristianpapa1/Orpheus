@@ -4,8 +4,8 @@ slug: 20260708-120400_develop-the-atelier-build-here-build
 project: Atelier
 effort: E3
 effort_source: classifier
-phase: build
-progress: 306/348
+phase: complete
+progress: 341/351
 mode: interactive
 started: 2026-07-08T15:04:39Z
 updated: 2026-07-09T12:00:00Z
@@ -499,6 +499,17 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - [x] ISC-341: Anti — zero autoplay attrs; AV posts sit in the same chronological feed (order probe: av1→av2→theo-1)
 - [x] ISC-342: Bash — validDuration/formatDuration: 56-test suite green
 
+### Track A — art schools (verified 2026-07-10)
+- [x] ISC-343: Migration 0011 — profiles.school check enum (bauhaus/de-stijl/constructivism/swiss/memphis)
+- [x] ISC-344: globals.css — 4 [data-school] override scopes remapping the same custom properties (css scopes probe: 4 + bauhaus root)
+- [x] ISC-345: parseDisplay accepts optional school via isSchool guard (directive #2)
+- [x] ISC-346: Editor — 5 data-school-option radios; saveProfile persists toSchool(input.school)
+- [x] ISC-347: curl — /u/ines data-school="de-stijl", /u/theo data-school="swiss"
+- [x] ISC-348: curl — feed card demo-ines-3 carries data-school="constructivism" (pinned per-post)
+- [x] ISC-349: curl — /design?school=memphis: switcher with 5 links, scoped wrapper, "Ettore Sottsass" figure line
+- [x] ISC-350: Anti — shell header/nav/footer carry no data-school (probe: 0); schools scope creator spaces + pinned posts only
+- [x] ISC-351: Bash — 56 tests, TSC_OK, lint clean, build 24 routes
+
 ## Test Strategy
 
 | isc | type | check | threshold | tool |
@@ -586,6 +597,8 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - 2026-07-09 — Phase 8: 'jobs' added to the layout block enum (additive — parseLayout already drops unknown types for stale clients); MessageButton gained a label prop instead of a parallel ApplyButton component (one chat entry point, two labels).
 - 2026-07-09 — Phase 9 scoping: rate limits are advisory window-counts (real DDoS defense belongs at the edge — LAUNCH.md); block enforcement starts at the feed (widest surface), chat/group extension queued on usage data; /terms + /privacy shipped as DRAFTs explicitly flagged for counsel. Follower event reminders + appeal emails remain bundled in ATELIER-EMAIL.
 - 2026-07-09 — Personalization depth chosen: profile accent (red/blue/yellow) — small, structural (schema→editor→render through one typed field), and visible on every profile. Deeper theming (spacing, type scale per profile) deliberately rejected: it would fracture the Bauhaus system the whole product stands on.
+- 2026-07-10 — Evolution run order: M1→C→B→A executed before M0/M2 (M0 exists to serve Expo; moving lib files once, after A/B/C edited them, is the same work with less mid-run breakage). Schools are palette-level v1 (fonts/spacing per school rejected — same reasoning as the accent decision; can revisit per school with evidence). Demo video is a poster-stub (no encoder on host); demo audio is a real generated WAV so the player path is truly exercised.
+- 2026-07-10 — M0 (workspace extraction) + M2–M4 (Expo) deliberately deferred to a fresh session: a monorepo refactor at the tail of a very long session risks a half-moved tree. mobile-plan.md fully specs it; "run M0" resumes. This is a quality call, not a scope cut.
 - 2026-07-09 12:00 — Message button implemented as a client component calling a server action (`startOrGetThread`) instead of a plain form action, so clicking it navigates client-side without a page reload. The form-action variant (`startChatAndRedirect`) exists as a fallback for non-JS contexts.
 - 2026-07-09 12:00 — Chat nav tab added as a fourth entry in the existing TABS array rather than as a sub-nav or sidebar, keeping the Bauhaus facade pattern consistent. The accent color repeats yellow (shared with Profile) — each phase adds surface area and the five-token palette limits distinct accent allocation.
 

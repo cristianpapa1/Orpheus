@@ -5,6 +5,8 @@ export interface ProfileLink {
   url: string;
 }
 
+import type { School } from "@/lib/design/schools";
+
 export type ProfileAccent = "red" | "blue" | "yellow";
 
 export interface ProfileIdentity {
@@ -15,6 +17,8 @@ export interface ProfileIdentity {
   links: ProfileLink[];
   /** The owner's accent — colors their bio window (personalization depth). */
   accent: ProfileAccent;
+  /** The artistic school this creator's space converges to (Track A). */
+  school: School;
 }
 
 export interface PublicProfile extends ProfileIdentity {

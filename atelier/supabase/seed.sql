@@ -11,8 +11,12 @@ values
 on conflict (id) do nothing;
 
 update public.profiles
-set is_admin = true
+set is_admin = true, school = 'de-stijl'
 where id = '00000000-0000-4000-a000-000000000001';
+
+update public.profiles
+set school = 'swiss'
+where id = '00000000-0000-4000-a000-000000000002';
 
 update public.profiles
 set handle = 'ines',

@@ -1,5 +1,12 @@
+import Link from "next/link";
 import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
+import {
+  SCHOOLS,
+  SCHOOL_FIGURE,
+  SCHOOL_LABEL,
+  toSchool,
+} from "@/lib/design/schools";
 
 const SWATCHES = [
   { name: "Ink", cls: "bg-ink", hex: "#121210" },
@@ -10,9 +17,35 @@ const SWATCHES = [
 ];
 
 /** Living styleguide — the design system demonstrating itself. */
-export default function DesignPage() {
+export default async function DesignPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ school?: string }>;
+}) {
+  const { school: rawSchool } = await searchParams;
+  const school = toSchool(rawSchool);
+
   return (
-    <WindowGrid>
+    <div data-school={school} className="-m-2 p-2">
+      <div data-school-switcher className="mb-6 flex flex-wrap gap-2">
+        {SCHOOLS.map((s) => (
+          <Link
+            key={s}
+            href={`/design?school=${s}`}
+            aria-current={school === s ? "page" : undefined}
+            className={`border-2 px-3 py-1 text-caption font-bold uppercase ${
+              school === s ? "border-ink bg-ink text-paper" : "border-ink hover:bg-yellow"
+            }`}
+          >
+            {SCHOOL_LABEL[s]}
+          </Link>
+        ))}
+      </div>
+      <p className="mb-6 text-body">
+        Viewing the system through <strong>{SCHOOL_LABEL[school]}</strong>{" "}
+        ({SCHOOL_FIGURE[school]}) — same components, same tokens, different school.
+      </p>
+      <WindowGrid>
       <Window title="Palette" accent="red" span="col-span-12 md:col-span-6">
         <ul className="grid grid-cols-5 gap-3">
           {SWATCHES.map((s) => (
@@ -51,6 +84,7 @@ export default function DesignPage() {
           Placed on a 12-column grid, asymmetric but balanced.
         </p>
       </Window>
-    </WindowGrid>
+      </WindowGrid>
+    </div>
   );
 }

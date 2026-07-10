@@ -33,6 +33,7 @@ export function PostCard({
       data-post={post.id}
       data-frame={post.display.frame}
       data-span={post.display.span}
+      {...(post.display.school ? { "data-school": post.display.school } : {})}
       className={`flex flex-col ${spanClass(post.display.span)}`}
     >
       <Window

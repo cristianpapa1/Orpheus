@@ -115,7 +115,12 @@ export const DEMO_POSTS: Post[] = [
     media_type: "image",
     media_url: null,
     duration_seconds: null,
-    display: { frame: "full-bleed", span: "full", aspect: "landscape" },
+    display: {
+      frame: "full-bleed",
+      span: "full",
+      aspect: "landscape",
+      school: "constructivism",
+    },
     created_at: "2026-06-28T08:20:00Z",
   },
   {
