@@ -9,6 +9,7 @@ import {
   isFollowing,
 } from "@/lib/profile/queries";
 import { getPostsByAuthor } from "@/lib/posts/queries";
+import { getEventsByProfile } from "@/lib/events/queries";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 interface Props {
@@ -31,6 +32,7 @@ export default async function PublicProfilePage({ params }: Props) {
   if (!profile) notFound();
 
   const posts = await getPostsByAuthor(profile.id, 6);
+  const events = await getEventsByProfile(profile.id);
 
   let state: FollowState;
   if (!isSupabaseConfigured()) {
@@ -59,7 +61,12 @@ export default async function PublicProfilePage({ params }: Props) {
           <MessageButton targetHandle={profile.handle} />
         ) : null}
       </div>
-      <ProfileCanvas profile={profile} posts={posts} />
+      <ProfileCanvas
+        profile={profile}
+        posts={posts}
+        events={events}
+        now={new Date().toISOString()}
+      />
     </div>
   );
 }

@@ -72,5 +72,11 @@ three tabs are auth-gated when Supabase is configured.
   invite + request-to-join flows with three RLS insert paths, post→group
   tagging at publish, group pages at `/g/[slug]`, and "also in [group]"
   markers in the main feed.
-- ⬜ Phase 5 — private chat (next)
-- ⬜ Phase 6+ — see the build plan
+- ✅ **Phase 5** — private chat: 1:1 threads (`/chat`), participant-only RLS,
+  optimistic sends, Message button on profiles. Realtime delivery, image
+  sharing, and read state deferred to ATELIER-P5.1.
+- ✅ **Phase 6** — events on profiles: `/profile/events` manager, events
+  window block with upcoming-by-date + collapsed past events, ticket-link
+  CTA (link-out only — no in-platform ticketing).
+- ⬜ Phase 7 — donations (next)
+- ⬜ Phase 8+ — see the build plan

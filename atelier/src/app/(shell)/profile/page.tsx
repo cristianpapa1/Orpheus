@@ -30,6 +30,13 @@ export default async function ProfilePage() {
           >
             Open the editor
           </Link>
+          <Link
+            href="/profile/events"
+            data-manage-events
+            className="border-2 border-ink px-4 py-2 text-caption font-bold uppercase hover:bg-blue hover:border-blue hover:text-paper"
+          >
+            Manage events
+          </Link>
           {profile?.handle ? (
             <Link
               href={`/u/${profile.handle}`}

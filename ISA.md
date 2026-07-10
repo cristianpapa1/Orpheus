@@ -1,11 +1,11 @@
 ---
-task: "Build Atelier Phase 4 groups and group feeds"
+task: "Build Atelier Phase 6 events on profiles"
 slug: 20260708-120400_develop-the-atelier-build-here-build
 project: Atelier
 effort: E3
 effort_source: classifier
-phase: complete
-progress: 193/199
+phase: execute
+progress: 193/222
 mode: interactive
 started: 2026-07-08T15:04:39Z
 updated: 2026-07-09T12:00:00Z
@@ -307,6 +307,39 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - [DEFERRED-VERIFY] ISC-197: Live chat round-trip (start thread → send message → receive in thread) [follow-up: ATELIER-P5-LIVE — after creds: two-auth-user send/receive test]
 - [x] ISC-198: Anti: chat messages have no read-receipt or typing-indicator infrastructure (deferred patterns, not scope-crept)
 - [x] ISC-199: Antecedent: chat pages compose the Window primitive; Anti: promo grep still zero
+
+### Phase 6 — events data model
+- [ ] ISC-200: Migration 0007 creates `events` with title, starts_at, location_type (venue|online), and https ticket_url checks
+- [ ] ISC-201: `events` RLS: public select, owner-only insert/update/delete
+- [ ] ISC-202: Index on (profile_id, starts_at)
+
+### Phase 6 — lib & demo
+- [ ] ISC-203: EventItem type exported with location_type union
+- [ ] ISC-204: `splitEvents(events, now)` is pure: upcoming ascending, past descending, boundary unit-tested
+- [ ] ISC-205: Fixed-locale event date+time formatter (no hydration drift)
+- [ ] ISC-206: Demo events: ines ≥2 upcoming + ≥1 past; theo none (empty state)
+
+### Phase 6 — management (the musician's side)
+- [ ] ISC-207: `/profile/events` returns 200 (auth-gated via existing /profile matcher)
+- [ ] ISC-208: Create form: title, datetime, location type + text, description, ticket URL
+- [ ] ISC-209: `createEvent` validates title/date/URL server-side and inserts as the owner
+- [ ] ISC-210: `deleteEvent` removes only the caller's own event
+- [ ] ISC-211: Preview mode: form disabled with notice; demo events listed
+- [ ] ISC-212: Profile tab links to the events manager
+
+### Phase 6 — public rendering
+- [ ] ISC-213: `/u/ines` events block lists upcoming events sorted by date ascending
+- [ ] ISC-214: Each upcoming event shows date, title, and location
+- [ ] ISC-215: Ticket CTA links out to the ticket_url (new tab, rel noopener)
+- [ ] ISC-216: Past events render collapsed (details element), not hidden entirely
+- [ ] ISC-217: No-events state renders a placeholder (theo)
+
+### Phase 6 — guards & regression
+- [ ] ISC-218: Anti: zero ticketing/payment code in the events surface (link-out only, per plan)
+- [ ] ISC-219: Build, typecheck, tests (≥37), and lint pass
+- [ ] ISC-220: All prior routes incl. /chat re-probed at expected codes
+- [ ] ISC-221: Live event round-trip [DEFERRED-VERIFY — follow-up: ATELIER-P6-LIVE]
+- [ ] ISC-222: Antecedent: events render inside the Window primitive via ProfileCanvas
 
 ## Test Strategy
 

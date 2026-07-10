@@ -3,6 +3,7 @@ import { Window } from "@/components/ui/Window";
 import { GRID_COLS, type LayoutBlock } from "@/lib/profile/layout";
 import type { PublicProfile } from "@/lib/profile/types";
 import { thumbUrl, type Post } from "@/lib/posts/types";
+import { formatEventDate, splitEvents, type EventItem } from "@/lib/events/types";
 
 const ROW_H = 56;
 const ACCENTS = ["red", "blue", "yellow"] as const;
@@ -15,9 +16,13 @@ const ACCENTS = ["red", "blue", "yellow"] as const;
 export function ProfileCanvas({
   profile,
   posts = [],
+  events = [],
+  now = "1970-01-01T00:00:00Z",
 }: {
   profile: PublicProfile;
   posts?: Post[];
+  events?: EventItem[];
+  now?: string;
 }) {
   return (
     <div
@@ -46,7 +51,13 @@ export function ProfileCanvas({
             accent={ACCENTS[i % ACCENTS.length]}
             className="h-full overflow-hidden"
           >
-            <BlockBody block={block} profile={profile} posts={posts} />
+            <BlockBody
+              block={block}
+              profile={profile}
+              posts={posts}
+              events={events}
+              now={now}
+            />
           </Window>
         </div>
       ))}
@@ -73,10 +84,14 @@ function BlockBody({
   block,
   profile,
   posts,
+  events,
+  now,
 }: {
   block: LayoutBlock;
   profile: PublicProfile;
   posts: Post[];
+  events: EventItem[];
+  now: string;
 }) {
   switch (block.type) {
     case "bio":
@@ -158,11 +173,58 @@ function BlockBody({
       ) : (
         <p className="text-body opacity-70">No posts yet.</p>
       );
-    case "events":
+    case "events": {
+      const { upcoming, past } = splitEvents(events, now);
+      if (upcoming.length === 0 && past.length === 0) {
+        return <p className="text-body opacity-70">No events announced.</p>;
+      }
       return (
-        <p className="text-body opacity-70">
-          Upcoming events with ticket links arrive in phase 6.
-        </p>
+        <div className="flex h-full flex-col overflow-auto">
+          <ul className="flex flex-col gap-3">
+            {upcoming.map((e) => (
+              <li key={e.id} data-event={e.id} className="border-2 border-ink p-3">
+                <p className="text-body font-bold">{e.title}</p>
+                <p className="mt-1 text-caption font-bold uppercase">
+                  {formatEventDate(e.starts_at)} ·{" "}
+                  {e.location_type === "online" ? "Online" : e.location}
+                </p>
+                {e.description ? (
+                  <p className="mt-1 text-body">{e.description}</p>
+                ) : null}
+                {e.ticket_url ? (
+                  <a
+                    data-ticket-link
+                    href={e.ticket_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-block border-2 border-ink bg-ink px-3 py-1 text-caption font-bold uppercase text-paper hover:bg-red hover:border-red"
+                  >
+                    Tickets ↗
+                  </a>
+                ) : null}
+              </li>
+            ))}
+            {upcoming.length === 0 ? (
+              <li className="text-body opacity-70">Nothing upcoming right now.</li>
+            ) : null}
+          </ul>
+          {past.length > 0 ? (
+            <details data-past-events className="mt-4">
+              <summary className="cursor-pointer text-caption font-bold uppercase">
+                Past events ({past.length})
+              </summary>
+              <ul className="mt-2 flex flex-col gap-1 opacity-70">
+                {past.map((e) => (
+                  <li key={e.id} className="flex justify-between gap-2 text-caption uppercase">
+                    <span>{e.title}</span>
+                    <span>{formatEventDate(e.starts_at)}</span>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ) : null}
+        </div>
       );
+    }
   }
 }
