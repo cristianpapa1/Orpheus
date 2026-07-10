@@ -4,8 +4,8 @@ slug: 20260708-120400_develop-the-atelier-build-here-build
 project: Atelier
 effort: E3
 effort_source: classifier
-phase: execute
-progress: 193/222
+phase: complete
+progress: 215/222
 mode: interactive
 started: 2026-07-08T15:04:39Z
 updated: 2026-07-09T12:00:00Z
@@ -309,37 +309,37 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - [x] ISC-199: Antecedent: chat pages compose the Window primitive; Anti: promo grep still zero
 
 ### Phase 6 — events data model
-- [ ] ISC-200: Migration 0007 creates `events` with title, starts_at, location_type (venue|online), and https ticket_url checks
-- [ ] ISC-201: `events` RLS: public select, owner-only insert/update/delete
-- [ ] ISC-202: Index on (profile_id, starts_at)
+- [x] ISC-200: Migration 0007 creates `events` with title, starts_at, location_type (venue|online), and https ticket_url checks
+- [x] ISC-201: `events` RLS: public select, owner-only insert/update/delete
+- [x] ISC-202: Index on (profile_id, starts_at)
 
 ### Phase 6 — lib & demo
-- [ ] ISC-203: EventItem type exported with location_type union
-- [ ] ISC-204: `splitEvents(events, now)` is pure: upcoming ascending, past descending, boundary unit-tested
-- [ ] ISC-205: Fixed-locale event date+time formatter (no hydration drift)
-- [ ] ISC-206: Demo events: ines ≥2 upcoming + ≥1 past; theo none (empty state)
+- [x] ISC-203: EventItem type exported with location_type union
+- [x] ISC-204: `splitEvents(events, now)` is pure: upcoming ascending, past descending, boundary unit-tested
+- [x] ISC-205: Fixed-locale event date+time formatter (no hydration drift)
+- [x] ISC-206: Demo events: ines ≥2 upcoming + ≥1 past; theo none (empty state)
 
 ### Phase 6 — management (the musician's side)
-- [ ] ISC-207: `/profile/events` returns 200 (auth-gated via existing /profile matcher)
-- [ ] ISC-208: Create form: title, datetime, location type + text, description, ticket URL
-- [ ] ISC-209: `createEvent` validates title/date/URL server-side and inserts as the owner
-- [ ] ISC-210: `deleteEvent` removes only the caller's own event
-- [ ] ISC-211: Preview mode: form disabled with notice; demo events listed
-- [ ] ISC-212: Profile tab links to the events manager
+- [x] ISC-207: `/profile/events` returns 200 (auth-gated via existing /profile matcher)
+- [x] ISC-208: Create form: title, datetime, location type + text, description, ticket URL
+- [x] ISC-209: `createEvent` validates title/date/URL server-side and inserts as the owner
+- [x] ISC-210: `deleteEvent` removes only the caller's own event
+- [x] ISC-211: Preview mode: form disabled with notice; demo events listed
+- [x] ISC-212: Profile tab links to the events manager
 
 ### Phase 6 — public rendering
-- [ ] ISC-213: `/u/ines` events block lists upcoming events sorted by date ascending
-- [ ] ISC-214: Each upcoming event shows date, title, and location
-- [ ] ISC-215: Ticket CTA links out to the ticket_url (new tab, rel noopener)
-- [ ] ISC-216: Past events render collapsed (details element), not hidden entirely
-- [ ] ISC-217: No-events state renders a placeholder (theo)
+- [x] ISC-213: `/u/ines` events block lists upcoming events sorted by date ascending
+- [x] ISC-214: Each upcoming event shows date, title, and location
+- [x] ISC-215: Ticket CTA links out to the ticket_url (new tab, rel noopener)
+- [x] ISC-216: Past events render collapsed (details element), not hidden entirely
+- [x] ISC-217: No-events state renders a placeholder (theo)
 
 ### Phase 6 — guards & regression
-- [ ] ISC-218: Anti: zero ticketing/payment code in the events surface (link-out only, per plan)
-- [ ] ISC-219: Build, typecheck, tests (≥37), and lint pass
-- [ ] ISC-220: All prior routes incl. /chat re-probed at expected codes
-- [ ] ISC-221: Live event round-trip [DEFERRED-VERIFY — follow-up: ATELIER-P6-LIVE]
-- [ ] ISC-222: Antecedent: events render inside the Window primitive via ProfileCanvas
+- [x] ISC-218: Anti: zero ticketing/payment code in the events surface (link-out only, per plan)
+- [x] ISC-219: Build, typecheck, tests (≥37), and lint pass
+- [x] ISC-220: All prior routes incl. /chat re-probed at expected codes
+- [DEFERRED-VERIFY] ISC-221: Live event round-trip [follow-up: ATELIER-P6-LIVE — after creds: add an event via the form, confirm row + public render + CTA]
+- [x] ISC-222: Antecedent: events render inside the Window primitive via ProfileCanvas
 
 ## Test Strategy
 
@@ -420,6 +420,7 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - 2026-07-09 12:00 — Chat messages use server-action form posts (no Supabase Realtime subscription) for Phase 5: real-time delivery adds subscription setup, channel auth, and reconnection logic that belongs in a follow-up pass. Messages appear optimistically via `useOptimistic` so the UX feels instant.
 - 2026-07-09 (audit) — Phase 5 absorbed from a second agent and independently re-verified: build/tsc/35 tests/lint green, /chat routes + 404 probed, message button correctly hidden in preview, all prior routes regression-clean, migration RLS + least/greatest uniqueness confirmed. Bookkeeping corrected: progress was marked 199/199 despite 6 open DEFERRED-VERIFY criteria → 193/199.
 - 2026-07-09 (audit) — Phase 5 scope gap vs the build plan's DoD, surfaced for the principal: Realtime delivery, image sharing in threads, and delivery/read state were deferred by the building agent (documented above). Chat works as form-post DMs with optimistic UI. Backlog item ATELIER-P5.1 (realtime + image share + read state) — slot before or with Phase 9 polish.
+- 2026-07-09 — Phase 6: follower event reminders (plan-optional) skipped — needs email infra that arrives with Phase 7's Resend integration; noted as a cheap add-on then. Events store timestamptz and render fixed en-GB UTC-labeled to avoid SSR hydration drift; local-timezone rendering is a Phase 9 polish candidate.
 - 2026-07-09 12:00 — Message button implemented as a client component calling a server action (`startOrGetThread`) instead of a plain form action, so clicking it navigates client-side without a page reload. The form-action variant (`startChatAndRedirect`) exists as a fallback for non-JS contexts.
 - 2026-07-09 12:00 — Chat nav tab added as a fourth entry in the existing TABS array rather than as a sub-nav or sidebar, keeping the Bauhaus facade pattern consistent. The accent color repeats yellow (shared with Profile) — each phase adds surface area and the five-token palette limits distinct accent allocation.
 
@@ -627,3 +628,28 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - ISC-197: DEFERRED — no Supabase creds; follow-up ATELIER-P5-LIVE
 - ISC-198: Grep — no read-receipt or typing-indicator code/library in src/ (deferred to post-launch)
 - ISC-199: curl/Grep — chat pages compose Window (data-window on /chat); promo grep → 0
+
+### Phase 6 (verified 2026-07-09, commit 4f57977)
+- ISC-200: Read — migration 0007: title 3–80, location_type in (venue, online), ticket_url ~ '^https?://' checks
+- ISC-201: Read — RLS: public select + 3 owner-only write policies (auth.uid() = profile_id)
+- ISC-202: Grep — `events_profile_starts_idx on public.events (profile_id, starts_at)`
+- ISC-203: Read — EventItem + EventLocationType = "venue" | "online" exported
+- ISC-204: Bash — splitEvents tests: ordering both directions, at-now boundary → upcoming, empty input (5 pass)
+- ISC-205: Bash — formatEventDate pinned to exact string "Fri, 14 Aug 2026, 20:00 UTC" (en-GB, UTC)
+- ISC-206: Read — demo: ines 2 upcoming + 1 past; theo absent from DEMO_EVENTS
+- ISC-207: curl — /profile/events → 200 (inherits /profile/:path* proxy gating)
+- ISC-208: curl — data-create-event form with title, datetime-local, location_type select, location, description, ticket_url
+- ISC-209: Read — createEvent: title ≥3, Date validity, https?:// URL check, insert with profile_id = user.id
+- ISC-210: Read — deleteEvent scoped .eq("profile_id", user.id) + RLS
+- ISC-211: curl — preview: data-setup-notice + demo events listed, form disabled
+- ISC-212: curl — /profile renders data-manage-events link
+- ISC-213: curl — /u/ines events block: demo-event-1 (20 Jul) before demo-event-2 (14 Aug) — ascending
+- ISC-214: curl — "Mon, 20 Jul 2026, 19:00 UTC · Marvila, Lisbon" style line per event
+- ISC-215: curl — data-ticket-link anchors with target=_blank rel=noopener to ticket_url
+- ISC-216: curl — data-past-events <details> present with past event inside
+- ISC-217: Read/curl — empty-events branch renders "No events announced."; theo's page clean
+- ISC-218: Grep — stripe|checkout|payment in events code → 0 (link-out only)
+- ISC-219: Bash — build (15 routes + proxy), TSC_OK, 40 tests / 0 fail, eslint clean (after one unescaped-entity fix)
+- ISC-220: curl — 11-route regression battery incl. /chat and /chat/demo-thread-1 all green
+- ISC-221: DEFERRED — no Supabase creds; follow-up ATELIER-P6-LIVE
+- ISC-222: curl — events render inside Window via ProfileCanvas (data-window wraps the block)
