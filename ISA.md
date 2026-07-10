@@ -622,6 +622,11 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 
 ## Changelog
 
+- **conjectured:** The Phase 5 chat normalization trigger correctly reorders participants so either user can start a thread (asserted by ISC-176/179, audited by reading the migration).
+  **refuted by:** Live verification 2026-07-10 — thread INSERT failed RLS whenever the initiator's UUID was greater: the trigger swaps without a temp variable (`a := b; b := a;`), leaving BOTH columns equal to participant_b, so `auth.uid() in (a, b)` fails. ~Half of all user pairs could never chat.
+  **learned:** Reading a migration is not executing it. Code-review-level verification (mine AND the building agent's) passed a bug that one real INSERT exposed instantly — the Live-Probe rule exists precisely because plausible code lies. Swap logic must always be tested from both orderings.
+  **criterion now:** ISC-197 closes only via scripts/live-verify.ts's deliberate greater-UUID swap-path test after migration 0012 (temp-variable fix) is applied.
+
 - **conjectured:** The profile editor would use an off-the-shelf drag-resize engine (react-grid-layout, as the build plan suggested).
   **refuted by:** React 19 removed `findDOMNode`, which react-draggable (react-grid-layout's drag core) depends on; Next 16's React-Compiler eslint rules additionally reject the listener patterns such libraries rely on.
   **learned:** On a bleeding-edge stack, a small pure-function engine you can unit-test beats a mature dependency you can't run — the ~150-line custom engine made drag behavior verifiable headlessly, which no library would have given us.
