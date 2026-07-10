@@ -6,7 +6,7 @@
  * it to classes through the pure functions below (no ad-hoc CSS per post).
  */
 
-import { isSchool, type School } from "@/lib/design/schools";
+import { isSchool, type School } from "../design/schools";
 
 export const FRAMES = ["inset", "full-bleed", "plate"] as const;
 export type PostFrame = (typeof FRAMES)[number];

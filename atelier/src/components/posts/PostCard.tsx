@@ -6,8 +6,8 @@ import {
   aspectClass,
   frameClasses,
   spanClass,
-} from "@/lib/posts/display";
-import { CATEGORY_LABEL, formatPostDate, type Post } from "@/lib/posts/types";
+} from "@atelier/core/posts/display";
+import { CATEGORY_LABEL, formatPostDate, type Post } from "@atelier/core/posts/types";
 import type { GroupTag } from "@/lib/groups/types";
 
 const ACCENTS: WindowAccent[] = ["red", "blue", "yellow"];

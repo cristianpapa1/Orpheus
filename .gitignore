@@ -1,2 +1,3 @@
 # Windows WSL artifacts
 *:Zone.Identifier
+node_modules

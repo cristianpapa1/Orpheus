@@ -5,7 +5,7 @@ import {
   DISCIPLINE_LABEL,
   WORK_MODE_LABEL,
   type JobPost,
-} from "@/lib/jobs/types";
+} from "@atelier/core/jobs/types";
 
 /** A job post as a window — used in discovery. */
 export function JobCard({

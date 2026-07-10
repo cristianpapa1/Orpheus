@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { Window } from "@/components/ui/Window";
-import { GRID_COLS, type LayoutBlock } from "@/lib/profile/layout";
-import type { PublicProfile } from "@/lib/profile/types";
-import { thumbUrl, type Post } from "@/lib/posts/types";
-import { formatEventDate, splitEvents, type EventItem } from "@/lib/events/types";
+import { GRID_COLS, type LayoutBlock } from "@atelier/core/profile/layout";
+import type { PublicProfile } from "@atelier/core/profile/types";
+import { thumbUrl, type Post } from "@atelier/core/posts/types";
+import { formatEventDate, splitEvents, type EventItem } from "@atelier/core/events/types";
 import {
   DISCIPLINE_LABEL,
   WORK_MODE_LABEL,
   type JobPost,
-} from "@/lib/jobs/types";
+} from "@atelier/core/jobs/types";
 
 const ROW_H = 56;
 const ACCENTS = ["red", "blue", "yellow"] as const;
@@ -145,8 +145,8 @@ function BlockBody({
               data-gallery-post={post.id}
               className="block border-2 border-ink hover:border-blue"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <span className="relative block">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={thumbUrl(post)}
                   alt={post.alt_text || post.caption || `Work by ${profile.display_name}`}

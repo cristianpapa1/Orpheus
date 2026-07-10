@@ -1,5 +1,5 @@
 import { ResponsiveImage } from "@/components/posts/ResponsiveImage";
-import { formatDuration, type Post } from "@/lib/posts/types";
+import { formatDuration, type Post } from "@atelier/core/posts/types";
 
 /**
  * Renders a post's media by type. AV rule of the house: NEVER autoplay —

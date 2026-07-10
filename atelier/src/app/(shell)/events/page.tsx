@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
 import { getUpcomingEvents } from "@/lib/events/queries";
-import { formatEventDate, groupEventsByMonth } from "@/lib/events/types";
+import { formatEventDate, groupEventsByMonth } from "@atelier/core/events/types";
 
 export const metadata = { title: "Events — Atelier" };
 

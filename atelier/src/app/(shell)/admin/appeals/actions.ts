@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { isViewerAdmin } from "@/lib/donations/queries";
-import { parseEurosToCents } from "@/lib/donations/types";
+import { parseEurosToCents } from "@atelier/core/donations/types";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 /* Admin-only appeal actions. RLS re-checks is_admin on every write. */

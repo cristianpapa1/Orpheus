@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { dismissAppeal } from "@/app/appeal-actions";
-import type { Appeal } from "@/lib/donations/types";
-import { formatMoney, progressPct } from "@/lib/donations/types";
+import type { Appeal } from "@atelier/core/donations/types";
+import { formatMoney, progressPct } from "@atelier/core/donations/types";
 
 /**
  * The in-app channel for a manually-triggered donation appeal.

@@ -1,8 +1,8 @@
-import { toSchool } from "@/lib/design/schools";
+import { toSchool } from "@atelier/core/design/schools";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { DEMO_PROFILES, DEMO_SELF } from "./demo";
-import { parseLayout } from "./layout";
-import { parseLinks, type PublicProfile } from "./types";
+import { parseLayout } from "@atelier/core/profile/layout";
+import { parseLinks, type PublicProfile } from "@atelier/core/profile/types";
 
 /* Server-side profile reads. Preview mode (no Supabase) serves demo data. */
 

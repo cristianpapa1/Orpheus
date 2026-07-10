@@ -1,6 +1,6 @@
 import { createServerSupabase } from "@/lib/supabase/server";
 import { DEMO_POSTS } from "@/lib/posts/demo";
-import type { Post } from "@/lib/posts/types";
+import type { Post } from "@atelier/core/posts/types";
 import {
   DEMO_GROUPS,
   DEMO_GROUP_MEMBERS,

@@ -1,7 +1,7 @@
 import { createServerSupabase } from "@/lib/supabase/server";
 import { DEMO_PROFILES } from "@/lib/profile/demo";
 import { DEMO_EVENTS } from "./demo";
-import type { EventItem, EventLocationType, GlobalEvent } from "./types";
+import type { EventItem, EventLocationType, GlobalEvent } from "@atelier/core/events/types";
 
 type EventRow = {
   id: string;

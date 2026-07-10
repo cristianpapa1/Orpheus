@@ -8,7 +8,7 @@ import {
   JOB_STATUS_LABEL,
   WORK_MODES,
   WORK_MODE_LABEL,
-} from "@/lib/jobs/types";
+} from "@atelier/core/jobs/types";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createJob, setJobStatus } from "./actions";
 

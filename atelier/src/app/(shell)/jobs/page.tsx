@@ -7,7 +7,7 @@ import {
   JOB_DISCIPLINES,
   WORK_MODES,
   WORK_MODE_LABEL,
-} from "@/lib/jobs/types";
+} from "@atelier/core/jobs/types";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export const metadata = { title: "Jobs — Atelier" };

@@ -1,23 +1,16 @@
-import { fitWithin } from "./image";
+import {
+  BLUR_WIDTH,
+  MAX_ORIGINAL_BYTES,
+  fitWithin,
+  variantWidthsFor,
+} from "@atelier/core/posts/geometry";
 
 /**
- * Phase 3 media pipeline (client side).
- * The ORIGINAL file is never touched — it uploads byte-for-byte to
- * {user}/originals/…. Display variants are generated from a decoded copy
- * and upload to {user}/display/…. Swapping to an image CDN later replaces
- * variant generation, not this contract.
+ * Phase 3 media pipeline (client side — browser canvas/media elements).
+ * Pure geometry lives in @atelier/core/posts/geometry (M0), shared with
+ * the future Expo pipeline. The ORIGINAL file is never touched — it
+ * uploads byte-for-byte to {user}/originals/….
  */
-
-export const VARIANT_WIDTHS = [480, 960, 1600] as const;
-export const BLUR_WIDTH = 24;
-export const MAX_ORIGINAL_BYTES = 50 * 1024 * 1024; // Supabase default object limit
-
-/** Which display widths to generate — never upscale beyond the original. */
-export function variantWidthsFor(originalWidth: number): number[] {
-  const widths = VARIANT_WIDTHS.filter((w) => w < originalWidth);
-  if (widths.length === 0) return originalWidth > 0 ? [originalWidth] : [];
-  return widths;
-}
 
 export interface PreparedVariant {
   width: number;

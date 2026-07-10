@@ -4,7 +4,7 @@ import {
   SCHOOLS,
   SCHOOL_FIGURE,
   SCHOOL_LABEL,
-} from "@/lib/design/schools";
+} from "@atelier/core/design/schools";
 import { getOwnProfile } from "@/lib/profile/queries";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { redirect } from "next/navigation";

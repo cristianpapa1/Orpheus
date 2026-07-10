@@ -5,7 +5,7 @@ import { MediaBody } from "@/components/posts/MediaBody";
 import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
 import { getPostById } from "@/lib/posts/queries";
-import { CATEGORY_LABEL, formatPostDate } from "@/lib/posts/types";
+import { CATEGORY_LABEL, formatPostDate } from "@atelier/core/posts/types";
 import { ReportControl } from "@/components/moderation/ReportControl";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 

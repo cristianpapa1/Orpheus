@@ -7,7 +7,7 @@ import {
   JOB_DISCIPLINES,
   JOB_STATUSES,
   WORK_MODES,
-} from "@/lib/jobs/types";
+} from "@atelier/core/jobs/types";
 
 /* Job management server actions. Owner-only; RLS re-checks. */
 

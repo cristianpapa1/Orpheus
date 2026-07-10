@@ -1,4 +1,4 @@
-import type { JobPost } from "./types";
+import type { JobPost } from "@atelier/core/jobs/types";
 
 /** Demo job posts for preview mode. One filled — exercises collapse + discovery exclusion. */
 export const DEMO_JOBS: JobPost[] = [

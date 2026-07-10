@@ -13,8 +13,8 @@ import {
   serializeLayout,
   type LayoutBlock,
   type ProfileLayout,
-} from "@/lib/profile/layout";
-import type { ProfileIdentity, ProfileLink } from "@/lib/profile/types";
+} from "@atelier/core/profile/layout";
+import type { ProfileIdentity, ProfileLink } from "@atelier/core/profile/types";
 import { saveProfile } from "@/app/(shell)/profile/actions";
 
 const ROW_H = 56;

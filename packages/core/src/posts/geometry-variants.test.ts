@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { VARIANT_WIDTHS, variantWidthsFor } from "./media";
+import { VARIANT_WIDTHS, variantWidthsFor } from "./geometry";
 
 describe("variantWidthsFor", () => {
   test("typical high-res photo gets every display width", () => {

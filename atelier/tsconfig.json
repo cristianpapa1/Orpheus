@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@atelier/core/*": ["../packages/core/src/*"]
     }
   },
   "include": [

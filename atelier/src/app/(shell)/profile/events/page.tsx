@@ -1,7 +1,7 @@
 import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
 import { getOwnEvents } from "@/lib/events/queries";
-import { formatEventDate, splitEvents } from "@/lib/events/types";
+import { formatEventDate, splitEvents } from "@atelier/core/events/types";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createEvent, deleteEvent } from "./actions";
 

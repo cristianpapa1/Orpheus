@@ -4,7 +4,7 @@ import { isStripeConfigured } from "@/lib/donations/stripe";
 import {
   DONATION_PRESETS_CENTS,
   formatMoney,
-} from "@/lib/donations/types";
+} from "@atelier/core/donations/types";
 import { createDonationCheckout } from "./actions";
 
 export const metadata = { title: "Support Atelier — Donate" };

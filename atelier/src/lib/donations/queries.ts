@@ -1,6 +1,6 @@
 import { createServerSupabase } from "@/lib/supabase/server";
 import { DEMO_APPEAL, DEMO_APPEAL_RESULTS, DEMO_LEDGER } from "./demo";
-import type { Appeal, AppealResults, DonationEntry } from "./types";
+import type { Appeal, AppealResults, DonationEntry } from "@atelier/core/donations/types";
 
 /* Donation/appeal reads. Preview mode serves the demo appeal + ledger. */
 

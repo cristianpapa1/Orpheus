@@ -5,7 +5,7 @@ export interface ProfileLink {
   url: string;
 }
 
-import type { School } from "@/lib/design/schools";
+import type { School } from "../design/schools";
 
 export type ProfileAccent = "red" | "blue" | "yellow";
 

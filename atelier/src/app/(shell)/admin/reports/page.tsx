@@ -3,7 +3,7 @@ import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
 import { setReportStatus } from "@/lib/moderation/actions";
 import { getReports } from "@/lib/moderation/queries";
-import { REASON_LABEL } from "@/lib/moderation/types";
+import { REASON_LABEL } from "@atelier/core/moderation/types";
 import { isViewerAdmin } from "@/lib/donations/queries";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 

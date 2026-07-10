@@ -4,7 +4,7 @@ import {
   filterJobs,
   type JobFilters,
   type JobPost,
-} from "./types";
+} from "@atelier/core/jobs/types";
 
 /* Job reads. Discovery is chronological (created_at desc) — never ranked. */
 

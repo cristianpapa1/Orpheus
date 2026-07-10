@@ -3,12 +3,12 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { parseDisplay } from "@/lib/posts/display";
+import { parseDisplay } from "@atelier/core/posts/display";
 import {
   isMediaType,
   isPostCategory,
   validDuration,
-} from "@/lib/posts/types";
+} from "@atelier/core/posts/types";
 
 const MAX_BLUR_CHARS = 6000; // matches the DB check constraint
 

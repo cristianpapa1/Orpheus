@@ -518,6 +518,16 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - [x] ISC-356: curl — editor has 0 school/accent pickers, pointer text links to Settings
 - [x] ISC-357: Bash — 56 tests, TSC_OK, lint, build (25 routes) green
 
+### M0 — packages/core extraction (bun workspaces)
+- [ ] ISC-358: Root package.json declares bun workspaces: atelier + packages/core
+- [ ] ISC-359: @atelier/core exports the 9 pure module groups + geometry, with zero react/next/DOM imports inside the package
+- [ ] ISC-360: Core's test suite (all pure tests) runs green from packages/core
+- [ ] ISC-361: Web imports moved modules ONLY via @atelier/core — zero stale @/lib paths to moved files
+- [ ] ISC-362: Browser-only code (canvas, media elements) remains in the web app; pure geometry lives in core
+- [ ] ISC-363: next build green (transpilePackages + tsconfig paths)
+- [ ] ISC-364: Full route regression unchanged after the move
+- [ ] ISC-365: Anti: no module body exists in two places (old paths are moves, not copies)
+
 ## Test Strategy
 
 | isc | type | check | threshold | tool |

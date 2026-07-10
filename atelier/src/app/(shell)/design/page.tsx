@@ -6,7 +6,7 @@ import {
   SCHOOL_FIGURE,
   SCHOOL_LABEL,
   toSchool,
-} from "@/lib/design/schools";
+} from "@atelier/core/design/schools";
 
 const SWATCHES = [
   { name: "Ink", cls: "bg-ink", hex: "#121210" },

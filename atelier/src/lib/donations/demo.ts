@@ -1,4 +1,4 @@
-import type { Appeal, AppealResults, DonationEntry } from "./types";
+import type { Appeal, AppealResults, DonationEntry } from "@atelier/core/donations/types";
 
 /** Demo appeal + ledger for preview mode. */
 

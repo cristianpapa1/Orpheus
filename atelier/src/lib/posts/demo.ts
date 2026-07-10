@@ -1,4 +1,4 @@
-import type { Post } from "./types";
+import type { Post } from "@atelier/core/posts/types";
 
 /**
  * Demo posts served in preview mode (no Supabase). Authors mirror the demo

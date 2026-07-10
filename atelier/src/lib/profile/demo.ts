@@ -1,5 +1,5 @@
-import type { PublicProfile } from "./types";
-import { DEFAULT_LAYOUT } from "./layout";
+import type { PublicProfile } from "@atelier/core/profile/types";
+import { DEFAULT_LAYOUT } from "@atelier/core/profile/layout";
 
 /**
  * Demo profiles served in preview mode (no Supabase configured) so the whole

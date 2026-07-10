@@ -10,7 +10,7 @@ import {
   AUDIENCE_LABEL,
   formatMoney,
   progressPct,
-} from "@/lib/donations/types";
+} from "@atelier/core/donations/types";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createAppeal, toggleAppeal } from "./actions";
 

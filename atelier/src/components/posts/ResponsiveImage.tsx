@@ -1,4 +1,4 @@
-import type { Post } from "@/lib/posts/types";
+import type { Post } from "@atelier/core/posts/types";
 
 /**
  * Responsive post image: srcset over the display variants, blur-up

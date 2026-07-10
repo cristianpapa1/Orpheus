@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { getStripe } from "@/lib/donations/stripe";
-import { parseEurosToCents } from "@/lib/donations/types";
+import { parseEurosToCents } from "@atelier/core/donations/types";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";

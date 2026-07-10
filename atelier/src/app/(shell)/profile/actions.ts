@@ -3,9 +3,9 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { toSchool } from "@/lib/design/schools";
-import { parseLayout, serializeLayout } from "@/lib/profile/layout";
-import { HANDLE_RE, parseLinks } from "@/lib/profile/types";
+import { toSchool } from "@atelier/core/design/schools";
+import { parseLayout, serializeLayout } from "@atelier/core/profile/layout";
+import { HANDLE_RE, parseLinks } from "@atelier/core/profile/types";
 
 export interface SaveProfileInput {
   display_name: string;

@@ -9,7 +9,7 @@ import {
   REPORT_SUBJECTS,
   type ReportReason,
   type ReportSubject,
-} from "./types";
+} from "@atelier/core/moderation/types";
 
 /** File a report. Rate-limited to keep the queue humane. */
 export async function createReport(formData: FormData) {

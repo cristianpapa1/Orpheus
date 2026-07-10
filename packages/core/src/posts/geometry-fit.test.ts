@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { MAX_DISPLAY_EDGE, fitWithin } from "./image";
+import { MAX_DISPLAY_EDGE, fitWithin } from "./geometry";
 
 describe("fitWithin", () => {
   test("leaves small images untouched", () => {

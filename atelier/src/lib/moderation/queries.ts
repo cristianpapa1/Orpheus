@@ -1,5 +1,5 @@
 import { createServerSupabase } from "@/lib/supabase/server";
-import type { Report } from "./types";
+import type { Report } from "@atelier/core/moderation/types";
 
 /** Demo reports for the preview-mode moderation queue. */
 const DEMO_REPORTS: Report[] = [

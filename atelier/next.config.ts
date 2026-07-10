@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // M0: compile the shared pure-TS core from the workspace package.
+  transpilePackages: ["@atelier/core"],
 };
 
 export default nextConfig;

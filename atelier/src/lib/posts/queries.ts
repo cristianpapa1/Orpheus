@@ -1,13 +1,13 @@
 import { SUPABASE_URL } from "@/lib/supabase/config";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { DEMO_POSTS } from "./demo";
-import { parseDisplay } from "./display";
+import { parseDisplay } from "@atelier/core/posts/display";
 import {
   isMediaType,
   isPostCategory,
   parseVariantPaths,
   type Post,
-} from "./types";
+} from "@atelier/core/posts/types";
 
 /* Server-side post reads. Preview mode (no Supabase) serves demo posts.
    Ordering is created_at DESC only — chronological by principle; there is

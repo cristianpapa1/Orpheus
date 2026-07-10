@@ -11,7 +11,7 @@ import {
   SPANS,
   SPAN_LABEL,
   type PostDisplay,
-} from "@/lib/posts/display";
+} from "@atelier/core/posts/display";
 import {
   extractVideoPoster,
   prepareUpload,
@@ -26,7 +26,7 @@ import {
   POST_CATEGORIES,
   validDuration,
   type MediaType,
-} from "@/lib/posts/types";
+} from "@atelier/core/posts/types";
 import type { TaggableGroup } from "@/lib/groups/queries";
 
 type Stage = "idle" | "uploading" | "recording";

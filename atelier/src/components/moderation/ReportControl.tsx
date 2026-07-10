@@ -3,7 +3,7 @@ import {
   REASON_LABEL,
   REPORT_REASONS,
   type ReportSubject,
-} from "@/lib/moderation/types";
+} from "@atelier/core/moderation/types";
 
 /**
  * Report disclosure — server-rendered <details>, never a modal.

@@ -1,4 +1,4 @@
-import type { EventItem } from "./types";
+import type { EventItem } from "@atelier/core/events/types";
 
 /** Demo events for preview mode. Inês has upcoming + past; Theo one upcoming. */
 export const DEMO_EVENTS: Record<string, EventItem[]> = {
