@@ -61,3 +61,4 @@ atelier/                   # Next.js application
 ISA.md                     # Project ISA — ideal state, criteria, verification
 atelier-build-plan.md      # Original phased build plan
 ```
+# Orpheus
