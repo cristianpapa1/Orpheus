@@ -266,6 +266,12 @@ function BlockBody({
               <li className="text-body opacity-70">Nothing upcoming right now.</li>
             ) : null}
           </ul>
+          <Link
+            href="/events"
+            className="mt-3 self-start border-b-2 border-ink text-caption font-bold uppercase hover:text-blue"
+          >
+            All events →
+          </Link>
           {past.length > 0 ? (
             <details data-past-events className="mt-4">
               <summary className="cursor-pointer text-caption font-bold uppercase">

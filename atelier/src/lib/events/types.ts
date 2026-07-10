@@ -29,6 +29,31 @@ export function splitEvents(
   return { upcoming, past };
 }
 
+export interface GlobalEvent extends EventItem {
+  creator_handle: string;
+  creator_name: string;
+}
+
+/** Group upcoming events by "Month Year" label, preserving ascending order. */
+export function groupEventsByMonth<T extends EventItem>(
+  events: T[],
+): { label: string; events: T[] }[] {
+  const groups: { label: string; events: T[] }[] = [];
+  for (const event of events) {
+    const d = new Date(event.starts_at);
+    if (Number.isNaN(d.getTime())) continue;
+    const label = new Intl.DateTimeFormat("en-GB", {
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    }).format(d);
+    const last = groups.at(-1);
+    if (last && last.label === label) last.events.push(event);
+    else groups.push({ label, events: [event] });
+  }
+  return groups;
+}
+
 /** Fixed-locale date + time — identical on server and client (UTC-labeled). */
 export function formatEventDate(iso: string): string {
   const d = new Date(iso);

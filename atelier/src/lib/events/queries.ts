@@ -1,6 +1,7 @@
 import { createServerSupabase } from "@/lib/supabase/server";
+import { DEMO_PROFILES } from "@/lib/profile/demo";
 import { DEMO_EVENTS } from "./demo";
-import type { EventItem, EventLocationType } from "./types";
+import type { EventItem, EventLocationType, GlobalEvent } from "./types";
 
 type EventRow = {
   id: string;
@@ -36,6 +37,52 @@ export async function getEventsByProfile(
     .eq("profile_id", profileId)
     .order("starts_at");
   return ((data ?? []) as EventRow[]).map(toEvent);
+}
+
+/** Track C: every upcoming event on the platform, soonest first. */
+export async function getUpcomingEvents(
+  now: string,
+  mode?: string,
+  limit = 100,
+): Promise<GlobalEvent[]> {
+  const supabase = await createServerSupabase();
+  if (!supabase) {
+    const profiles = Object.values(DEMO_PROFILES);
+    return Object.values(DEMO_EVENTS)
+      .flat()
+      .filter((e) => e.starts_at >= now)
+      .filter((e) => !mode || e.location_type === mode)
+      .sort((a, b) => a.starts_at.localeCompare(b.starts_at))
+      .slice(0, limit)
+      .map((e) => {
+        const p = profiles.find((pr) => pr.id === e.profile_id);
+        return {
+          ...e,
+          creator_handle: p?.handle ?? "",
+          creator_name: p?.display_name ?? "Unnamed",
+        };
+      });
+  }
+
+  let query = supabase
+    .from("events")
+    .select(
+      "id, profile_id, title, description, starts_at, location, location_type, ticket_url, creator:profiles(handle, display_name)",
+    )
+    .gte("starts_at", now)
+    .order("starts_at")
+    .limit(limit);
+  if (mode === "venue" || mode === "online") {
+    query = query.eq("location_type", mode);
+  }
+  const { data } = await query;
+  return ((data ?? []) as unknown as (EventRow & {
+    creator: { handle: string | null; display_name: string | null } | null;
+  })[]).map((row) => ({
+    ...toEvent(row),
+    creator_handle: row.creator?.handle ?? "",
+    creator_name: row.creator?.display_name ?? row.creator?.handle ?? "Unnamed",
+  }));
 }
 
 export async function getOwnEvents(): Promise<EventItem[]> {

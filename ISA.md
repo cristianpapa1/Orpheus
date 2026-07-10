@@ -476,15 +476,15 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - [x] ISC-322: Desktop (md+) unchanged: bar is md:hidden, top tabs md:flex
 - [x] ISC-323: Build + probes green after M1 (build exit 0, feed 200)
 
-### Track C — global events list
-- [ ] ISC-324: Migration adds a platform-wide index on events(starts_at)
-- [ ] ISC-325: getUpcomingEvents returns future events across all profiles, ascending
-- [ ] ISC-326: groupEventsByMonth is pure and unit-tested
-- [ ] ISC-327: /events returns 200 publicly with month-grouped chronological listing
-- [ ] ISC-328: venue/online filter works via GET query param
-- [ ] ISC-329: Entries link to the creator profile and show a ticket CTA when present
-- [ ] ISC-330: Entry points exist: footer link and events-block "All events →"
-- [ ] ISC-331: Anti: the list has no ordering beyond starts_at (nothing promoted)
+### Track C — global events list (verified 2026-07-09)
+- [x] ISC-324: Migration 0011 — `events_starts_idx on public.events (starts_at)`
+- [x] ISC-325: getUpcomingEvents: gte(now) + order(starts_at) across profiles — curl order demo-event-1→2→4
+- [x] ISC-326: groupEventsByMonth pure, 2 tests (grouping + invalid-date drop) — 52 suite total
+- [x] ISC-327: /events → 200 public; data-month July→August→September 2026 in order
+- [x] ISC-328: ?mode=online → 0 demo results (all venue); eq filter in query
+- [x] ISC-329: /u/ines + /u/theo links on cards; data-ticket-link ×2 (HTML+flight)
+- [x] ISC-330: data-footer-events + "All events →" in the events block
+- [x] ISC-331: Anti — only ordering is starts_at ascending (Read)
 
 ## Test Strategy
 

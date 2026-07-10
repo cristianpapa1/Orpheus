@@ -46,6 +46,10 @@ export default async function ShellLayout({
           jobs for makers
         </Link>{" "}
         ·{" "}
+        <Link href="/events" data-footer-events className="border-b-2 border-ink font-bold hover:text-blue">
+          events
+        </Link>{" "}
+        ·{" "}
         <Link href="/terms" data-footer-terms className="border-b-2 border-ink hover:text-blue">
           terms
         </Link>{" "}
