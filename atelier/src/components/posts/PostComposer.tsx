@@ -12,9 +12,21 @@ import {
   SPAN_LABEL,
   type PostDisplay,
 } from "@/lib/posts/display";
-import { prepareUpload, type PreparedUpload } from "@/lib/posts/media";
+import {
+  extractVideoPoster,
+  prepareUpload,
+  readMediaDuration,
+  type PreparedUpload,
+} from "@/lib/posts/media";
 import { createClient } from "@/lib/supabase/client";
-import { CATEGORY_LABEL, POST_CATEGORIES } from "@/lib/posts/types";
+import {
+  CATEGORY_LABEL,
+  MEDIA_EXT,
+  MEDIA_LIMITS,
+  POST_CATEGORIES,
+  validDuration,
+  type MediaType,
+} from "@/lib/posts/types";
 import type { TaggableGroup } from "@/lib/groups/queries";
 
 type Stage = "idle" | "uploading" | "recording";
@@ -41,12 +53,57 @@ export function PostComposer({
   const [prepared, setPrepared] = useState<Prepared | null>(null);
   const [caption, setCaption] = useState("");
   const [altText, setAltText] = useState("");
+  const [mediaType, setMediaType] = useState<MediaType>("image");
+  const [avFile, setAvFile] = useState<File | null>(null);
+  const [avDuration, setAvDuration] = useState<number | null>(null);
   const [category, setCategory] = useState("");
   const [display, setDisplay] = useState<PostDisplay>(DEFAULT_DISPLAY);
   const [groupIds, setGroupIds] = useState<string[]>([]);
   const [stage, setStage] = useState<Stage>("idle");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  const onAvFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setError(null);
+    const file = e.target.files?.[0];
+    if (!file || mediaType === "image") return;
+    if (!file.type.startsWith(`${mediaType}/`)) {
+      setError(`Choose a ${mediaType} file.`);
+      return;
+    }
+    if (file.size > MEDIA_LIMITS[mediaType].maxBytes) {
+      setError(
+        `Too large — ${mediaType} files are capped at ${Math.round(MEDIA_LIMITS[mediaType].maxBytes / 1024 / 1024)} MB.`,
+      );
+      return;
+    }
+    try {
+      const duration = await readMediaDuration(file, mediaType);
+      if (!validDuration(mediaType, duration)) {
+        setError(
+          mediaType === "video"
+            ? "Videos are capped at 2 minutes — shorts, not features."
+            : "Audio is capped at 5 minutes.",
+        );
+        return;
+      }
+      setAvFile(file);
+      setAvDuration(duration);
+      if (mediaType === "video") {
+        // Poster frame → the existing image pipeline (variants + blur).
+        const poster = await extractVideoPoster(file);
+        const result = await prepareUpload(poster);
+        if (prepared) URL.revokeObjectURL(prepared.previewUrl);
+        const largest = result.variants.at(-1);
+        setPrepared({
+          ...result,
+          previewUrl: URL.createObjectURL(largest?.blob ?? poster),
+        });
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn't read that file.");
+    }
+  };
 
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
@@ -72,7 +129,17 @@ export function PostComposer({
   const publish = () => {
     setError(null);
     if (!prepared) {
-      setError("Choose an image.");
+      setError(
+        mediaType === "audio"
+          ? "Audio posts need a cover image."
+          : mediaType === "video"
+            ? "Choose a video file first."
+            : "Choose an image.",
+      );
+      return;
+    }
+    if (mediaType !== "image" && !avFile) {
+      setError(`Choose a ${mediaType} file.`);
       return;
     }
     const supabase = createClient();
@@ -104,6 +171,20 @@ export function PostComposer({
           });
         if (origErr) throw new Error(origErr.message);
 
+        // 1b. Track B: the AV file itself — untouched, in the owner's folder.
+        let mediaPath: string | null = null;
+        if (mediaType !== "image" && avFile) {
+          const avExt =
+            MEDIA_EXT[mediaType][avFile.type] ??
+            avFile.name.split(".").pop() ??
+            "bin";
+          mediaPath = `${user.id}/media/${stamp}.${avExt}`;
+          const { error: avErr } = await supabase.storage
+            .from("media")
+            .upload(mediaPath, avFile, { contentType: avFile.type });
+          if (avErr) throw new Error(avErr.message);
+        }
+
         // 2. Display variants.
         const variants: { width: number; height: number; path: string }[] = [];
         for (const v of prepared.variants) {
@@ -129,6 +210,9 @@ export function PostComposer({
           height: prepared.variants.at(-1)?.height ?? prepared.originalHeight,
           blur_data: prepared.blur,
           alt_text: altText,
+          media_type: mediaType,
+          media_path: mediaPath,
+          duration_seconds: avDuration,
           group_ids: groupIds,
         });
         // publishPost redirects on success; reaching here means failure.
@@ -157,16 +241,68 @@ export function PostComposer({
         </p>
       ) : null}
 
-      <label htmlFor="image" className="text-caption font-bold uppercase">
-        Work (image)
-      </label>
-      <input
-        id="image"
-        type="file"
-        accept="image/*"
-        onChange={onFileChange}
-        className="border-2 border-ink bg-paper px-3 py-2 text-body file:mr-3 file:border-2 file:border-ink file:bg-ink file:px-3 file:py-1 file:text-caption file:font-bold file:uppercase file:text-paper"
-      />
+      <p className="text-caption font-bold uppercase">What are you sharing?</p>
+      <div className="flex flex-wrap gap-2" data-media-picker>
+        {(["image", "video", "audio"] as const).map((m) => (
+          <button
+            key={m}
+            type="button"
+            data-media-option={m}
+            onClick={() => {
+              setMediaType(m);
+              setAvFile(null);
+              setAvDuration(null);
+              setError(null);
+            }}
+            className={`border-2 px-3 py-1 text-caption font-bold uppercase ${
+              mediaType === m
+                ? "border-ink bg-ink text-paper"
+                : "border-ink hover:bg-yellow"
+            }`}
+          >
+            {m === "image" ? "Image" : m === "video" ? "Short video" : "Short audio"}
+          </button>
+        ))}
+      </div>
+
+      {mediaType !== "image" ? (
+        <>
+          <label htmlFor="av_file" className="text-caption font-bold uppercase">
+            {mediaType === "video" ? "Video (max 2 min)" : "Audio (max 5 min)"}
+          </label>
+          <input
+            id="av_file"
+            type="file"
+            accept={mediaType === "video" ? "video/*" : "audio/*"}
+            onChange={onAvFileChange}
+            className="border-2 border-ink bg-paper px-3 py-2 text-body file:mr-3 file:border-2 file:border-ink file:bg-ink file:px-3 file:py-1 file:text-caption file:font-bold file:uppercase file:text-paper"
+          />
+          {avFile && avDuration ? (
+            <p className="text-caption font-bold uppercase">
+              {avFile.name} · {Math.round(avDuration)}s ✓
+            </p>
+          ) : null}
+        </>
+      ) : null}
+
+      {mediaType !== "video" ? (
+        <>
+          <label htmlFor="image" className="text-caption font-bold uppercase">
+            {mediaType === "audio" ? "Cover image (required)" : "Work (image)"}
+          </label>
+          <input
+            id="image"
+            type="file"
+            accept="image/*"
+            onChange={onFileChange}
+            className="border-2 border-ink bg-paper px-3 py-2 text-body file:mr-3 file:border-2 file:border-ink file:bg-ink file:px-3 file:py-1 file:text-caption file:font-bold file:uppercase file:text-paper"
+          />
+        </>
+      ) : (
+        <p className="text-caption uppercase opacity-70">
+          Poster frame is extracted automatically from the video
+        </p>
+      )}
       <p data-pipeline-note className="text-caption uppercase opacity-70">
         Your original is stored untouched, full resolution. Optimized display
         copies are generated for fast viewing.

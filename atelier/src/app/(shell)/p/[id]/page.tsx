@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ResponsiveImage } from "@/components/posts/ResponsiveImage";
+import { MediaBody } from "@/components/posts/MediaBody";
 import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
 import { getPostById } from "@/lib/posts/queries";
@@ -31,7 +31,7 @@ export default async function PostDetailPage({ params }: Props) {
     <WindowGrid>
       <div data-post={post.id} className="col-span-12 flex flex-col md:col-span-8">
         <Window title={CATEGORY_LABEL[post.category]} accent="red" className="h-full">
-          <ResponsiveImage
+          <MediaBody
             post={post}
             eager
             sizes="(max-width: 768px) 100vw, 66vw"

@@ -146,13 +146,24 @@ function BlockBody({
               className="block border-2 border-ink hover:border-blue"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={thumbUrl(post)}
-                alt={post.caption || `Work by ${profile.display_name}`}
-                loading="lazy"
-                decoding="async"
-                className="aspect-square h-auto w-full object-cover"
-              />
+              <span className="relative block">
+                <img
+                  src={thumbUrl(post)}
+                  alt={post.alt_text || post.caption || `Work by ${profile.display_name}`}
+                  loading="lazy"
+                  decoding="async"
+                  className="aspect-square h-auto w-full object-cover"
+                />
+                {post.media_type !== "image" ? (
+                  <span
+                    data-media-badge={post.media_type}
+                    className="absolute right-1 top-1 border-2 border-ink bg-paper px-1 text-caption font-bold"
+                    aria-label={post.media_type}
+                  >
+                    {post.media_type === "video" ? "▶" : "♪"}
+                  </span>
+                ) : null}
+              </span>
             </Link>
           ))}
         </div>

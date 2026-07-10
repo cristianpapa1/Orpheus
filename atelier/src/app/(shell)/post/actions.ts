@@ -4,7 +4,11 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { parseDisplay } from "@/lib/posts/display";
-import { isPostCategory } from "@/lib/posts/types";
+import {
+  isMediaType,
+  isPostCategory,
+  validDuration,
+} from "@/lib/posts/types";
 
 const MAX_BLUR_CHARS = 6000; // matches the DB check constraint
 
@@ -23,6 +27,11 @@ export interface PublishPostInput {
   blur_data: string | null;
   /** Author-written alt text for accessibility. */
   alt_text?: string;
+  /** Track B: image (default) | video | audio. */
+  media_type?: string;
+  /** Storage path of the AV file (caller's folder; null for images). */
+  media_path?: string | null;
+  duration_seconds?: number | null;
   /** Groups to tag this post into — caller must be a MEMBER of each. */
   group_ids?: string[];
 }
@@ -49,10 +58,31 @@ export async function publishPost(
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Sign in to publish." };
 
+  // Track B: media type + duration validation.
+  const media_type = isMediaType(input.media_type) ? input.media_type : "image";
+  const duration =
+    media_type === "image"
+      ? null
+      : Math.round(Number(input.duration_seconds) || 0) || null;
+  if (!validDuration(media_type, duration)) {
+    return {
+      ok: false,
+      error:
+        media_type === "video"
+          ? "Videos are capped at 2 minutes."
+          : "Audio is capped at 5 minutes.",
+    };
+  }
+  const media_path = media_type === "image" ? null : input.media_path;
+  if (media_type !== "image" && !media_path) {
+    return { ok: false, error: "Upload the media file first." };
+  }
+
   const ownFolder = `${user.id}/`;
   const paths = [
     input.image_path,
     ...(input.original_path ? [input.original_path] : []),
+    ...(media_path ? [media_path] : []),
     ...input.variants.map((v) => v.path),
   ];
   if (paths.length === 0 || !input.image_path) {
@@ -115,6 +145,9 @@ export async function publishPost(
       variants,
       blur_data,
       alt_text: String(input.alt_text ?? "").trim().slice(0, 300) || null,
+      media_type,
+      media_path,
+      duration_seconds: duration,
       display,
     })
     .select("id")

@@ -21,6 +21,50 @@ export interface PostVariant {
   url: string;
 }
 
+/* ── Track B: posts beyond images ───────────────────────────── */
+
+export const MEDIA_TYPES = ["image", "video", "audio"] as const;
+export type MediaType = (typeof MEDIA_TYPES)[number];
+
+/** Per-type caps — shorts, not features. Server AND client enforced. */
+export const MEDIA_LIMITS = {
+  video: { maxSeconds: 120, maxBytes: 150 * 1024 * 1024 },
+  audio: { maxSeconds: 300, maxBytes: 30 * 1024 * 1024 },
+} as const;
+
+export const MEDIA_EXT: Record<Exclude<MediaType, "image">, Record<string, string>> = {
+  video: { "video/mp4": "mp4", "video/webm": "webm", "video/quicktime": "mov" },
+  audio: {
+    "audio/mpeg": "mp3",
+    "audio/mp4": "m4a",
+    "audio/ogg": "ogg",
+    "audio/wav": "wav",
+    "audio/x-wav": "wav",
+  },
+};
+
+export function isMediaType(value: unknown): value is MediaType {
+  return MEDIA_TYPES.includes(value as MediaType);
+}
+
+/** Validate a duration against the per-type cap. Image → must be null. */
+export function validDuration(
+  mediaType: MediaType,
+  seconds: number | null,
+): boolean {
+  if (mediaType === "image") return seconds === null;
+  if (seconds === null || !Number.isFinite(seconds) || seconds <= 0) return false;
+  return seconds <= MEDIA_LIMITS[mediaType].maxSeconds;
+}
+
+/** mm:ss for players — fixed format, hydration-safe. */
+export function formatDuration(seconds: number | null): string {
+  if (seconds === null || seconds <= 0) return "";
+  const m = Math.floor(seconds / 60);
+  const s = Math.round(seconds % 60);
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
 export interface Post {
   id: string;
   author_id: string;
@@ -39,6 +83,11 @@ export interface Post {
   blur_data: string | null;
   /** Author-written alt text (a11y); falls back to caption when null. */
   alt_text: string | null;
+  /** Track B: image | video | audio. AV originals live untouched in storage. */
+  media_type: MediaType;
+  /** URL of the video/audio file (null for images). */
+  media_url: string | null;
+  duration_seconds: number | null;
   display: PostDisplay;
   created_at: string; // ISO-8601
 }

@@ -89,3 +89,57 @@ export async function prepareUpload(file: File): Promise<PreparedUpload> {
   bitmap.close();
   return result;
 }
+
+/* ── Track B: AV media prep (browser-only) ─────────────────────── */
+
+/** Read a video/audio file's duration via a media element. */
+export function readMediaDuration(
+  file: File,
+  kind: "video" | "audio",
+): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const el = document.createElement(kind);
+    el.preload = "metadata";
+    el.onloadedmetadata = () => {
+      URL.revokeObjectURL(el.src);
+      resolve(el.duration);
+    };
+    el.onerror = () => {
+      URL.revokeObjectURL(el.src);
+      reject(new Error("Couldn't read that file."));
+    };
+    el.src = URL.createObjectURL(file);
+  });
+}
+
+/** Extract a poster frame (~0.5s in) from a video file as a JPEG File. */
+export function extractVideoPoster(file: File): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement("video");
+    video.preload = "auto";
+    video.muted = true;
+    video.playsInline = true;
+    video.onerror = () => reject(new Error("Couldn't decode the video."));
+    video.onloadeddata = () => {
+      video.currentTime = Math.min(0.5, video.duration / 2);
+    };
+    video.onseeked = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return reject(new Error("Canvas unavailable"));
+      ctx.drawImage(video, 0, 0);
+      canvas.toBlob(
+        (blob) => {
+          URL.revokeObjectURL(video.src);
+          if (!blob) return reject(new Error("Poster encoding failed"));
+          resolve(new File([blob], "poster.jpg", { type: "image/jpeg" }));
+        },
+        "image/jpeg",
+        0.85,
+      );
+    };
+    video.src = URL.createObjectURL(file);
+  });
+}

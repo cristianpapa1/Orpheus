@@ -486,6 +486,19 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - [x] ISC-330: data-footer-events + "All events →" in the events block
 - [x] ISC-331: Anti — only ordering is starts_at ascending (Read)
 
+### Track B — posts beyond images (verified 2026-07-10)
+- [x] ISC-332: Migration 0011 — media_type check, posts_media_duration_check (video ≤120, audio ≤300, image null)
+- [x] ISC-333: Post carries media_type/media_url/duration_seconds; mapper defaults unknown → image
+- [x] ISC-334: readMediaDuration + extractVideoPoster (canvas @0.5s) → poster through prepareUpload
+- [x] ISC-335: publishPost: isMediaType + validDuration + media_path in own-folder path guard
+- [x] ISC-336: Composer: 3 data-media-option buttons; per-type accept, size + duration validation; audio requires cover
+- [x] ISC-337: curl — data-media="video" with controls/playsInline/preload=none + poster; autoplay grep = 0
+- [x] ISC-338: curl — data-media="audio" with <audio controls preload=none>, cover visual above
+- [x] ISC-339: curl — /u/theo gallery: data-media-badge audio + video
+- [x] ISC-340: curl — demo-theo-av1 (real 3s WAV, served 200, plays) + demo-theo-av2 (video, poster stub noted in caption); duration badges "♪ 0:03" / "▶ 0:40" rendered
+- [x] ISC-341: Anti — zero autoplay attrs; AV posts sit in the same chronological feed (order probe: av1→av2→theo-1)
+- [x] ISC-342: Bash — validDuration/formatDuration: 56-test suite green
+
 ## Test Strategy
 
 | isc | type | check | threshold | tool |
