@@ -39,7 +39,10 @@ export default async function ShellLayout({
         <Link href="/donate" data-footer-donate className="border-b-2 border-ink font-bold hover:text-red">
           funded by donations
         </Link>
-        , never by ads
+        , never by ads ·{" "}
+        <Link href="/jobs" data-footer-jobs className="border-b-2 border-ink font-bold hover:text-blue">
+          jobs for makers
+        </Link>
       </footer>
     </div>
   );

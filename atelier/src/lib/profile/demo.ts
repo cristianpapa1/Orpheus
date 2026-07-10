@@ -24,6 +24,7 @@ export const DEMO_PROFILES: Record<string, PublicProfile> = {
         { id: "gallery", type: "gallery", x: 5, y: 0, w: 7, h: 6 },
         { id: "links", type: "links", x: 0, y: 4, w: 5, h: 2 },
         { id: "events", type: "events", x: 0, y: 6, w: 12, h: 2 },
+        { id: "jobs", type: "jobs", x: 0, y: 8, w: 12, h: 3 },
       ],
     },
     follower_count: 128,

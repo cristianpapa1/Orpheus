@@ -84,5 +84,8 @@ three tabs are auth-gated when Supabase is configured.
   goal/progress, on/off, per-appeal results) with a dismissible in-app
   banner channel. Requires STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET /
   SUPABASE_SERVICE_ROLE_KEY (see .env.example).
-- ⬜ Phase 8 — job posts on profiles (next)
-- ⬜ Phase 9 — polish & launch prep
+- ✅ **Phase 8** — job posts on profiles: post/manage at `/profile/jobs`
+  (open/filled/closed), jobs window block on profiles (open listed,
+  filled/closed collapsed), chronological filterable discovery at `/jobs`
+  (discipline + work mode), apply via Atelier chat or external link.
+- ⬜ Phase 9 — polish & launch prep (next)

@@ -1,11 +1,11 @@
 ---
-task: "Build Atelier Phase 7 donations and appeals"
+task: "Build Atelier Phase 8 job posts and discovery"
 slug: 20260708-120400_develop-the-atelier-build-here-build
 project: Atelier
 effort: E3
 effort_source: classifier
-phase: complete
-progress: 248/256
+phase: execute
+progress: 248/286
 mode: interactive
 started: 2026-07-08T15:04:39Z
 updated: 2026-07-09T12:00:00Z
@@ -386,6 +386,46 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - [x] ISC-254: All prior routes re-probed at expected codes
 - [DEFERRED-VERIFY] ISC-255: Live Stripe donation round-trip incl. receipt [follow-up: ATELIER-P7-LIVE — needs Stripe test keys + Supabase creds: donate, verify webhook row + receipt email + ledger]
 - [x] ISC-256: Antecedent: donation surfaces compose the Window primitive
+
+### Phase 8 — jobs data model
+- [ ] ISC-257: Migration 0009 creates `job_posts` with discipline/work_mode/status/apply_url checks
+- [ ] ISC-258: job_posts RLS: public select, owner-only insert/update/delete
+- [ ] ISC-259: Indexes for discovery (status, created_at desc) and per-profile listing
+
+### Phase 8 — lib, demo & layout block
+- [ ] ISC-260: Types export ≥5 disciplines, 3 work modes (remote/on_site/hybrid), 3 statuses
+- [ ] ISC-261: `filterJobs` is pure (discipline + work mode) and unit-tested
+- [ ] ISC-262: ≥3 demo jobs including one filled (collapse/discovery-exclusion test)
+- [ ] ISC-263: Layout engine gains the `jobs` block type; full test suite still passes
+
+### Phase 8 — poster management
+- [ ] ISC-264: `/profile/jobs` returns 200 (gated via /profile matcher)
+- [ ] ISC-265: Create form: title, discipline, description, location, work mode, compensation, apply link
+- [ ] ISC-266: `createJob` re-validates title/discipline/URL server-side
+- [ ] ISC-267: `setJobStatus` cycles open/filled/closed on own rows only
+- [ ] ISC-268: Preview mode: form disabled with notice; demo jobs listed
+- [ ] ISC-269: Profile tab links to the jobs manager
+
+### Phase 8 — profile block & discovery
+- [ ] ISC-270: Jobs window block renders open postings on public profiles
+- [ ] ISC-271: Filled/closed postings collapse in a details element
+- [ ] ISC-272: Block links to the discovery view
+- [ ] ISC-273: `/jobs` returns 200 publicly
+- [ ] ISC-274: Discovery lists open jobs newest-first (created_at only)
+- [ ] ISC-275: Discipline filter works via query param (probed in served HTML)
+- [ ] ISC-276: Work-mode filter works via query param
+- [ ] ISC-277: Filled/closed jobs never appear in discovery
+- [ ] ISC-278: Each listing links to the poster's profile
+- [ ] ISC-279: Apply flow: chat thread via MessageButton, or external link when apply_url exists
+- [ ] ISC-280: Compensation renders ("range or negotiable" — free text)
+
+### Phase 8 — guards & regression
+- [ ] ISC-281: Anti: no paid placement — discovery has no ordering beyond created_at
+- [ ] ISC-282: Anti: no promotional mechanism exists — every sponsored/boost/promote/advertis match in src/ is negation copy stating the principle, never a code path or surface [refined 2026-07-09, see Decisions]
+- [ ] ISC-283: Build, typecheck, tests, lint pass
+- [ ] ISC-284: All prior routes re-probed at expected codes
+- [ ] ISC-285: Live job round-trip (post→discover→apply→filled) [DEFERRED-VERIFY — follow-up: ATELIER-P8-LIVE]
+- [ ] ISC-286: Antecedent: jobs surfaces compose the Window primitive
 
 ## Test Strategy
 

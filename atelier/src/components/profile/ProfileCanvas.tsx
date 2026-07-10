@@ -4,6 +4,11 @@ import { GRID_COLS, type LayoutBlock } from "@/lib/profile/layout";
 import type { PublicProfile } from "@/lib/profile/types";
 import { thumbUrl, type Post } from "@/lib/posts/types";
 import { formatEventDate, splitEvents, type EventItem } from "@/lib/events/types";
+import {
+  DISCIPLINE_LABEL,
+  WORK_MODE_LABEL,
+  type JobPost,
+} from "@/lib/jobs/types";
 
 const ROW_H = 56;
 const ACCENTS = ["red", "blue", "yellow"] as const;
@@ -17,11 +22,13 @@ export function ProfileCanvas({
   profile,
   posts = [],
   events = [],
+  jobs = [],
   now = "1970-01-01T00:00:00Z",
 }: {
   profile: PublicProfile;
   posts?: Post[];
   events?: EventItem[];
+  jobs?: JobPost[];
   now?: string;
 }) {
   return (
@@ -56,6 +63,7 @@ export function ProfileCanvas({
               profile={profile}
               posts={posts}
               events={events}
+              jobs={jobs}
               now={now}
             />
           </Window>
@@ -77,6 +85,8 @@ function blockTitle(block: LayoutBlock): string {
       return "Posts";
     case "events":
       return "Events";
+    case "jobs":
+      return "Jobs";
   }
 }
 
@@ -85,12 +95,14 @@ function BlockBody({
   profile,
   posts,
   events,
+  jobs,
   now,
 }: {
   block: LayoutBlock;
   profile: PublicProfile;
   posts: Post[];
   events: EventItem[];
+  jobs: JobPost[];
   now: string;
 }) {
   switch (block.type) {
@@ -173,6 +185,52 @@ function BlockBody({
       ) : (
         <p className="text-body opacity-70">No posts yet.</p>
       );
+    case "jobs": {
+      const open = jobs.filter((j) => j.status === "open");
+      const past = jobs.filter((j) => j.status !== "open");
+      if (open.length === 0 && past.length === 0) {
+        return <p className="text-body opacity-70">No open positions.</p>;
+      }
+      return (
+        <div className="flex h-full flex-col overflow-auto">
+          <ul className="flex flex-col gap-3">
+            {open.map((job) => (
+              <li key={job.id} data-profile-job={job.id} className="border-2 border-ink p-3">
+                <p className="text-body font-bold">{job.title}</p>
+                <p className="mt-1 text-caption font-bold uppercase">
+                  {DISCIPLINE_LABEL[job.discipline]} ·{" "}
+                  {WORK_MODE_LABEL[job.work_mode]}
+                  {job.location ? ` · ${job.location}` : ""} · {job.compensation}
+                </p>
+              </li>
+            ))}
+            {open.length === 0 ? (
+              <li className="text-body opacity-70">Nothing open right now.</li>
+            ) : null}
+          </ul>
+          {past.length > 0 ? (
+            <details data-past-jobs className="mt-3">
+              <summary className="cursor-pointer text-caption font-bold uppercase">
+                Filled & closed ({past.length})
+              </summary>
+              <ul className="mt-2 flex flex-col gap-1 opacity-70">
+                {past.map((job) => (
+                  <li key={job.id} className="text-caption uppercase">
+                    {job.title} — {job.status}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ) : null}
+          <Link
+            href="/jobs"
+            className="mt-3 self-start border-b-2 border-ink text-caption font-bold uppercase hover:text-blue"
+          >
+            Browse all jobs →
+          </Link>
+        </div>
+      );
+    }
     case "events": {
       const { upcoming, past } = splitEvents(events, now);
       if (upcoming.length === 0 && past.length === 0) {

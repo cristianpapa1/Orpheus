@@ -7,7 +7,13 @@
 
 export const GRID_COLS = 12;
 
-export type ProfileBlockType = "bio" | "links" | "gallery" | "posts" | "events";
+export type ProfileBlockType =
+  | "bio"
+  | "links"
+  | "gallery"
+  | "posts"
+  | "events"
+  | "jobs";
 
 export interface LayoutBlock {
   id: string;
@@ -29,6 +35,7 @@ export const BLOCK_TYPES: ProfileBlockType[] = [
   "gallery",
   "posts",
   "events",
+  "jobs",
 ];
 
 export const BLOCK_LABEL: Record<ProfileBlockType, string> = {
@@ -37,6 +44,7 @@ export const BLOCK_LABEL: Record<ProfileBlockType, string> = {
   gallery: "Gallery",
   posts: "Posts",
   events: "Events",
+  jobs: "Jobs",
 };
 
 /** Minimum size per block type, in grid units. */
@@ -46,6 +54,7 @@ export const MIN_SIZE: Record<ProfileBlockType, { w: number; h: number }> = {
   gallery: { w: 4, h: 2 },
   posts: { w: 4, h: 2 },
   events: { w: 3, h: 2 },
+  jobs: { w: 3, h: 2 },
 };
 
 /** Default size a block takes when added to the canvas. */
@@ -55,6 +64,7 @@ const DEFAULT_SIZE: Record<ProfileBlockType, { w: number; h: number }> = {
   gallery: { w: 12, h: 4 },
   posts: { w: 8, h: 3 },
   events: { w: 4, h: 3 },
+  jobs: { w: 8, h: 3 },
 };
 
 export const DEFAULT_LAYOUT: ProfileLayout = {

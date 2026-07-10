@@ -5,9 +5,11 @@ import { startOrGetThread } from "@/app/(shell)/chat/actions";
 
 interface Props {
   targetHandle: string;
+  /** Button text — e.g. "Apply via chat" on job posts. */
+  label?: string;
 }
 
-export function MessageButton({ targetHandle }: Props) {
+export function MessageButton({ targetHandle, label = "Message" }: Props) {
   const router = useRouter();
 
   async function handleClick() {
@@ -23,7 +25,7 @@ export function MessageButton({ targetHandle }: Props) {
       onClick={handleClick}
       className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-blue hover:border-blue hover:text-paper"
     >
-      Message
+      {label}
     </button>
   );
 }
