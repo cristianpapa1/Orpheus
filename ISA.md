@@ -1,11 +1,11 @@
 ---
-task: "Build Atelier Phase 9 polish and launch prep"
+task: "Evolution run: mobile bar, events, AV posts, schools"
 slug: 20260708-120400_develop-the-atelier-build-here-build
 project: Atelier
 effort: E3
 effort_source: classifier
-phase: complete
-progress: 306/316
+phase: build
+progress: 306/348
 mode: interactive
 started: 2026-07-08T15:04:39Z
 updated: 2026-07-09T12:00:00Z
@@ -466,6 +466,25 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - [x] ISC-314: Full route regression battery green
 - [DEFERRED-VERIFY] ISC-315: Live moderation round-trip [follow-up: ATELIER-P9-LIVE — after creds: report → queue → action; block → feed exclusion with two users]
 - [x] ISC-316: Antecedent: new surfaces compose the Window primitive
+
+### M1 — mobile bottom tab bar (verified 2026-07-09)
+- [x] ISC-317: BottomNav renders on small screens with the four tabs (Feed/Groups/Chat/Profile) — curl: data-bottom-nav with 4 tab labels
+- [x] ISC-318: Bar padding includes env(safe-area-inset-bottom) — curl: class present
+- [x] ISC-319: Active tab is visually distinct with aria-current — Read: aria-current=page + bg-ink/text-paper inversion
+- [x] ISC-320: Top-nav tab row hidden on mobile; wordmark + actions remain — curl: `hidden items-stretch gap-6 md:flex`
+- [x] ISC-321: Shell content bottom-padded on mobile — footer pb-20 md:pb-4 probed
+- [x] ISC-322: Desktop (md+) unchanged: bar is md:hidden, top tabs md:flex
+- [x] ISC-323: Build + probes green after M1 (build exit 0, feed 200)
+
+### Track C — global events list
+- [ ] ISC-324: Migration adds a platform-wide index on events(starts_at)
+- [ ] ISC-325: getUpcomingEvents returns future events across all profiles, ascending
+- [ ] ISC-326: groupEventsByMonth is pure and unit-tested
+- [ ] ISC-327: /events returns 200 publicly with month-grouped chronological listing
+- [ ] ISC-328: venue/online filter works via GET query param
+- [ ] ISC-329: Entries link to the creator profile and show a ticket CTA when present
+- [ ] ISC-330: Entry points exist: footer link and events-block "All events →"
+- [ ] ISC-331: Anti: the list has no ordering beyond starts_at (nothing promoted)
 
 ## Test Strategy
 

@@ -28,7 +28,7 @@ export function Nav({ email }: { email: string | null }) {
           </span>
         </Link>
 
-        <nav aria-label="Primary" className="flex items-stretch gap-6">
+        <nav aria-label="Primary" className="hidden items-stretch gap-6 md:flex">
           {TABS.map((tab) => {
             const active = pathname.startsWith(tab.href);
             return (
