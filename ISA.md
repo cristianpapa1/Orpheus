@@ -5,7 +5,7 @@ project: Atelier
 effort: E3
 effort_source: classifier
 phase: complete
-progress: 363/373
+progress: 373/373
 mode: interactive
 started: 2026-07-08T15:04:39Z
 updated: 2026-07-09T12:00:00Z
@@ -304,7 +304,7 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 ### Phase 5 — guards & regression
 - [x] ISC-195: Build, typecheck, and lint pass (14 routes + proxy)
 - [x] ISC-196: All prior routes re-probed at expected status codes
-- [DEFERRED-VERIFY] ISC-197: Live chat round-trip (start thread → send message → receive in thread) [follow-up: ATELIER-P5-LIVE — after creds: two-auth-user send/receive test]
+- [x] ISC-197: Live chat round-trip verified 2026-07-10 after migration 0012 — thread started from the greater-UUID participant (swap path), normalized a<b, 2 messages exchanged, outsider read zero rows (live-verify 27/27)
 - [x] ISC-198: Anti: chat messages have no read-receipt or typing-indicator infrastructure (deferred patterns, not scope-crept)
 - [x] ISC-199: Antecedent: chat pages compose the Window primitive; Anti: promo grep still zero
 
