@@ -510,6 +510,14 @@ A signed-in user can navigate three empty tabs (Feed / Groups / Profile) rendere
 - [x] ISC-350: Anti — shell header/nav/footer carry no data-school (probe: 0); schools scope creator spaces + pinned posts only
 - [x] ISC-351: Bash — 56 tests, TSC_OK, lint clean, build 24 routes
 
+### Appearance settings (principal feedback, verified 2026-07-10)
+- [x] ISC-352: curl — /profile/settings → 200 (inherits /profile gating)
+- [x] ISC-353: curl — data-appearance-form with 5 data-school-choice + 3 data-accent-choice radios, current school pre-checked; plain form, no client JS
+- [x] ISC-354: Read — saveAppearance updates only {school, accent, updated_at}; revalidates /u/[handle] + /profile
+- [x] ISC-355: curl — data-profile-settings button on the Profile tab
+- [x] ISC-356: curl — editor has 0 school/accent pickers, pointer text links to Settings
+- [x] ISC-357: Bash — 56 tests, TSC_OK, lint, build (25 routes) green
+
 ## Test Strategy
 
 | isc | type | check | threshold | tool |

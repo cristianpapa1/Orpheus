@@ -15,7 +15,6 @@ import {
   type ProfileLayout,
 } from "@/lib/profile/layout";
 import type { ProfileIdentity, ProfileLink } from "@/lib/profile/types";
-import { SCHOOLS, SCHOOL_LABEL } from "@/lib/design/schools";
 import { saveProfile } from "@/app/(shell)/profile/actions";
 
 const ROW_H = 56;
@@ -199,46 +198,12 @@ export function ProfileEditor({
             onChange={(e) => setIdentity({ ...identity, bio: e.target.value })}
             className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
           />
-          <p className="text-caption font-bold uppercase">Your school</p>
-          <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Artistic school">
-            {SCHOOLS.map((s) => (
-              <button
-                key={s}
-                type="button"
-                role="radio"
-                aria-checked={identity.school === s}
-                data-school-option={s}
-                onClick={() => setIdentity({ ...identity, school: s })}
-                className={`border-2 px-3 py-1 text-caption font-bold uppercase ${
-                  identity.school === s
-                    ? "border-ink bg-ink text-paper"
-                    : "border-ink hover:bg-yellow"
-                }`}
-              >
-                {SCHOOL_LABEL[s]}
-              </button>
-            ))}
-          </div>
           <p className="text-caption uppercase opacity-70">
-            Your public space converges to this school&apos;s palette
+            School &amp; accent moved to{" "}
+            <a href="/profile/settings" className="border-b-2 border-ink font-bold">
+              Settings
+            </a>
           </p>
-          <p className="text-caption font-bold uppercase">Your accent</p>
-          <div className="flex gap-2" role="radiogroup" aria-label="Profile accent color">
-            {(["red", "blue", "yellow"] as const).map((a) => (
-              <button
-                key={a}
-                type="button"
-                role="radio"
-                aria-checked={identity.accent === a}
-                aria-label={`${a} accent`}
-                data-accent-option={a}
-                onClick={() => setIdentity({ ...identity, accent: a })}
-                className={`size-8 border-2 ${
-                  a === "red" ? "bg-red" : a === "blue" ? "bg-blue" : "bg-yellow"
-                } ${identity.accent === a ? "border-ink ring-2 ring-ink ring-offset-2" : "border-ink/30"}`}
-              />
-            ))}
-          </div>
           <p className="text-caption font-bold uppercase">Links</p>
           {identity.links.map((link, i) => (
             <div key={i} className="flex gap-2">
