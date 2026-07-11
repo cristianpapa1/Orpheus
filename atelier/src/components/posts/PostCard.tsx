@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Window, type WindowAccent } from "@/components/ui/Window";
 import { MediaBody } from "@/components/posts/MediaBody";
 import { ResponsiveImage } from "@/components/posts/ResponsiveImage";
+import { TextBody } from "@/components/posts/TextBody";
 import {
   aspectClass,
   frameClasses,
@@ -42,7 +43,14 @@ export function PostCard({
         flush
         className="h-full"
       >
-        {post.media_type === "image" ? (
+        {post.media_type === "text" ? (
+          <Link href={`/p/${post.id}`} className="block p-4">
+            {post.caption ? (
+              <p className="mb-2 text-h2 font-bold uppercase">{post.caption}</p>
+            ) : null}
+            <TextBody body={post.body ?? ""} />
+          </Link>
+        ) : post.media_type === "image" ? (
           <Link href={`/p/${post.id}`} className={frame.wrapper}>
             <ResponsiveImage
               post={post}
@@ -73,7 +81,9 @@ export function PostCard({
               {formatPostDate(post.created_at)}
             </time>
           </div>
-          {post.caption ? <p className="mt-2 text-body">{post.caption}</p> : null}
+          {post.caption && post.media_type !== "text" ? (
+            <p className="mt-2 text-body">{post.caption}</p>
+          ) : null}
           {groups.length > 0 ? (
             <p className="mt-3 flex flex-wrap gap-2">
               {groups.map((g) => (

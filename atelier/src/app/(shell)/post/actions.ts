@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { parseDisplay } from "@atelier/core/posts/display";
 import {
+  MAX_BODY_CHARS,
   isMediaType,
   isPostCategory,
   isValidSubcategory,
@@ -21,15 +22,17 @@ export interface PublishPostInput {
   /** Optional style within the category (e.g. music → jazz). */
   subcategory?: string | null;
   display: unknown;
+  /** Text posts (media_type 'text') carry their work here — a poem/paragraph. */
+  body?: string;
   /** Storage path of the untouched original (nullable). */
-  original_path: string | null;
+  original_path?: string | null;
   /** Storage paths of the display variants, ascending width. */
-  variants: { width: number; height: number; path: string }[];
+  variants?: { width: number; height: number; path: string }[];
   /** Largest display variant — kept as the post's primary image. */
-  image_path: string;
-  width: number | null;
-  height: number | null;
-  blur_data: string | null;
+  image_path?: string;
+  width?: number | null;
+  height?: number | null;
+  blur_data?: string | null;
   /** Author-written alt text for accessibility. */
   alt_text?: string;
   /** Track B: image (default) | video | audio. */
@@ -65,40 +68,9 @@ export async function publishPost(
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Sign in to publish." };
 
-  // Track B: media type + duration validation.
   const media_type = isMediaType(input.media_type) ? input.media_type : "image";
-  const duration =
-    media_type === "image"
-      ? null
-      : Math.round(Number(input.duration_seconds) || 0) || null;
-  if (!validDuration(media_type, duration)) {
-    return {
-      ok: false,
-      error:
-        media_type === "video"
-          ? "Videos are capped at 2 minutes."
-          : "Audio is capped at 5 minutes.",
-    };
-  }
-  const media_path = media_type === "image" ? null : input.media_path;
-  if (media_type !== "image" && !media_path) {
-    return { ok: false, error: "Upload the media file first." };
-  }
 
-  const ownFolder = `${user.id}/`;
-  const paths = [
-    input.image_path,
-    ...(input.original_path ? [input.original_path] : []),
-    ...(media_path ? [media_path] : []),
-    ...input.variants.map((v) => v.path),
-  ];
-  if (paths.length === 0 || !input.image_path) {
-    return { ok: false, error: "Upload an image first." };
-  }
-  if (paths.some((p) => typeof p !== "string" || !p.startsWith(ownFolder) || p.includes(".."))) {
-    return { ok: false, error: "Invalid media path." };
-  }
-
+  // Shared metadata (every post kind).
   const caption = String(input.caption ?? "").trim().slice(0, 1000);
   const category = String(input.category ?? "");
   if (!isPostCategory(category)) return { ok: false, error: "Pick a category." };
@@ -107,6 +79,87 @@ export async function publishPost(
     return { ok: false, error: "That style doesn't belong to this category." };
   }
   const subcategory = rawSub || null;
+
+  // Per-kind payload + what the moderator sees.
+  const display = parseDisplay(input.display);
+  let payload: Record<string, unknown>;
+  let moderationImageUrl: string | null = null;
+  let moderationBody: string | undefined;
+
+  if (media_type === "text") {
+    const body = String(input.body ?? "").trim().slice(0, MAX_BODY_CHARS);
+    if (!body) return { ok: false, error: "Write something to publish." };
+    moderationBody = body;
+    payload = {
+      image_path: null,
+      image_width: null,
+      image_height: null,
+      original_path: null,
+      variants: [],
+      blur_data: null,
+      alt_text: null,
+      media_type: "text",
+      media_path: null,
+      duration_seconds: null,
+      body,
+    };
+  } else {
+    const duration =
+      media_type === "image"
+        ? null
+        : Math.round(Number(input.duration_seconds) || 0) || null;
+    if (!validDuration(media_type, duration)) {
+      return {
+        ok: false,
+        error:
+          media_type === "video"
+            ? "Videos are capped at 2 minutes."
+            : "Audio is capped at 5 minutes.",
+      };
+    }
+    const media_path = media_type === "image" ? null : input.media_path;
+    if (media_type !== "image" && !media_path) {
+      return { ok: false, error: "Upload the media file first." };
+    }
+
+    const ownFolder = `${user.id}/`;
+    const variantList = input.variants ?? [];
+    const paths = [
+      input.image_path,
+      ...(input.original_path ? [input.original_path] : []),
+      ...(media_path ? [media_path] : []),
+      ...variantList.map((v) => v.path),
+    ];
+    if (!input.image_path) {
+      return { ok: false, error: "Upload an image first." };
+    }
+    if (paths.some((p) => typeof p !== "string" || !p.startsWith(ownFolder) || p.includes(".."))) {
+      return { ok: false, error: "Invalid media path." };
+    }
+
+    let blur_data: string | null = null;
+    if (typeof input.blur_data === "string" && input.blur_data.startsWith("data:image/")) {
+      blur_data = input.blur_data.slice(0, MAX_BLUR_CHARS);
+    }
+    const variants = variantList
+      .filter((v) => typeof v.width === "number" && v.width > 0)
+      .map((v) => ({ width: Math.round(v.width), path: v.path }));
+
+    moderationImageUrl = publicMediaUrl(input.image_path);
+    payload = {
+      image_path: input.image_path,
+      image_width: input.width ?? null,
+      image_height: input.height ?? null,
+      original_path: input.original_path ?? null,
+      variants,
+      blur_data,
+      alt_text: String(input.alt_text ?? "").trim().slice(0, 300) || null,
+      media_type,
+      media_path,
+      duration_seconds: duration,
+      body: null,
+    };
+  }
 
   // Rate limit: ≤20 posts per hour (advisory basics; see LAUNCH.md).
   const hourAgo = new Date(Date.now() - 3600_000).toISOString();
@@ -122,10 +175,11 @@ export async function publishPost(
   // AI moderation (fail-open). A hard reject blocks publishing; a flag lets
   // the work through but files a report for a human to review.
   const moderation = await moderatePost({
-    imageUrl: publicMediaUrl(input.image_path),
+    imageUrl: moderationImageUrl,
     caption,
     category,
     subcategory,
+    body: moderationBody,
   });
   if (moderation.decision === "reject") {
     return {
@@ -133,17 +187,6 @@ export async function publishPost(
       error: `This didn't pass moderation: ${moderation.reason || "content not allowed here"}.`,
     };
   }
-
-  const display = parseDisplay(input.display);
-
-  let blur_data: string | null = null;
-  if (typeof input.blur_data === "string" && input.blur_data.startsWith("data:image/")) {
-    blur_data = input.blur_data.slice(0, MAX_BLUR_CHARS);
-  }
-
-  const variants = input.variants
-    .filter((v) => typeof v.width === "number" && v.width > 0)
-    .map((v) => ({ width: Math.round(v.width), path: v.path }));
 
   // Group tagging guard: only groups where the author is a MEMBER
   // (followers can't tag — RLS enforces this a second time).
@@ -166,17 +209,8 @@ export async function publishPost(
       caption,
       category,
       subcategory,
-      image_path: input.image_path,
-      image_width: input.width,
-      image_height: input.height,
-      original_path: input.original_path,
-      variants,
-      blur_data,
-      alt_text: String(input.alt_text ?? "").trim().slice(0, 300) || null,
-      media_type,
-      media_path,
-      duration_seconds: duration,
       display,
+      ...payload,
     })
     .select("id")
     .single();

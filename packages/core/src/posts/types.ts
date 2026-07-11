@@ -96,8 +96,11 @@ export interface PostVariant {
 
 /* ── Track B: posts beyond images ───────────────────────────── */
 
-export const MEDIA_TYPES = ["image", "video", "audio"] as const;
+export const MEDIA_TYPES = ["image", "video", "audio", "text"] as const;
 export type MediaType = (typeof MEDIA_TYPES)[number];
+
+/** Longest a text post (poem / paragraph) may be. */
+export const MAX_BODY_CHARS = 4000;
 
 /** Per-type caps — shorts, not features. Server AND client enforced. */
 export const MEDIA_LIMITS = {
@@ -105,7 +108,7 @@ export const MEDIA_LIMITS = {
   audio: { maxSeconds: 300, maxBytes: 30 * 1024 * 1024 },
 } as const;
 
-export const MEDIA_EXT: Record<Exclude<MediaType, "image">, Record<string, string>> = {
+export const MEDIA_EXT: Record<Exclude<MediaType, "image" | "text">, Record<string, string>> = {
   video: { "video/mp4": "mp4", "video/webm": "webm", "video/quicktime": "mov" },
   audio: {
     "audio/mpeg": "mp3",
@@ -120,12 +123,12 @@ export function isMediaType(value: unknown): value is MediaType {
   return MEDIA_TYPES.includes(value as MediaType);
 }
 
-/** Validate a duration against the per-type cap. Image → must be null. */
+/** Validate a duration against the per-type cap. Image/text → must be null. */
 export function validDuration(
   mediaType: MediaType,
   seconds: number | null,
 ): boolean {
-  if (mediaType === "image") return seconds === null;
+  if (mediaType === "image" || mediaType === "text") return seconds === null;
   if (seconds === null || !Number.isFinite(seconds) || seconds <= 0) return false;
   return seconds <= MEDIA_LIMITS[mediaType].maxSeconds;
 }
@@ -147,6 +150,9 @@ export interface Post {
   category: PostCategory;
   /** Optional style within the category (music → jazz). Null when not set. */
   subcategory: string | null;
+  /** Text posts (media_type 'text') carry their work here — a poem/paragraph. */
+  body: string | null;
+  /** Empty string for text posts (no image). */
   image_url: string;
   image_width: number | null;
   image_height: number | null;

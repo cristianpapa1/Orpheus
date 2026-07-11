@@ -37,13 +37,17 @@ function textPart(input: {
   caption?: string;
   category?: string;
   subcategory?: string | null;
+  body?: string;
 }): string {
   const cat = isPostCategory(input.category)
     ? CATEGORY_LABEL[input.category]
     : (input.category ?? "unspecified");
   const sub = input.subcategory ? ` / ${subcategoryLabel(input.subcategory)}` : "";
   const caption = (input.caption ?? "").slice(0, 500) || "(no caption)";
-  return `Stated category: ${cat}${sub}.\nCaption: "${caption}"\nMay this be published on the platform?`;
+  const body = input.body
+    ? `\nText of the work:\n"""${input.body.slice(0, 3000)}"""`
+    : "";
+  return `Stated category: ${cat}${sub}.\nCaption: "${caption}"${body}\nMay this be published on the platform?`;
 }
 
 function parseVerdict(raw: string): ModerationResult {
@@ -70,6 +74,7 @@ export async function moderatePost(input: {
   caption?: string;
   category?: string;
   subcategory?: string | null;
+  body?: string;
 }): Promise<ModerationResult> {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) return approveSkip("moderation disabled (no key)");

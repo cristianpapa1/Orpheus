@@ -13,7 +13,7 @@ const DEMO_BLUR =
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 3"><rect width="4" height="3" fill="#c9c5b8"/></svg>',
   );
 
-const RAW: Omit<Post, "subcategory">[] = [
+const RAW: Omit<Post, "subcategory" | "body">[] = [
   {
     id: "demo-theo-1",
     author_id: "00000000-0000-4000-a000-000000000002",
@@ -165,5 +165,31 @@ const RAW: Omit<Post, "subcategory">[] = [
   },
 ];
 
-// Demo posts predate subcategories — default them to null in one place.
-export const DEMO_POSTS: Post[] = RAW.map((p) => ({ ...p, subcategory: null }));
+// Demo posts predate subcategories/body — default them to null in one place,
+// then add one text post (a poem) to exercise the text-post surface.
+export const DEMO_POSTS: Post[] = [
+  ...RAW.map((p) => ({ ...p, subcategory: null, body: null })),
+  {
+    id: "demo-text-1",
+    author_id: "00000000-0000-4000-a000-000000000001",
+    author_handle: "ines",
+    author_name: "Inês Almeida",
+    caption: "Low Tide",
+    category: "writing",
+    subcategory: "poetry",
+    body:
+      "The sea unmakes the letters\nI wrote across the sand—\neach wave a gentle censor,\neach retreat a hand\n\nthat gives the beach back blank,\npatient as a page,\nasking only that I kneel\nand write my name again.",
+    image_url: "",
+    image_width: null,
+    image_height: null,
+    original_url: null,
+    variants: [],
+    blur_data: null,
+    alt_text: null,
+    media_type: "text",
+    media_url: null,
+    duration_seconds: null,
+    display: { frame: "plate", span: "standard", aspect: "natural" },
+    created_at: "2026-07-08T10:00:00Z",
+  },
+];

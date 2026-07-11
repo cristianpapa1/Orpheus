@@ -167,34 +167,49 @@ function BlockBody({
     case "gallery":
       return posts.length ? (
         <div className="grid h-full grid-cols-3 content-start gap-2">
-          {posts.slice(0, 6).map((post) => (
-            <Link
-              key={post.id}
-              href={`/p/${post.id}`}
-              data-gallery-post={post.id}
-              className="block border-2 border-ink hover:border-blue"
-            >
-              <span className="relative block">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={thumbUrl(post)}
-                  alt={post.alt_text || post.caption || `Work by ${profile.display_name}`}
-                  loading="lazy"
-                  decoding="async"
-                  className="aspect-square h-auto w-full object-cover"
-                />
-                {post.media_type !== "image" ? (
-                  <span
-                    data-media-badge={post.media_type}
-                    className="absolute right-1 top-1 border-2 border-ink bg-paper px-1 text-caption font-bold"
-                    aria-label={post.media_type}
-                  >
-                    {post.media_type === "video" ? "▶" : "♪"}
+          {posts.slice(0, 6).map((post) =>
+            post.media_type === "text" ? (
+              <Link
+                key={post.id}
+                href={`/p/${post.id}`}
+                data-gallery-post={post.id}
+                className="block border-2 border-ink hover:border-blue"
+              >
+                <span className="flex aspect-square flex-col overflow-hidden bg-ink/5 p-2">
+                  <span className="line-clamp-6 whitespace-pre-wrap break-words text-caption leading-snug">
+                    {post.caption || post.body}
                   </span>
-                ) : null}
-              </span>
-            </Link>
-          ))}
+                </span>
+              </Link>
+            ) : (
+              <Link
+                key={post.id}
+                href={`/p/${post.id}`}
+                data-gallery-post={post.id}
+                className="block border-2 border-ink hover:border-blue"
+              >
+                <span className="relative block">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={thumbUrl(post)}
+                    alt={post.alt_text || post.caption || `Work by ${profile.display_name}`}
+                    loading="lazy"
+                    decoding="async"
+                    className="aspect-square h-auto w-full object-cover"
+                  />
+                  {post.media_type !== "image" ? (
+                    <span
+                      data-media-badge={post.media_type}
+                      className="absolute right-1 top-1 border-2 border-ink bg-paper px-1 text-caption font-bold"
+                      aria-label={post.media_type}
+                    >
+                      {post.media_type === "video" ? "▶" : "♪"}
+                    </span>
+                  ) : null}
+                </span>
+              </Link>
+            ),
+          )}
         </div>
       ) : (
         <div className="flex h-full flex-col">
@@ -217,7 +232,9 @@ function BlockBody({
                 href={`/p/${post.id}`}
                 className="border-b-2 border-ink text-body font-bold hover:border-blue hover:text-blue"
               >
-                {post.caption.slice(0, 60) || "Untitled work"}
+                {post.caption.slice(0, 60) ||
+                  post.body?.slice(0, 60) ||
+                  "Untitled work"}
               </Link>
             </li>
           ))}

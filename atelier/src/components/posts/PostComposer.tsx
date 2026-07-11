@@ -21,6 +21,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import {
   CATEGORY_LABEL,
+  MAX_BODY_CHARS,
   MEDIA_EXT,
   MEDIA_LIMITS,
   POST_CATEGORIES,
@@ -58,6 +59,7 @@ export function PostComposer({
   const [prepared, setPrepared] = useState<Prepared | null>(null);
   const [caption, setCaption] = useState("");
   const [altText, setAltText] = useState("");
+  const [body, setBody] = useState("");
   const [mediaType, setMediaType] = useState<MediaType>("image");
   const [avFile, setAvFile] = useState<File | null>(null);
   const [avDuration, setAvDuration] = useState<number | null>(null);
@@ -73,7 +75,7 @@ export function PostComposer({
   const onAvFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
     const file = e.target.files?.[0];
-    if (!file || mediaType === "image") return;
+    if (!file || mediaType === "image" || mediaType === "text") return;
     if (!file.type.startsWith(`${mediaType}/`)) {
       setError(`Choose a ${mediaType} file.`);
       return;
@@ -135,6 +137,34 @@ export function PostComposer({
 
   const publish = () => {
     setError(null);
+
+    // Text posts (poems / paragraphs) carry no media — publish the words.
+    if (mediaType === "text") {
+      const trimmed = body.trim();
+      if (!trimmed) {
+        setError("Write something to publish.");
+        return;
+      }
+      if (!category) {
+        setError("Pick a category.");
+        return;
+      }
+      startTransition(async () => {
+        const result = await publishPost({
+          caption,
+          category,
+          subcategory: subcategory || null,
+          body: trimmed,
+          display: DEFAULT_DISPLAY,
+          media_type: "text",
+          group_ids: groupIds,
+          mention_ids: mentionIds,
+        });
+        if (result && !result.ok) setError(result.error ?? "Publish failed.");
+      });
+      return;
+    }
+
     if (!prepared) {
       setError(
         mediaType === "audio"
@@ -252,7 +282,7 @@ export function PostComposer({
 
       <p className="text-caption font-bold uppercase">What are you sharing?</p>
       <div className="flex flex-wrap gap-2" data-media-picker>
-        {(["image", "video", "audio"] as const).map((m) => (
+        {(["image", "video", "audio", "text"] as const).map((m) => (
           <button
             key={m}
             type="button"
@@ -269,12 +299,39 @@ export function PostComposer({
                 : "border-ink hover:bg-yellow"
             }`}
           >
-            {m === "image" ? "Image" : m === "video" ? "Short video" : "Short audio"}
+            {m === "image"
+              ? "Image"
+              : m === "video"
+                ? "Short video"
+                : m === "audio"
+                  ? "Short audio"
+                  : "Text"}
           </button>
         ))}
       </div>
 
-      {mediaType !== "image" ? (
+      {mediaType === "text" ? (
+        <>
+          <label htmlFor="body" className="text-caption font-bold uppercase">
+            Your words (poem, paragraph…)
+          </label>
+          <textarea
+            id="body"
+            data-post-body
+            rows={12}
+            maxLength={MAX_BODY_CHARS}
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            placeholder={"Low tide.\nThe sea unmakes the letters\nI wrote across the sand…"}
+            className="resize-y whitespace-pre-wrap border-2 border-ink bg-paper px-3 py-2 text-body leading-relaxed outline-none focus:border-blue"
+          />
+          <p className="text-caption uppercase opacity-70">
+            {body.length} / {MAX_BODY_CHARS} · line breaks are kept
+          </p>
+        </>
+      ) : null}
+
+      {mediaType === "video" || mediaType === "audio" ? (
         <>
           <label htmlFor="av_file" className="text-caption font-bold uppercase">
             {mediaType === "video" ? "Video (max 2 min)" : "Audio (max 5 min)"}
@@ -294,7 +351,7 @@ export function PostComposer({
         </>
       ) : null}
 
-      {mediaType !== "video" ? (
+      {mediaType === "image" || mediaType === "audio" ? (
         <>
           <label htmlFor="image" className="text-caption font-bold uppercase">
             {mediaType === "audio" ? "Cover image (required)" : "Work (image)"}
@@ -307,17 +364,20 @@ export function PostComposer({
             className="border-2 border-ink bg-paper px-3 py-2 text-body file:mr-3 file:border-2 file:border-ink file:bg-ink file:px-3 file:py-1 file:text-caption file:font-bold file:uppercase file:text-paper"
           />
         </>
-      ) : (
+      ) : mediaType === "video" ? (
         <p className="text-caption uppercase opacity-70">
           Poster frame is extracted automatically from the video
         </p>
-      )}
-      <p data-pipeline-note className="text-caption uppercase opacity-70">
-        Your original is stored untouched, full resolution. Optimized display
-        copies are generated for fast viewing.
-      </p>
+      ) : null}
 
-      {prepared ? (
+      {mediaType !== "text" ? (
+        <p data-pipeline-note className="text-caption uppercase opacity-70">
+          Your original is stored untouched, full resolution. Optimized display
+          copies are generated for fast viewing.
+        </p>
+      ) : null}
+
+      {prepared && mediaType !== "text" ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={prepared.previewUrl}
@@ -326,6 +386,8 @@ export function PostComposer({
         />
       ) : null}
 
+      {mediaType !== "text" ? (
+        <>
       <label htmlFor="alt_text" className="text-caption font-bold uppercase">
         Alt text (describe the work for screen readers)
       </label>
@@ -337,9 +399,11 @@ export function PostComposer({
         placeholder="e.g. Wood-fired tea bowl with iron glaze, kiln scar on the rim"
         className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
       />
+        </>
+      ) : null}
 
       <label htmlFor="caption" className="text-caption font-bold uppercase">
-        Caption
+        {mediaType === "text" ? "Title (optional)" : "Caption"}
       </label>
       <textarea
         id="caption"
@@ -396,6 +460,7 @@ export function PostComposer({
         </>
       ) : null}
 
+      {mediaType !== "text" ? (
       <fieldset data-display-controls className="flex flex-col gap-3 border-t-2 border-ink pt-4">
         <legend className="pr-3 text-caption font-bold uppercase">
           How it displays — your call
@@ -446,6 +511,7 @@ export function PostComposer({
           ))}
         </div>
       </fieldset>
+      ) : null}
 
       {mutuals.length > 0 ? (
         <fieldset data-people-tagging className="flex flex-col gap-2 border-t-2 border-ink pt-4">

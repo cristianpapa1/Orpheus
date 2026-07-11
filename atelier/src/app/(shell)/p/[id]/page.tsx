@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MediaBody } from "@/components/posts/MediaBody";
+import { TextBody } from "@/components/posts/TextBody";
 import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
 import { getPostById, getPostMentions } from "@/lib/posts/queries";
@@ -36,23 +37,34 @@ export default async function PostDetailPage({ params }: Props) {
     <WindowGrid>
       <div data-post={post.id} className="col-span-12 flex flex-col md:col-span-8">
         <Window title={CATEGORY_LABEL[post.category]} accent="red" className="h-full">
-          <MediaBody
-            post={post}
-            eager
-            sizes="(max-width: 768px) 100vw, 66vw"
-            className="border-2 border-ink"
-          />
-          {post.original_url ? (
-            <a
-              data-full-resolution
-              href={post.original_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-3 inline-block border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-yellow"
-            >
-              View full resolution ↗
-            </a>
-          ) : null}
+          {post.media_type === "text" ? (
+            <>
+              {post.caption ? (
+                <h2 className="mb-4 text-h1 font-bold uppercase">{post.caption}</h2>
+              ) : null}
+              <TextBody body={post.body ?? ""} full />
+            </>
+          ) : (
+            <>
+              <MediaBody
+                post={post}
+                eager
+                sizes="(max-width: 768px) 100vw, 66vw"
+                className="border-2 border-ink"
+              />
+              {post.original_url ? (
+                <a
+                  data-full-resolution
+                  href={post.original_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-block border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-yellow"
+                >
+                  View full resolution ↗
+                </a>
+              ) : null}
+            </>
+          )}
         </Window>
       </div>
       <div className="col-span-12 flex flex-col md:col-span-4">

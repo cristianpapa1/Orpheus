@@ -1,4 +1,5 @@
 import { ResponsiveImage } from "@/components/posts/ResponsiveImage";
+import { TextBody } from "@/components/posts/TextBody";
 import { formatDuration, type Post } from "@atelier/core/posts/types";
 
 /**
@@ -16,6 +17,10 @@ export function MediaBody({
   sizes?: string;
   className?: string;
 }) {
+  if (post.media_type === "text") {
+    return <TextBody body={post.body ?? ""} className={className} />;
+  }
+
   if (post.media_type === "video" && post.media_url) {
     return (
       <span data-media="video" className="relative block">
