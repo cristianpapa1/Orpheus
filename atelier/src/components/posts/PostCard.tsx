@@ -60,10 +60,11 @@ export function PostCard({
         <div className="p-4">
           <div className="flex items-baseline justify-between gap-3">
             <Link
-              href={`/u/${post.author_handle}`}
+              href={`/u/${post.author_handle || post.author_id}`}
               className="text-caption font-bold uppercase hover:text-blue"
             >
-              {post.author_name} · @{post.author_handle}
+              {post.author_name}
+              {post.author_handle ? ` · @${post.author_handle}` : ""}
             </Link>
             <time
               dateTime={post.created_at}

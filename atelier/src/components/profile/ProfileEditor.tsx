@@ -14,8 +14,21 @@ import {
   type LayoutBlock,
   type ProfileLayout,
 } from "@atelier/core/profile/layout";
-import type { ProfileIdentity, ProfileLink } from "@atelier/core/profile/types";
+import {
+  CONTACT_KINDS,
+  CONTACT_KIND_LABEL,
+  type ContactEntry,
+  type ContactKind,
+  type ProfileIdentity,
+} from "@atelier/core/profile/types";
 import { saveProfile } from "@/app/(shell)/profile/actions";
+
+const CONTACT_PLACEHOLDER: Record<ContactKind, string> = {
+  link: "https://…",
+  email: "you@example.com",
+  phone: "+1 555 123 4567",
+  address: "Street, City",
+};
 
 const ROW_H = 56;
 const GAP = 8;
@@ -35,10 +48,13 @@ export function ProfileEditor({
   initialIdentity,
   initialLayout,
   canPersist,
+  targetId,
 }: {
   initialIdentity: ProfileIdentity;
   initialLayout: ProfileLayout;
   canPersist: boolean;
+  /** When set, saves a profile the viewer MANAGES rather than their own. */
+  targetId?: string;
 }) {
   const [layout, setLayout] = useState(initialLayout);
   const [identity, setIdentity] = useState(initialIdentity);
@@ -139,19 +155,20 @@ export function ProfileEditor({
         display_name: identity.display_name,
         handle: identity.handle,
         bio: identity.bio,
-        links: identity.links,
+        contacts: identity.contacts,
         layout: serializeLayout(layout),
         accent: identity.accent,
         school: identity.school,
+        targetId,
       });
       setStatus(result.ok ? "Saved." : (result.error ?? "Save failed."));
     });
   };
 
-  const setLink = (i: number, patch: Partial<ProfileLink>) =>
+  const setContact = (i: number, patch: Partial<ContactEntry>) =>
     setIdentity((id) => ({
       ...id,
-      links: id.links.map((l, j) => (j === i ? { ...l, ...patch } : l)),
+      contacts: id.contacts.map((c, j) => (j === i ? { ...c, ...patch } : c)),
     }));
 
   const missingTypes = BLOCK_TYPES.filter(
@@ -204,30 +221,47 @@ export function ProfileEditor({
               Settings
             </a>
           </p>
-          <p className="text-caption font-bold uppercase">Links</p>
-          {identity.links.map((link, i) => (
-            <div key={i} className="flex gap-2">
+          <p className="text-caption font-bold uppercase">Contact information</p>
+          <p className="text-caption uppercase opacity-70">
+            A website, an email, a phone, or an address — you choose each kind.
+          </p>
+          {identity.contacts.map((c, i) => (
+            <div key={i} data-contact-row className="flex flex-wrap gap-2">
+              <select
+                aria-label={`Contact ${i + 1} kind`}
+                value={c.kind}
+                onChange={(e) =>
+                  setContact(i, { kind: e.target.value as ContactKind })
+                }
+                className="border-2 border-ink bg-paper px-2 py-1 text-body outline-none focus:border-blue"
+              >
+                {CONTACT_KINDS.map((k) => (
+                  <option key={k} value={k}>
+                    {CONTACT_KIND_LABEL[k]}
+                  </option>
+                ))}
+              </select>
               <input
-                aria-label={`Link ${i + 1} label`}
-                value={link.label}
+                aria-label={`Contact ${i + 1} label`}
+                value={c.label}
                 placeholder="Label"
-                onChange={(e) => setLink(i, { label: e.target.value })}
-                className="w-1/3 border-2 border-ink bg-paper px-2 py-1 text-body outline-none focus:border-blue"
+                onChange={(e) => setContact(i, { label: e.target.value })}
+                className="w-24 grow border-2 border-ink bg-paper px-2 py-1 text-body outline-none focus:border-blue"
               />
               <input
-                aria-label={`Link ${i + 1} URL`}
-                value={link.url}
-                placeholder="https://…"
-                onChange={(e) => setLink(i, { url: e.target.value })}
-                className="grow border-2 border-ink bg-paper px-2 py-1 text-body outline-none focus:border-blue"
+                aria-label={`Contact ${i + 1} value`}
+                value={c.value}
+                placeholder={CONTACT_PLACEHOLDER[c.kind]}
+                onChange={(e) => setContact(i, { value: e.target.value })}
+                className="w-full border-2 border-ink bg-paper px-2 py-1 text-body outline-none focus:border-blue"
               />
               <button
                 type="button"
-                aria-label={`Remove link ${i + 1}`}
+                aria-label={`Remove contact ${i + 1}`}
                 onClick={() =>
                   setIdentity((id) => ({
                     ...id,
-                    links: id.links.filter((_, j) => j !== i),
+                    contacts: id.contacts.filter((_, j) => j !== i),
                   }))
                 }
                 className="border-2 border-ink px-2 font-bold hover:bg-red hover:border-red hover:text-paper"
@@ -241,12 +275,12 @@ export function ProfileEditor({
             onClick={() =>
               setIdentity((id) => ({
                 ...id,
-                links: [...id.links, { label: "", url: "" }],
+                contacts: [...id.contacts, { kind: "link", label: "", value: "" }],
               }))
             }
             className="self-start border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-blue hover:border-blue hover:text-paper"
           >
-            + Add link
+            + Add contact
           </button>
         </div>
       </section>

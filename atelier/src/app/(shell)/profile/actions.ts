@@ -5,16 +5,18 @@ import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { toSchool } from "@atelier/core/design/schools";
 import { parseLayout, serializeLayout } from "@atelier/core/profile/layout";
-import { HANDLE_RE, parseLinks } from "@atelier/core/profile/types";
+import { HANDLE_RE, parseContacts } from "@atelier/core/profile/types";
 
 export interface SaveProfileInput {
   display_name: string;
   handle: string;
   bio: string;
-  links: unknown;
+  contacts: unknown;
   layout: string; // serialized ProfileLayout
   accent?: string;
   school?: string;
+  /** Edit a profile you MANAGE instead of your own (institution claim). */
+  targetId?: string;
 }
 
 export interface SaveProfileResult {
@@ -73,6 +75,19 @@ export async function saveProfile(
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "You must be signed in." };
 
+  // Owner edits their own profile; a manager may edit a profile they manage.
+  const targetId = input.targetId && input.targetId !== user.id ? input.targetId : user.id;
+  if (targetId !== user.id) {
+    const { data: tgt } = await supabase
+      .from("profiles")
+      .select("managed_by")
+      .eq("id", targetId)
+      .maybeSingle();
+    if (!tgt || tgt.managed_by !== user.id) {
+      return { ok: false, error: "You don't manage that profile." };
+    }
+  }
+
   const handle = input.handle.trim().toLowerCase();
   if (!HANDLE_RE.test(handle)) {
     return {
@@ -83,7 +98,7 @@ export async function saveProfile(
 
   const display_name = input.display_name.trim().slice(0, 80);
   const bio = input.bio.trim().slice(0, 600);
-  const links = parseLinks(input.links);
+  const contacts = parseContacts(input.contacts);
   const layout = parseLayout(input.layout);
   const accent = ["red", "blue", "yellow"].includes(input.accent ?? "")
     ? input.accent
@@ -96,13 +111,13 @@ export async function saveProfile(
       display_name,
       handle,
       bio,
-      links,
+      links: contacts,
       layout: JSON.parse(serializeLayout(layout)),
       accent,
       school,
       updated_at: new Date().toISOString(),
     })
-    .eq("id", user.id);
+    .eq("id", targetId);
 
   if (error) {
     const msg = error.code === "23505" ? "That handle is taken." : error.message;

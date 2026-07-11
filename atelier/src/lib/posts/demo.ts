@@ -13,7 +13,7 @@ const DEMO_BLUR =
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 3"><rect width="4" height="3" fill="#c9c5b8"/></svg>',
   );
 
-export const DEMO_POSTS: Post[] = [
+const RAW: Omit<Post, "subcategory">[] = [
   {
     id: "demo-theo-1",
     author_id: "00000000-0000-4000-a000-000000000002",
@@ -104,7 +104,7 @@ export const DEMO_POSTS: Post[] = [
     author_handle: "ines",
     author_name: "Inês Almeida",
     caption: "Studies in red — collage from rejected prints.",
-    category: "art",
+    category: "visual",
     image_url: "/demo/ines-3.svg",
     image_width: 800,
     image_height: 600,
@@ -164,3 +164,6 @@ export const DEMO_POSTS: Post[] = [
     created_at: "2026-07-09T07:15:00Z",
   },
 ];
+
+// Demo posts predate subcategories — default them to null in one place.
+export const DEMO_POSTS: Post[] = RAW.map((p) => ({ ...p, subcategory: null }));

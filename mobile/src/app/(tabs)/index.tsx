@@ -22,7 +22,7 @@ export default function FeedScreen() {
   useEffect(() => {
     supabase
       .from("posts")
-      .select("id, caption, category, image_path, created_at, author:profiles(handle, display_name)")
+      .select("id, caption, category, image_path, created_at, author:profiles!posts_author_id_fkey(handle, display_name)")
       .order("created_at", { ascending: false })
       .limit(20)
       .then(({ data, error }) => {

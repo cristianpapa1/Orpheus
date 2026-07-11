@@ -162,8 +162,8 @@ export default async function GroupPage({ params, searchParams }: Props) {
           <ul data-member-list className="flex flex-col gap-2">
             {members.map((m) => (
               <li key={m.profile_id} className="flex items-baseline justify-between gap-2">
-                <Link href={`/u/${m.handle}`} className="text-body font-bold hover:text-blue">
-                  {m.display_name} · @{m.handle}
+                <Link href={`/u/${m.handle || m.profile_id}`} className="text-body font-bold hover:text-blue">
+                  {m.display_name}{m.handle ? ` · @${m.handle}` : ""}
                 </Link>
                 <span className="text-caption uppercase opacity-70">{m.role}</span>
               </li>

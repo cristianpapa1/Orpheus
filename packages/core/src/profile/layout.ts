@@ -40,7 +40,7 @@ export const BLOCK_TYPES: ProfileBlockType[] = [
 
 export const BLOCK_LABEL: Record<ProfileBlockType, string> = {
   bio: "Bio",
-  links: "Links",
+  links: "Contact",
   gallery: "Gallery",
   posts: "Posts",
   events: "Events",

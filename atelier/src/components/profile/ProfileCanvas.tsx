@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { Window } from "@/components/ui/Window";
 import { GRID_COLS, type LayoutBlock } from "@atelier/core/profile/layout";
-import type { PublicProfile } from "@atelier/core/profile/types";
+import {
+  CONTACT_KIND_LABEL,
+  INSTITUTION_KIND_LABEL,
+  contactHref,
+  type PublicProfile,
+} from "@atelier/core/profile/types";
 import { thumbUrl, type Post } from "@atelier/core/posts/types";
 import { formatEventDate, splitEvents, type EventItem } from "@atelier/core/events/types";
 import {
@@ -78,7 +83,7 @@ function blockTitle(block: LayoutBlock): string {
     case "bio":
       return "Bio";
     case "links":
-      return "Links";
+      return "Contact";
     case "gallery":
       return "Gallery";
     case "posts":
@@ -113,27 +118,42 @@ function BlockBody({
           <p className="mt-1 text-caption font-bold uppercase">
             @{profile.handle}
           </p>
+          {profile.account_type === "institution" && profile.institution_kind ? (
+            <p
+              data-institution-badge={profile.institution_kind}
+              className="mt-2 inline-block border-2 border-ink bg-ink px-2 py-0.5 text-caption font-bold uppercase text-paper"
+            >
+              {INSTITUTION_KIND_LABEL[profile.institution_kind]}
+            </p>
+          ) : null}
           {profile.bio ? <p className="mt-3 text-body">{profile.bio}</p> : null}
         </div>
       );
     case "links":
-      return profile.links.length ? (
-        <ul className="flex flex-col gap-2">
-          {profile.links.map((link) => (
-            <li key={link.url}>
+      return profile.contacts.length ? (
+        <ul data-contact-list className="flex flex-col gap-2">
+          {profile.contacts.map((c, i) => (
+            <li key={i}>
               <a
-                href={link.url}
-                target="_blank"
+                href={contactHref(c)}
+                target={c.kind === "link" ? "_blank" : undefined}
                 rel="noopener noreferrer"
-                className="border-b-2 border-ink text-body font-bold hover:border-blue hover:text-blue"
+                data-contact-kind={c.kind}
+                className="group block"
               >
-                {link.label} ↗
+                <span className="text-caption font-bold uppercase opacity-60">
+                  {CONTACT_KIND_LABEL[c.kind]}
+                </span>
+                <span className="block border-b-2 border-ink text-body font-bold group-hover:border-blue group-hover:text-blue">
+                  {c.label}
+                  {c.kind === "link" ? " ↗" : ""}
+                </span>
               </a>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="text-body opacity-70">No links yet.</p>
+        <p className="text-body opacity-70">No contact info yet.</p>
       );
     case "gallery":
       return posts.length ? (

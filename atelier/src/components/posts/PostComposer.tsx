@@ -24,9 +24,12 @@ import {
   MEDIA_EXT,
   MEDIA_LIMITS,
   POST_CATEGORIES,
+  subcategoriesFor,
+  subcategoryLabel,
   validDuration,
   type MediaType,
 } from "@atelier/core/posts/types";
+import type { MutualFollow } from "@/lib/profile/queries";
 import type { TaggableGroup } from "@/lib/groups/queries";
 
 type Stage = "idle" | "uploading" | "recording";
@@ -46,9 +49,11 @@ const EXT: Record<string, string> = {
 export function PostComposer({
   canPublish,
   memberGroups = [],
+  mutuals = [],
 }: {
   canPublish: boolean;
   memberGroups?: TaggableGroup[];
+  mutuals?: MutualFollow[];
 }) {
   const [prepared, setPrepared] = useState<Prepared | null>(null);
   const [caption, setCaption] = useState("");
@@ -57,8 +62,10 @@ export function PostComposer({
   const [avFile, setAvFile] = useState<File | null>(null);
   const [avDuration, setAvDuration] = useState<number | null>(null);
   const [category, setCategory] = useState("");
+  const [subcategory, setSubcategory] = useState("");
   const [display, setDisplay] = useState<PostDisplay>(DEFAULT_DISPLAY);
   const [groupIds, setGroupIds] = useState<string[]>([]);
+  const [mentionIds, setMentionIds] = useState<string[]>([]);
   const [stage, setStage] = useState<Stage>("idle");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -202,6 +209,7 @@ export function PostComposer({
         const result = await publishPost({
           caption,
           category,
+          subcategory: subcategory || null,
           display,
           original_path: originalPath,
           variants,
@@ -214,6 +222,7 @@ export function PostComposer({
           media_path: mediaPath,
           duration_seconds: avDuration,
           group_ids: groupIds,
+          mention_ids: mentionIds,
         });
         // publishPost redirects on success; reaching here means failure.
         if (result && !result.ok) setError(result.error ?? "Publish failed.");
@@ -349,7 +358,10 @@ export function PostComposer({
         id="category"
         required
         value={category}
-        onChange={(e) => setCategory(e.target.value)}
+        onChange={(e) => {
+          setCategory(e.target.value);
+          setSubcategory(""); // reset — styles differ per category
+        }}
         className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
       >
         <option value="" disabled>
@@ -361,6 +373,28 @@ export function PostComposer({
           </option>
         ))}
       </select>
+
+      {subcategoriesFor(category).length > 0 ? (
+        <>
+          <label htmlFor="subcategory" className="text-caption font-bold uppercase">
+            Style (optional)
+          </label>
+          <select
+            id="subcategory"
+            data-subcategory
+            value={subcategory}
+            onChange={(e) => setSubcategory(e.target.value)}
+            className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
+          >
+            <option value="">No style</option>
+            {subcategoriesFor(category).map((s) => (
+              <option key={s} value={s}>
+                {subcategoryLabel(s)}
+              </option>
+            ))}
+          </select>
+        </>
+      ) : null}
 
       <fieldset data-display-controls className="flex flex-col gap-3 border-t-2 border-ink pt-4">
         <legend className="pr-3 text-caption font-bold uppercase">
@@ -412,6 +446,41 @@ export function PostComposer({
           ))}
         </div>
       </fieldset>
+
+      {mutuals.length > 0 ? (
+        <fieldset data-people-tagging className="flex flex-col gap-2 border-t-2 border-ink pt-4">
+          <legend className="pr-3 text-caption font-bold uppercase">
+            Tag people you follow
+          </legend>
+          <div className="flex flex-wrap gap-2">
+            {mutuals.map((m) => {
+              const active = mentionIds.includes(m.id);
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  data-mention={m.id}
+                  aria-pressed={active}
+                  onClick={() =>
+                    setMentionIds((ids) =>
+                      active ? ids.filter((id) => id !== m.id) : [...ids, m.id],
+                    )
+                  }
+                  className={`border-2 px-3 py-1 text-caption font-bold uppercase ${
+                    active ? "border-ink bg-ink text-paper" : "border-ink hover:bg-yellow"
+                  }`}
+                >
+                  {m.display_name}
+                  {m.handle ? ` · @${m.handle}` : ""}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-caption uppercase opacity-70">
+            Only people you both follow can be tagged
+          </p>
+        </fieldset>
+      ) : null}
 
       {memberGroups.length > 0 ? (
         <fieldset data-group-tagging className="flex flex-col gap-2 border-t-2 border-ink pt-4">

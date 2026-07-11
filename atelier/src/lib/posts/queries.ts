@@ -13,14 +13,18 @@ import {
    Ordering is created_at DESC only — chronological by principle; there is
    no score, weight, or ranking of any kind (ISA anti-criterion ISC-108). */
 
+// The author embed MUST name the FK explicitly: post_mentions added a second
+// posts↔profiles relationship, so the implicit embed is ambiguous (PostgREST
+// "more than one relationship" error) and would break every post read.
 const POST_SELECT =
-  "id, author_id, caption, category, image_path, image_width, image_height, original_path, variants, blur_data, alt_text, media_type, media_path, duration_seconds, display, created_at, author:profiles(handle, display_name)";
+  "id, author_id, caption, category, subcategory, image_path, image_width, image_height, original_path, variants, blur_data, alt_text, media_type, media_path, duration_seconds, display, created_at, author:profiles!posts_author_id_fkey(handle, display_name)";
 
 type PostRow = {
   id: string;
   author_id: string;
   caption: string;
   category: string;
+  subcategory: string | null;
   image_path: string;
   image_width: number | null;
   image_height: number | null;
@@ -49,6 +53,7 @@ function toPost(row: PostRow): Post | null {
     author_name: row.author?.display_name ?? row.author?.handle ?? "Unnamed",
     caption: row.caption,
     category: row.category,
+    subcategory: row.subcategory,
     image_url: publicMediaUrl(row.image_path),
     image_width: row.image_width,
     image_height: row.image_height,
@@ -133,6 +138,30 @@ export async function getPostsByIds(
   return ((data ?? []) as unknown as PostRow[])
     .map(toPost)
     .filter((p): p is Post => p !== null);
+}
+
+export interface PostMention {
+  id: string;
+  handle: string;
+  display_name: string;
+}
+
+/** People tagged on a post (mutual follows at publish time). */
+export async function getPostMentions(postId: string): Promise<PostMention[]> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return [];
+  const { data } = await supabase
+    .from("post_mentions")
+    .select("mentioned_id, profile:profiles(handle, display_name)")
+    .eq("post_id", postId);
+  return ((data ?? []) as unknown as {
+    mentioned_id: string;
+    profile: { handle: string | null; display_name: string | null } | null;
+  }[]).map((m) => ({
+    id: m.mentioned_id,
+    handle: m.profile?.handle ?? "",
+    display_name: m.profile?.display_name ?? m.profile?.handle ?? "Unnamed",
+  }));
 }
 
 export async function getPostsByAuthor(

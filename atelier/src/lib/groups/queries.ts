@@ -85,6 +85,31 @@ export async function getGroupMembers(groupId: string): Promise<GroupMember[]> {
   }));
 }
 
+/**
+ * The groups the viewer already follows / belongs to — one pair of queries,
+ * used to decide which cards on the groups list show a "Follow" action.
+ */
+export async function getViewerGroupSets(): Promise<{
+  followed: string[];
+  member: string[];
+}> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return { followed: [], member: [] };
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { followed: [], member: [] };
+
+  const [{ data: f }, { data: m }] = await Promise.all([
+    supabase.from("group_followers").select("group_id").eq("profile_id", user.id),
+    supabase.from("group_members").select("group_id").eq("profile_id", user.id),
+  ]);
+  return {
+    followed: (f ?? []).map((r) => r.group_id),
+    member: (m ?? []).map((r) => r.group_id),
+  };
+}
+
 /** The viewer's relation to a group. Preview mode: always "none". */
 export async function getViewerGroupRelation(
   groupId: string,

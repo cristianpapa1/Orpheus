@@ -17,7 +17,25 @@ export async function GET(request: Request) {
     const supabase = await createServerSupabase();
     if (supabase) {
       const { error } = await supabase.auth.exchangeCodeForSession(code);
-      if (!error) return NextResponse.redirect(`${SITE_URL}${next}`);
+      if (!error) {
+        // First login: if this user hasn't set up their space yet, take them
+        // through onboarding before anything else (forces a public name +
+        // handle, so the profile is reachable — fixes the cross-user 404).
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("onboarded_at")
+            .eq("id", user.id)
+            .maybeSingle();
+          if (!profile?.onboarded_at) {
+            return NextResponse.redirect(`${SITE_URL}/onboarding`);
+          }
+        }
+        return NextResponse.redirect(`${SITE_URL}${next}`);
+      }
     }
   }
 

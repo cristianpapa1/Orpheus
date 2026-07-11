@@ -7,6 +7,7 @@ import { parseDisplay } from "@atelier/core/posts/display";
 import {
   isMediaType,
   isPostCategory,
+  isValidSubcategory,
   validDuration,
 } from "@atelier/core/posts/types";
 
@@ -15,6 +16,8 @@ const MAX_BLUR_CHARS = 6000; // matches the DB check constraint
 export interface PublishPostInput {
   caption: string;
   category: string;
+  /** Optional style within the category (e.g. music → jazz). */
+  subcategory?: string | null;
   display: unknown;
   /** Storage path of the untouched original (nullable). */
   original_path: string | null;
@@ -34,6 +37,8 @@ export interface PublishPostInput {
   duration_seconds?: number | null;
   /** Groups to tag this post into — caller must be a MEMBER of each. */
   group_ids?: string[];
+  /** People to tag — caller must MUTUALLY follow each (both directions). */
+  mention_ids?: string[];
 }
 
 export interface PublishPostResult {
@@ -95,6 +100,11 @@ export async function publishPost(
   const caption = String(input.caption ?? "").trim().slice(0, 1000);
   const category = String(input.category ?? "");
   if (!isPostCategory(category)) return { ok: false, error: "Pick a category." };
+  const rawSub = input.subcategory ? String(input.subcategory) : null;
+  if (!isValidSubcategory(category, rawSub)) {
+    return { ok: false, error: "That style doesn't belong to this category." };
+  }
+  const subcategory = rawSub || null;
 
   // Rate limit: ≤20 posts per hour (advisory basics; see LAUNCH.md).
   const hourAgo = new Date(Date.now() - 3600_000).toISOString();
@@ -138,6 +148,7 @@ export async function publishPost(
       author_id: user.id,
       caption,
       category,
+      subcategory,
       image_path: input.image_path,
       image_width: input.width,
       image_height: input.height,
@@ -158,6 +169,36 @@ export async function publishPost(
     await supabase
       .from("post_groups")
       .insert(groupIds.map((group_id) => ({ post_id: data.id, group_id })));
+  }
+
+  // Mentions: only people the author MUTUALLY follows (both directions).
+  // RLS re-checks the mutual-follow rule; we filter here for a clean UX.
+  const mentionIds = [...new Set(input.mention_ids ?? [])].filter(
+    (id) => id !== user.id,
+  );
+  if (mentionIds.length > 0) {
+    const [{ data: iFollow }, { data: followMe }] = await Promise.all([
+      supabase
+        .from("follows")
+        .select("followee_id")
+        .eq("follower_id", user.id)
+        .in("followee_id", mentionIds),
+      supabase
+        .from("follows")
+        .select("follower_id")
+        .eq("followee_id", user.id)
+        .in("follower_id", mentionIds),
+    ]);
+    const iFollowSet = new Set((iFollow ?? []).map((r) => r.followee_id));
+    const followMeSet = new Set((followMe ?? []).map((r) => r.follower_id));
+    const mutual = mentionIds.filter(
+      (id) => iFollowSet.has(id) && followMeSet.has(id),
+    );
+    if (mutual.length > 0) {
+      await supabase
+        .from("post_mentions")
+        .insert(mutual.map((mentioned_id) => ({ post_id: data.id, mentioned_id })));
+    }
   }
 
   revalidatePath("/feed");
