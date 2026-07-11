@@ -10,6 +10,8 @@ import {
   isValidSubcategory,
   validDuration,
 } from "@atelier/core/posts/types";
+import { moderatePost } from "@/lib/moderation/ai";
+import { publicMediaUrl } from "@/lib/posts/queries";
 
 const MAX_BLUR_CHARS = 6000; // matches the DB check constraint
 
@@ -117,6 +119,21 @@ export async function publishPost(
     return { ok: false, error: "Rate limit: max 20 posts per hour." };
   }
 
+  // AI moderation (fail-open). A hard reject blocks publishing; a flag lets
+  // the work through but files a report for a human to review.
+  const moderation = await moderatePost({
+    imageUrl: publicMediaUrl(input.image_path),
+    caption,
+    category,
+    subcategory,
+  });
+  if (moderation.decision === "reject") {
+    return {
+      ok: false,
+      error: `This didn't pass moderation: ${moderation.reason || "content not allowed here"}.`,
+    };
+  }
+
   const display = parseDisplay(input.display);
 
   let blur_data: string | null = null;
@@ -164,6 +181,17 @@ export async function publishPost(
     .select("id")
     .single();
   if (error || !data) return { ok: false, error: error?.message ?? "Publish failed." };
+
+  // A flagged (but not rejected) post is published, then queued for review.
+  if (moderation.decision === "flag") {
+    await supabase.from("reports").insert({
+      reporter_id: user.id,
+      subject_type: "post",
+      subject_id: data.id,
+      reason: "other",
+      detail: `Auto-flagged by AI moderation: ${moderation.reason}`.slice(0, 600),
+    });
+  }
 
   if (groupIds.length > 0) {
     await supabase

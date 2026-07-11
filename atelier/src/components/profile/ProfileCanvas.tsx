@@ -36,32 +36,41 @@ export function ProfileCanvas({
   jobs?: JobPost[];
   now?: string;
 }) {
+  // Honor the owner's COLUMN arrangement (x, w) and their top-to-bottom
+  // ORDER (y, then x), but let each window's HEIGHT follow its published
+  // content — the designed `h` is only a minimum. This stops galleries and
+  // long bios from being clipped while keeping the arranged facade.
+  const ordered = [...profile.layout.blocks].sort(
+    (a, b) => a.y - b.y || a.x - b.x,
+  );
+
   return (
     <div
       data-profile-canvas
       style={{
         display: "grid",
         gridTemplateColumns: `repeat(${GRID_COLS}, 1fr)`,
-        gridAutoRows: ROW_H,
+        gridAutoRows: "minmax(0, auto)",
+        gridAutoFlow: "row dense",
+        alignItems: "start",
         gap: 8,
       }}
     >
-      {profile.layout.blocks.map((block, i) => (
+      {ordered.map((block, i) => (
         <div
           key={block.id}
           data-profile-block={block.type}
           style={{
             gridColumn: `${block.x + 1} / span ${block.w}`,
-            gridRow: `${block.y + 1} / span ${block.h}`,
+            minHeight: block.h * ROW_H,
             display: "flex",
             flexDirection: "column",
-            minHeight: 0,
           }}
         >
           <Window
             title={blockTitle(block)}
             accent={block.type === "bio" ? profile.accent : ACCENTS[i % ACCENTS.length]}
-            className="h-full overflow-hidden"
+            className="h-full"
           >
             <BlockBody
               block={block}

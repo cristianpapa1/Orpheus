@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
-import { setReportStatus } from "@/lib/moderation/actions";
+import Link from "next/link";
+import { setReportStatus, takedownPost } from "@/lib/moderation/actions";
 import { getReports } from "@/lib/moderation/queries";
 import { REASON_LABEL } from "@atelier/core/moderation/types";
 import { isViewerAdmin } from "@/lib/donations/queries";
@@ -9,9 +10,14 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export const metadata = { title: "Moderation — Atelier admin" };
 
-export default async function AdminReportsPage() {
+export default async function AdminReportsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ removed?: string; error?: string }>;
+}) {
   if (!(await isViewerAdmin())) notFound();
 
+  const { removed, error } = await searchParams;
   const configured = isSupabaseConfigured();
   const reports = await getReports();
   const open = reports.filter((r) => r.status === "open");
@@ -29,6 +35,16 @@ export default async function AdminReportsPage() {
           Preview mode — demo report shown
         </p>
       ) : null}
+      {removed ? (
+        <p role="status" className="mb-4 border-2 border-ink px-3 py-2 text-caption font-bold uppercase">
+          Post removed.
+        </p>
+      ) : null}
+      {error ? (
+        <p role="alert" className="mb-4 border-2 border-red px-3 py-2 text-caption font-bold uppercase text-red">
+          That didn&apos;t work ({error}).
+        </p>
+      ) : null}
 
       <WindowGrid>
         <Window title={`Open (${open.length})`} accent="red" span="col-span-12">
@@ -43,7 +59,29 @@ export default async function AdminReportsPage() {
                     by @{r.reporter_handle} · {r.created_at.slice(0, 10)}
                   </p>
                   {r.detail ? <p className="mt-2 text-body">{r.detail}</p> : null}
-                  <div className="mt-3 flex gap-2">
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {r.subject_type === "post" ? (
+                      <>
+                        <Link
+                          href={`/p/${r.subject_id}`}
+                          target="_blank"
+                          className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-yellow"
+                        >
+                          View
+                        </Link>
+                        <form action={takedownPost}>
+                          <input type="hidden" name="id" value={r.id} />
+                          <input type="hidden" name="post_id" value={r.subject_id} />
+                          <button
+                            disabled={!configured}
+                            data-takedown
+                            className="border-2 border-red bg-red px-3 py-1 text-caption font-bold uppercase text-paper hover:opacity-80 disabled:opacity-50"
+                          >
+                            Remove post
+                          </button>
+                        </form>
+                      </>
+                    ) : null}
                     {(["reviewed", "dismissed", "actioned"] as const).map((s) => (
                       <form key={s} action={setReportStatus}>
                         <input type="hidden" name="id" value={r.id} />

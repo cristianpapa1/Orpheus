@@ -3,6 +3,8 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/admin";
+import { isViewerAdmin } from "@/lib/donations/queries";
 import {
   RATE_LIMITS,
   REPORT_REASONS,
@@ -120,4 +122,29 @@ export async function setReportStatus(formData: FormData) {
 
   revalidatePath("/admin/reports");
   redirect("/admin/reports");
+}
+
+/**
+ * Revoke (take down) a reported post. Admin-gated; uses the service role
+ * because an admin doesn't own the post. Marks the report actioned.
+ */
+export async function takedownPost(formData: FormData) {
+  const supabase = await createServerSupabase();
+  if (!supabase) redirect("/admin/reports?error=unavailable");
+  if (!(await isViewerAdmin())) redirect("/admin/reports?error=forbidden");
+
+  const reportId = String(formData.get("id") ?? "");
+  const postId = String(formData.get("post_id") ?? "");
+
+  const admin = createServiceClient();
+  if (!admin) redirect("/admin/reports?error=service");
+
+  const { error } = await admin.from("posts").delete().eq("id", postId);
+  if (error) redirect("/admin/reports?error=takedown");
+
+  await supabase.from("reports").update({ status: "actioned" }).eq("id", reportId);
+
+  revalidatePath("/admin/reports");
+  revalidatePath("/feed");
+  redirect("/admin/reports?removed=1");
 }
