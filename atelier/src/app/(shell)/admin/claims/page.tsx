@@ -2,9 +2,9 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
-import { getPendingClaims } from "@/lib/profile/queries";
+import { getPendingClaims, getResolvedClaims } from "@/lib/profile/queries";
 import { isViewerAdmin } from "@/lib/donations/queries";
-import { resolveClaim } from "./actions";
+import { resolveClaim, revokeClaim } from "./actions";
 
 export const metadata = { title: "Profile claims — Atelier admin" };
 
@@ -12,6 +12,7 @@ const ERRORS: Record<string, string> = {
   forbidden: "You're not an admin.",
   resolve: "Couldn't update the claim.",
   assign: "Couldn't assign the profile.",
+  revoke: "Couldn't revoke the claim.",
   service: "Service role not configured.",
   unavailable: "Preview mode — claims need Supabase configured.",
 };
@@ -19,13 +20,16 @@ const ERRORS: Record<string, string> = {
 export default async function AdminClaimsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; resolved?: string }>;
+  searchParams: Promise<{ error?: string; resolved?: string; revoked?: string }>;
 }) {
   // Non-admins get a 404 — the page's existence isn't leaked.
   if (!(await isViewerAdmin())) notFound();
 
-  const { error, resolved } = await searchParams;
-  const claims = await getPendingClaims();
+  const { error, resolved, revoked } = await searchParams;
+  const [claims, history] = await Promise.all([
+    getPendingClaims(),
+    getResolvedClaims(),
+  ]);
 
   return (
     <div>
@@ -44,6 +48,11 @@ export default async function AdminClaimsPage({
       {resolved ? (
         <p role="status" className="mb-4 border-2 border-ink px-3 py-2 text-caption font-bold uppercase">
           Claim resolved.
+        </p>
+      ) : null}
+      {revoked ? (
+        <p role="status" className="mb-4 border-2 border-ink px-3 py-2 text-caption font-bold uppercase">
+          Claim revoked — profile handed back.
         </p>
       ) : null}
 
@@ -108,6 +117,58 @@ export default async function AdminClaimsPage({
           ))}
         </WindowGrid>
       )}
+
+      {history.length > 0 ? (
+        <section data-claim-history className="mt-8">
+          <h2 className="mb-4 text-h2 font-bold uppercase">History</h2>
+          <WindowGrid>
+            <Window title={`Resolved (${history.length})`} accent="blue" span="col-span-12">
+              <ul className="flex flex-col gap-3">
+                {history.map((c) => (
+                  <li
+                    key={`${c.profile_id}-${c.claimant_id}`}
+                    data-claim-history-row
+                    className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-ink pb-3"
+                  >
+                    <span className="text-body">
+                      <Link href={`/u/${c.profile_handle}`} className="font-bold hover:text-blue">
+                        @{c.profile_handle}
+                      </Link>{" "}
+                      → {c.claimant_name}
+                      {c.claimant_handle ? ` (@${c.claimant_handle})` : ""}{" "}
+                      <span
+                        data-claim-status={c.status}
+                        className={`ml-1 border-2 border-ink px-2 py-0.5 text-caption font-bold uppercase ${
+                          c.status === "approved" ? "bg-ink text-paper" : ""
+                        }`}
+                      >
+                        {c.status}
+                      </span>
+                      {c.resolved_at ? (
+                        <span className="ml-2 text-caption uppercase opacity-60">
+                          {c.resolved_at.slice(0, 10)}
+                        </span>
+                      ) : null}
+                    </span>
+                    {c.status === "approved" ? (
+                      <form action={revokeClaim}>
+                        <input type="hidden" name="profile_id" value={c.profile_id} />
+                        <input type="hidden" name="claimant_id" value={c.claimant_id} />
+                        <button
+                          data-revoke-claim
+                          className="border-2 border-red px-3 py-1 text-caption font-bold uppercase hover:bg-red hover:text-paper"
+                        >
+                          Revoke
+                        </button>
+                      </form>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </Window>
+          </WindowGrid>
+        </section>
+      ) : null}
     </div>
   );
 }

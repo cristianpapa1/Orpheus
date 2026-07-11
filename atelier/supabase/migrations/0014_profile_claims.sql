@@ -24,7 +24,7 @@ create table public.profile_claims (
   claimant_id uuid not null references public.profiles (id) on delete cascade,
   message text not null default '' check (char_length(message) <= 1000),
   status text not null default 'pending'
-    check (status in ('pending', 'approved', 'rejected')),
+    check (status in ('pending', 'approved', 'rejected', 'revoked')),
   created_at timestamptz not null default now(),
   resolved_at timestamptz,
   resolved_by uuid references public.profiles (id) on delete set null,

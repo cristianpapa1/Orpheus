@@ -300,6 +300,47 @@ export async function getPendingClaims(): Promise<PendingClaim[]> {
   }));
 }
 
+export interface ResolvedClaim extends PendingClaim {
+  status: "approved" | "rejected" | "revoked";
+  resolved_at: string | null;
+}
+
+/** Resolved claims (approved/rejected/revoked) for the admin history. Defensive. */
+export async function getResolvedClaims(limit = 50): Promise<ResolvedClaim[]> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("profile_claims")
+    .select(
+      "profile_id, claimant_id, message, created_at, status, resolved_at, profile:profiles!profile_claims_profile_id_fkey(handle, display_name), claimant:profiles!profile_claims_claimant_id_fkey(handle, display_name)",
+    )
+    .neq("status", "pending")
+    .order("resolved_at", { ascending: false })
+    .limit(limit);
+  if (error || !data) return [];
+  return (data as unknown as {
+    profile_id: string;
+    claimant_id: string;
+    message: string;
+    created_at: string;
+    status: "approved" | "rejected" | "revoked";
+    resolved_at: string | null;
+    profile: { handle: string | null; display_name: string | null } | null;
+    claimant: { handle: string | null; display_name: string | null } | null;
+  }[]).map((c) => ({
+    profile_id: c.profile_id,
+    claimant_id: c.claimant_id,
+    message: c.message,
+    created_at: c.created_at,
+    status: c.status,
+    resolved_at: c.resolved_at,
+    profile_handle: c.profile?.handle ?? "",
+    profile_name: c.profile?.display_name ?? c.profile?.handle ?? "Unnamed",
+    claimant_handle: c.claimant?.handle ?? "",
+    claimant_name: c.claimant?.display_name ?? c.claimant?.handle ?? "Unnamed",
+  }));
+}
+
 export async function getViewerId(): Promise<string | null> {
   const supabase = await createServerSupabase();
   if (!supabase) return null;
