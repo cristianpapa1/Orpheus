@@ -7,6 +7,8 @@ const ERRORS: Record<string, string> = {
   unconfigured: "Sign-in is unavailable until Supabase is configured.",
   email: "Enter your email address to receive a sign-in link.",
   otp: "We couldn't send the link. Check the address and try again.",
+  "rate-limit":
+    "Email limit reached — the built-in mailer allows only a few per hour. Try again in an hour (custom SMTP removes this cap).",
   oauth: "Google sign-in failed. Try again or use email.",
   auth: "That sign-in link expired or was invalid. Request a fresh one.",
 };

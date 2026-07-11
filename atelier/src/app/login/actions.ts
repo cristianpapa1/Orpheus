@@ -17,7 +17,11 @@ export async function signInWithEmail(formData: FormData) {
     options: { emailRedirectTo: `${SITE_URL}/auth/callback` },
   });
 
-  redirect(error ? "/login?error=otp" : "/login?sent=1");
+  redirect(
+    error
+      ? `/login?error=${error.status === 429 ? "rate-limit" : "otp"}`
+      : "/login?sent=1",
+  );
 }
 
 /** Google OAuth sign-in. */
