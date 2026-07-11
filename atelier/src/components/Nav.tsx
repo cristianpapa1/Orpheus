@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "@/app/login/actions";
 
 const TABS = [
   { href: "/feed", label: "Feed", accent: "bg-red" },
@@ -51,21 +50,8 @@ export function Nav({ email }: { email: string | null }) {
         </nav>
 
         <div className="flex items-center gap-4">
-          {email ? (
-            <>
-              <span className="hidden text-caption uppercase md:inline">
-                {email}
-              </span>
-              <form action={signOut}>
-                <button
-                  type="submit"
-                  className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-red hover:border-red hover:text-paper"
-                >
-                  Sign out
-                </button>
-              </form>
-            </>
-          ) : (
+          {/* No email/name here; sign out lives on the profile page. */}
+          {email ? null : (
             <Link
               href="/login"
               className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-blue hover:border-blue hover:text-paper"

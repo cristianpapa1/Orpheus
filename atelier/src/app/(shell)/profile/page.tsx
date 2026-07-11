@@ -4,6 +4,7 @@ import { WindowGrid } from "@/components/ui/WindowGrid";
 import { getManagedProfiles, getOwnProfile } from "@/lib/profile/queries";
 import { isViewerAdmin } from "@/lib/donations/queries";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { signOut } from "@/app/login/actions";
 
 export default async function ProfilePage() {
   const profile = await getOwnProfile();
@@ -63,6 +64,14 @@ export default async function ProfilePage() {
             </Link>
           ) : null}
         </div>
+        <form action={signOut} className="mt-6 border-t-2 border-ink pt-4">
+          <button
+            data-sign-out
+            className="border-2 border-red bg-red px-4 py-2 text-caption font-bold uppercase text-paper hover:opacity-80"
+          >
+            Sign out
+          </button>
+        </form>
       </Window>
       {managed.length > 0 ? (
         <Window title="Spaces you manage" accent="blue" span="col-span-12 md:col-span-5">
@@ -91,13 +100,35 @@ export default async function ProfilePage() {
 
       {isAdmin ? (
         <Window title="Admin" accent="red" span="col-span-12 md:col-span-5">
-          <p className="text-body">Review requests to claim community profiles.</p>
-          <Link
-            href="/admin/claims"
-            className="mt-4 inline-block border-2 border-ink bg-ink px-4 py-2 text-caption font-bold uppercase text-paper hover:bg-red hover:border-red"
-          >
-            Profile claims →
-          </Link>
+          <p className="text-body">
+            Moderate content, review reports, and resolve profile claims.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link
+              href="/admin"
+              className="border-2 border-ink bg-ink px-4 py-2 text-caption font-bold uppercase text-paper hover:bg-red hover:border-red"
+            >
+              Admin console →
+            </Link>
+            <Link
+              href="/admin/content"
+              className="border-2 border-ink px-4 py-2 text-caption font-bold uppercase hover:bg-yellow"
+            >
+              Content
+            </Link>
+            <Link
+              href="/admin/reports"
+              className="border-2 border-ink px-4 py-2 text-caption font-bold uppercase hover:bg-yellow"
+            >
+              Reports
+            </Link>
+            <Link
+              href="/admin/claims"
+              className="border-2 border-ink px-4 py-2 text-caption font-bold uppercase hover:bg-yellow"
+            >
+              Claims
+            </Link>
+          </div>
         </Window>
       ) : null}
 

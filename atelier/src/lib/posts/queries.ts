@@ -106,6 +106,20 @@ export async function getFeedPosts(limit = 30): Promise<Post[]> {
     .filter((p): p is Post => p !== null);
 }
 
+/** All recent posts across every author, newest first (admin console). */
+export async function getRecentPosts(limit = 50): Promise<Post[]> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return [...DEMO_POSTS].sort(byNewest).slice(0, limit);
+  const { data } = await supabase
+    .from("posts")
+    .select(POST_SELECT)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  return ((data ?? []) as unknown as PostRow[])
+    .map(toPost)
+    .filter((p): p is Post => p !== null);
+}
+
 export async function getPostById(id: string): Promise<Post | null> {
   const supabase = await createServerSupabase();
   if (!supabase) return DEMO_POSTS.find((p) => p.id === id) ?? null;
