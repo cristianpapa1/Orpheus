@@ -175,10 +175,17 @@ function BlockBody({
                 data-gallery-post={post.id}
                 className="block border-2 border-ink hover:border-blue"
               >
-                <span className="flex aspect-square flex-col overflow-hidden bg-ink/5 p-2">
-                  <span className="line-clamp-6 whitespace-pre-wrap break-words text-caption leading-snug">
-                    {post.caption || post.body}
-                  </span>
+                <span className="flex aspect-square flex-col gap-1 overflow-hidden bg-ink/5 p-2">
+                  {post.caption ? (
+                    <span className="text-caption font-bold uppercase">
+                      {post.caption}
+                    </span>
+                  ) : null}
+                  {post.body ? (
+                    <span className="line-clamp-6 whitespace-pre-wrap break-words text-caption leading-snug opacity-80">
+                      {post.body}
+                    </span>
+                  ) : null}
                 </span>
               </Link>
             ) : (
