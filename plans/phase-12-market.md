@@ -1,5 +1,13 @@
 # Phase 12 — Market (personalized stores; books-first; Firecrawl import)
 
+> [!IMPORTANT]
+> **TO BE REVIEWED BY CLAUDE**
+> 
+> **Proposed Improvements:**
+> - **Stripe Onboarding Details:** Clarify the specific Stripe Connect flow (e.g., embedded components vs. hosted onboarding) and how to handle incomplete onboardings.
+> - **Webhook Idempotency:** Specify idempotency and failure recovery mechanisms for Stripe order webhooks to prevent duplicate orders or missed fulfilments.
+> - **Data Privacy (GDPR):** Address privacy implications and data retention policies when scraping, structuring, and storing external shop data via Firecrawl.
+
 The "carefully plan" one. Source: Cristian's directive + ProjectArchitecture
 "Firecrawl", "Mobbin", "Hyper.is", "Mistral", "Stripe".
 

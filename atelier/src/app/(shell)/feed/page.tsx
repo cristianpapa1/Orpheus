@@ -4,10 +4,16 @@ import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
 import { getFeedPosts } from "@/lib/posts/queries";
 import { getGroupsForPosts } from "@/lib/groups/queries";
+import { getFavoritesForPosts } from "@/lib/favorites/queries";
+import { getMutualFollows } from "@/lib/profile/queries";
 
 export default async function FeedPage() {
   const posts = await getFeedPosts();
-  const groupTags = await getGroupsForPosts(posts.map((p) => p.id));
+  const [groupTags, favs, mutuals] = await Promise.all([
+    getGroupsForPosts(posts.map((p) => p.id)),
+    getFavoritesForPosts(posts.map((p) => p.id)),
+    getMutualFollows(),
+  ]);
 
   return (
     <div>
@@ -54,6 +60,8 @@ export default async function FeedPage() {
               post={post}
               index={i}
               groups={groupTags.get(post.id) ?? []}
+              fav={favs?.get(post.id)}
+              mutuals={mutuals}
             />
           ))}
         </WindowGrid>

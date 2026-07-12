@@ -10,6 +10,9 @@ import {
 } from "@atelier/core/posts/display";
 import { CATEGORY_LABEL, formatPostDate, type Post } from "@atelier/core/posts/types";
 import type { GroupTag } from "@/lib/groups/types";
+import { FavoritePost } from "@/components/posts/FavoritePost";
+import type { FavInfo } from "@/lib/favorites/queries";
+import type { MutualFollow } from "@/lib/profile/queries";
 
 const ACCENTS: WindowAccent[] = ["red", "blue", "yellow"];
 
@@ -22,10 +25,14 @@ export function PostCard({
   post,
   index = 0,
   groups = [],
+  fav,
+  mutuals = [],
 }: {
   post: Post;
   index?: number;
   groups?: GroupTag[];
+  fav?: FavInfo;
+  mutuals?: MutualFollow[];
 }) {
   const frame = frameClasses(post.display.frame);
 
@@ -98,6 +105,7 @@ export function PostCard({
               ))}
             </p>
           ) : null}
+          <FavoritePost postId={post.id} fav={fav} mutuals={mutuals} />
         </div>
       </Window>
     </div>

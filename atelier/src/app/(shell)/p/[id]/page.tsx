@@ -3,9 +3,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MediaBody } from "@/components/posts/MediaBody";
 import { TextBody } from "@/components/posts/TextBody";
+import { FavoritePost } from "@/components/posts/FavoritePost";
 import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
 import { getPostById, getPostMentions } from "@/lib/posts/queries";
+import { getFavoritesForPosts } from "@/lib/favorites/queries";
+import { getMutualFollows } from "@/lib/profile/queries";
 import {
   CATEGORY_LABEL,
   formatPostDate,
@@ -31,12 +34,17 @@ export default async function PostDetailPage({ params }: Props) {
   const { id } = await params;
   const post = await getPostById(id);
   if (!post) notFound();
-  const mentions = await getPostMentions(post.id);
+  const [mentions, favs, mutuals] = await Promise.all([
+    getPostMentions(post.id),
+    getFavoritesForPosts([post.id]),
+    getMutualFollows(),
+  ]);
 
   return (
     <WindowGrid>
       <div data-post={post.id} className="col-span-12 flex flex-col md:col-span-8">
         <Window title={CATEGORY_LABEL[post.category]} accent="red" className="h-full">
+          <FavoritePost postId={post.id} fav={favs?.get(post.id)} mutuals={mutuals}>
           {post.media_type === "text" ? (
             <>
               {post.caption ? (
@@ -65,6 +73,7 @@ export default async function PostDetailPage({ params }: Props) {
               ) : null}
             </>
           )}
+          </FavoritePost>
         </Window>
       </div>
       <div className="col-span-12 flex flex-col md:col-span-4">

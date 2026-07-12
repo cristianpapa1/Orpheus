@@ -1,5 +1,13 @@
 # Phase 10 — Local-First (instant UI, offline)
 
+> [!IMPORTANT]
+> **TO BE REVIEWED BY CLAUDE**
+> 
+> **Proposed Improvements:**
+> - **Schema Migrations:** Add error boundary strategies for RxDB schema mismatches across app updates.
+> - **Storage Management:** Define limits for local storage size and eviction policies (e.g., keeping only recent chat messages).
+> - **Network Resilience:** Clarify background sync behaviors and exponential backoff retry strategies when connectivity is intermittent.
+
 Source: `prompts/phase-next-localfirst-genui.md` §1 + ProjectArchitecture "Local-First (PowerSync / RxDB)".
 
 ## The honest tension (read first)

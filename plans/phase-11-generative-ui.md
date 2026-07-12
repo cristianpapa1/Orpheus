@@ -1,5 +1,13 @@
 # Phase 11 — Generative UI ("Atelier Studio")
 
+> [!IMPORTANT]
+> **TO BE REVIEWED BY CLAUDE**
+> 
+> **Proposed Improvements:**
+> - **Resilience & Quotas:** Add a strategy for handling rate limiting, timeouts, and API quotas for the LLM providers gracefully.
+> - **Error Handling:** Describe the fallback UI and error handling flow when the LLM returns invalid props or hallucinates component IDs.
+> - **Registry Versioning:** Define a versioning strategy for the UI registry to ensure existing users' generated layouts don't break when components are updated or deprecated.
+
 Source: `prompts/phase-next-localfirst-genui.md` §2 + ProjectArchitecture "Generative UI (Vercel AI SDK)", "Mistral.ai", "e2b.dev", "Mobbin".
 
 ## Shape
