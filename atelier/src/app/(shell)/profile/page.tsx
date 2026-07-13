@@ -56,6 +56,13 @@ export default async function ProfilePage() {
             Saved
           </Link>
           <Link
+            href="/following"
+            data-following-link
+            className="border-2 border-ink px-4 py-2 text-caption font-bold uppercase hover:bg-blue hover:border-blue hover:text-paper"
+          >
+            Following
+          </Link>
+          <Link
             href="/profile/settings"
             data-profile-settings
             className="border-2 border-ink px-4 py-2 text-caption font-bold uppercase hover:bg-blue hover:border-blue hover:text-paper"

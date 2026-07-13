@@ -132,6 +132,9 @@ export async function takedownPost(formData: FormData) {
   const supabase = await createServerSupabase();
   if (!supabase) redirect("/admin/reports?error=unavailable");
   if (!(await isViewerAdmin())) redirect("/admin/reports?error=forbidden");
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const reportId = String(formData.get("id") ?? "");
   const postId = String(formData.get("post_id") ?? "");
@@ -139,7 +142,11 @@ export async function takedownPost(formData: FormData) {
   const admin = createServiceClient();
   if (!admin) redirect("/admin/reports?error=service");
 
-  const { error } = await admin.from("posts").delete().eq("id", postId);
+  // Soft-delete: hide + record who/when (reversible in /admin/content).
+  const { error } = await admin
+    .from("posts")
+    .update({ removed_at: new Date().toISOString(), removed_by: user?.id ?? null })
+    .eq("id", postId);
   if (error) redirect("/admin/reports?error=takedown");
 
   await supabase.from("reports").update({ status: "actioned" }).eq("id", reportId);

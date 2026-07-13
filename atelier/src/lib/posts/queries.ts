@@ -17,7 +17,7 @@ import {
 // posts↔profiles relationship, so the implicit embed is ambiguous (PostgREST
 // "more than one relationship" error) and would break every post read.
 const POST_SELECT =
-  "id, author_id, caption, category, subcategory, body, image_path, image_width, image_height, original_path, variants, blur_data, alt_text, media_type, media_path, duration_seconds, display, created_at, author:profiles!posts_author_id_fkey(handle, display_name)";
+  "id, author_id, caption, category, subcategory, body, tags, image_path, image_width, image_height, original_path, variants, blur_data, alt_text, media_type, media_path, duration_seconds, display, created_at, author:profiles!posts_author_id_fkey(handle, display_name)";
 
 type PostRow = {
   id: string;
@@ -26,6 +26,7 @@ type PostRow = {
   category: string;
   subcategory: string | null;
   body: string | null;
+  tags: string[] | null;
   image_path: string | null;
   image_width: number | null;
   image_height: number | null;
@@ -56,6 +57,7 @@ function toPost(row: PostRow): Post | null {
     category: row.category,
     subcategory: row.subcategory,
     body: row.body,
+    tags: row.tags ?? [],
     image_url: row.image_path ? publicMediaUrl(row.image_path) : "",
     image_width: row.image_width,
     image_height: row.image_height,
@@ -100,6 +102,7 @@ export async function getFeedPosts(limit = 30): Promise<Post[]> {
     .from("posts")
     .select(POST_SELECT)
     .in("author_id", authorIds)
+    .is("removed_at", null)
     .order("created_at", { ascending: false })
     .limit(limit);
 
@@ -115,6 +118,7 @@ export async function getRecentPosts(limit = 50): Promise<Post[]> {
   const { data } = await supabase
     .from("posts")
     .select(POST_SELECT)
+    .is("removed_at", null)
     .order("created_at", { ascending: false })
     .limit(limit);
   return ((data ?? []) as unknown as PostRow[])
@@ -130,6 +134,7 @@ export async function getPostById(id: string): Promise<Post | null> {
     .from("posts")
     .select(POST_SELECT)
     .eq("id", id)
+    .is("removed_at", null)
     .maybeSingle();
   return data ? toPost(data as unknown as PostRow) : null;
 }
@@ -149,6 +154,7 @@ export async function getPostsByIds(
     .from("posts")
     .select(POST_SELECT)
     .in("id", ids)
+    .is("removed_at", null)
     .order("created_at", { ascending: false })
     .limit(limit);
   return ((data ?? []) as unknown as PostRow[])
@@ -195,9 +201,44 @@ export async function getPostsByAuthor(
     .from("posts")
     .select(POST_SELECT)
     .eq("author_id", authorId)
+    .is("removed_at", null)
     .order("created_at", { ascending: false })
     .limit(limit);
 
+  return ((data ?? []) as unknown as PostRow[])
+    .map(toPost)
+    .filter((p): p is Post => p !== null);
+}
+
+/** Live posts carrying a given topic tag, newest first (/t/<tag>). */
+export async function getPostsByTag(tag: string, limit = 40): Promise<Post[]> {
+  const supabase = await createServerSupabase();
+  if (!supabase) {
+    return DEMO_POSTS.filter((p) => p.tags.includes(tag)).sort(byNewest).slice(0, limit);
+  }
+  const { data } = await supabase
+    .from("posts")
+    .select(POST_SELECT)
+    .contains("tags", [tag])
+    .is("removed_at", null)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  return ((data ?? []) as unknown as PostRow[])
+    .map(toPost)
+    .filter((p): p is Post => p !== null);
+}
+
+/** Posts an admin has removed (soft-deleted), newest first. Admin console. */
+export async function getRemovedPosts(limit = 50): Promise<Post[]> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("posts")
+    .select(POST_SELECT)
+    .not("removed_at", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) return [];
   return ((data ?? []) as unknown as PostRow[])
     .map(toPost)
     .filter((p): p is Post => p !== null);

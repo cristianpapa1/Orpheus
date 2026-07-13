@@ -60,6 +60,7 @@ export function PostComposer({
   const [caption, setCaption] = useState("");
   const [altText, setAltText] = useState("");
   const [body, setBody] = useState("");
+  const [tags, setTags] = useState("");
   const [mediaType, setMediaType] = useState<MediaType>("image");
   const [avFile, setAvFile] = useState<File | null>(null);
   const [avDuration, setAvDuration] = useState<number | null>(null);
@@ -155,6 +156,7 @@ export function PostComposer({
           category,
           subcategory: subcategory || null,
           body: trimmed,
+          tags,
           display: DEFAULT_DISPLAY,
           media_type: "text",
           group_ids: groupIds,
@@ -240,6 +242,7 @@ export function PostComposer({
           caption,
           category,
           subcategory: subcategory || null,
+          tags,
           display,
           original_path: originalPath,
           variants,
@@ -459,6 +462,21 @@ export function PostComposer({
           </select>
         </>
       ) : null}
+
+      <label htmlFor="tags" className="text-caption font-bold uppercase">
+        Tags (optional)
+      </label>
+      <input
+        id="tags"
+        data-tags
+        value={tags}
+        onChange={(e) => setTags(e.target.value)}
+        placeholder="woodfired, ceramics, studio"
+        className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
+      />
+      <p className="text-caption uppercase opacity-70">
+        Comma or space separated · up to 8 · lets people find work by topic
+      </p>
 
       {mediaType !== "text" ? (
       <fieldset data-display-controls className="flex flex-col gap-3 border-t-2 border-ink pt-4">

@@ -114,6 +114,35 @@ export type MediaType = (typeof MEDIA_TYPES)[number];
 /** Longest a text post (poem / paragraph) may be. */
 export const MAX_BODY_CHARS = 4000;
 
+/** Max topic tags per post. */
+export const MAX_POST_TAGS = 8;
+
+/**
+ * Normalize free-form topic tags (from "#wood-fired, ceramics studio" or an
+ * array) into safe slugs: lowercase, [a-z0-9-], 2–30 chars, deduped, capped.
+ */
+export function parsePostTags(input: unknown): string[] {
+  const raw = Array.isArray(input)
+    ? input.map(String)
+    : typeof input === "string"
+      ? input.split(/[\s,#]+/)
+      : [];
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const t of raw) {
+    const tag = t
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, "")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 30);
+    if (tag.length < 2 || seen.has(tag)) continue;
+    seen.add(tag);
+    out.push(tag);
+    if (out.length >= MAX_POST_TAGS) break;
+  }
+  return out;
+}
+
 /** Per-type caps — shorts, not features. Server AND client enforced. */
 export const MEDIA_LIMITS = {
   video: { maxSeconds: 120, maxBytes: 150 * 1024 * 1024 },
@@ -164,6 +193,8 @@ export interface Post {
   subcategory: string | null;
   /** Text posts (media_type 'text') carry their work here — a poem/paragraph. */
   body: string | null;
+  /** Free-form topic tags (folksonomy discovery, /t/<tag>). */
+  tags: string[];
   /** Empty string for text posts (no image). */
   image_url: string;
   image_width: number | null;

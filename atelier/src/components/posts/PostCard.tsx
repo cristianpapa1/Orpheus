@@ -91,6 +91,20 @@ export function PostCard({
           {post.caption && post.media_type !== "text" ? (
             <p className="mt-2 text-body">{post.caption}</p>
           ) : null}
+          {post.tags.length > 0 ? (
+            <p className="mt-2 flex flex-wrap gap-1">
+              {post.tags.map((t) => (
+                <Link
+                  key={t}
+                  href={`/t/${t}`}
+                  data-tag={t}
+                  className="text-caption font-bold uppercase text-blue hover:underline"
+                >
+                  #{t}
+                </Link>
+              ))}
+            </p>
+          ) : null}
           {groups.length > 0 ? (
             <p className="mt-3 flex flex-wrap gap-2">
               {groups.map((g) => (

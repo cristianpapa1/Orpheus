@@ -341,6 +341,50 @@ export async function getResolvedClaims(limit = 50): Promise<ResolvedClaim[]> {
   }));
 }
 
+export interface FollowedProfile {
+  id: string;
+  handle: string;
+  display_name: string;
+  account_type: AccountType;
+  institution_kind: InstitutionKind | null;
+}
+
+/** Profiles the signed-in user follows (creators + institutions). */
+export async function getFollowing(): Promise<FollowedProfile[]> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return [];
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+  const { data: rows } = await supabase
+    .from("follows")
+    .select("followee_id")
+    .eq("follower_id", user.id);
+  const ids = (rows ?? []).map((r) => r.followee_id);
+  if (ids.length === 0) return [];
+  const { data } = await supabase
+    .from("profiles")
+    .select("id, handle, display_name, account_type, institution_kind")
+    .in("id", ids)
+    .order("display_name");
+  return ((data ?? []) as {
+    id: string;
+    handle: string | null;
+    display_name: string | null;
+    account_type: string | null;
+    institution_kind: string | null;
+  }[]).map((p) => ({
+    id: p.id,
+    handle: p.handle ?? "",
+    display_name: p.display_name ?? p.handle ?? "Unnamed",
+    account_type: accountType(p.account_type),
+    institution_kind: isInstitutionKind(p.institution_kind)
+      ? p.institution_kind
+      : null,
+  }));
+}
+
 export async function getViewerId(): Promise<string | null> {
   const supabase = await createServerSupabase();
   if (!supabase) return null;

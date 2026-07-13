@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
-import { getRecentPosts } from "@/lib/posts/queries";
+import { getRecentPosts, getRemovedPosts } from "@/lib/posts/queries";
 import { getGroups } from "@/lib/groups/queries";
 import { isViewerAdmin } from "@/lib/donations/queries";
 import {
@@ -10,7 +10,7 @@ import {
   formatPostDate,
   thumbUrl,
 } from "@atelier/core/posts/types";
-import { removeGroup, removePost } from "./actions";
+import { reinstatePost, removeGroup, removePost } from "./actions";
 
 export const metadata = { title: "Content — Atelier admin" };
 
@@ -25,12 +25,16 @@ const ERRORS: Record<string, string> = {
 export default async function AdminContentPage({
   searchParams,
 }: {
-  searchParams: Promise<{ removed?: string; error?: string }>;
+  searchParams: Promise<{ removed?: string; error?: string; reinstated?: string }>;
 }) {
   if (!(await isViewerAdmin())) notFound();
 
-  const { removed, error } = await searchParams;
-  const [posts, groups] = await Promise.all([getRecentPosts(50), getGroups()]);
+  const { removed, error, reinstated } = await searchParams;
+  const [posts, groups, removedPosts] = await Promise.all([
+    getRecentPosts(50),
+    getGroups(),
+    getRemovedPosts(),
+  ]);
 
   return (
     <div>
@@ -42,7 +46,12 @@ export default async function AdminContentPage({
 
       {removed ? (
         <p role="status" className="mb-4 border-2 border-ink px-3 py-2 text-caption font-bold uppercase">
-          {removed === "group" ? "Group removed." : "Post removed."}
+          {removed === "group" ? "Group removed." : "Post removed (reversible below)."}
+        </p>
+      ) : null}
+      {reinstated ? (
+        <p role="status" className="mb-4 border-2 border-ink px-3 py-2 text-caption font-bold uppercase">
+          Post reinstated.
         </p>
       ) : null}
       {error ? (
@@ -139,6 +148,41 @@ export default async function AdminContentPage({
             </ul>
           )}
         </Window>
+
+        {removedPosts.length > 0 ? (
+          <Window title={`Removed (${removedPosts.length})`} accent="yellow" span="col-span-12">
+            <p className="mb-3 text-caption uppercase opacity-70">
+              Soft-deleted — hidden from the site, kept for the record. Reinstate to restore.
+            </p>
+            <ul className="flex flex-col gap-3">
+              {removedPosts.map((p) => (
+                <li
+                  key={p.id}
+                  data-removed-post={p.id}
+                  className="flex flex-wrap items-center gap-3 border-b-2 border-ink pb-3 opacity-80"
+                >
+                  <div className="min-w-0 grow">
+                    <p className="truncate text-body font-bold line-through">
+                      {p.caption || p.body?.slice(0, 60) || "Untitled work"}
+                    </p>
+                    <p className="text-caption uppercase opacity-70">
+                      {CATEGORY_LABEL[p.category]} · by {p.author_name}
+                    </p>
+                  </div>
+                  <form action={reinstatePost}>
+                    <input type="hidden" name="id" value={p.id} />
+                    <button
+                      data-reinstate-post
+                      className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-blue hover:border-blue hover:text-paper"
+                    >
+                      Reinstate
+                    </button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          </Window>
+        ) : null}
       </WindowGrid>
     </div>
   );

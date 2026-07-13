@@ -9,6 +9,7 @@ import {
   isMediaType,
   isPostCategory,
   isValidSubcategory,
+  parsePostTags,
   validDuration,
 } from "@atelier/core/posts/types";
 import { moderatePost } from "@/lib/moderation/ai";
@@ -25,6 +26,8 @@ export interface PublishPostInput {
   display: unknown;
   /** Text posts (media_type 'text') carry their work here — a poem/paragraph. */
   body?: string;
+  /** Free-form topic tags ("#woodfired, ceramics" or already-split). */
+  tags?: string;
   /** Storage path of the untouched original (nullable). */
   original_path?: string | null;
   /** Storage paths of the display variants, ascending width. */
@@ -211,6 +214,7 @@ export async function publishPost(
       category,
       subcategory,
       display,
+      tags: parsePostTags(input.tags),
       ...payload,
     })
     .select("id")

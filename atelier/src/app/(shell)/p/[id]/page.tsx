@@ -99,6 +99,19 @@ export default async function PostDetailPage({ params }: Props) {
           {post.media_type !== "text" ? (
             <p className="mt-4 text-body">{post.caption || "Untitled work."}</p>
           ) : null}
+          {post.tags.length > 0 ? (
+            <p data-post-tags className="mt-3 flex flex-wrap gap-2">
+              {post.tags.map((t) => (
+                <Link
+                  key={t}
+                  href={`/t/${t}`}
+                  className="text-caption font-bold uppercase text-blue hover:underline"
+                >
+                  #{t}
+                </Link>
+              ))}
+            </p>
+          ) : null}
           {mentions.length > 0 ? (
             <p data-post-mentions className="mt-3 flex flex-wrap items-baseline gap-2 text-caption uppercase">
               <span className="font-bold opacity-70">With</span>

@@ -64,6 +64,27 @@ export async function getGroups(): Promise<Group[]> {
   return Promise.all(((data ?? []) as GroupRow[]).map((r) => withCounts(supabase, r)));
 }
 
+/** Groups the signed-in user follows (for the /following browse). */
+export async function getFollowedGroups(): Promise<Group[]> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return [];
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+  const { data: rows } = await supabase
+    .from("group_followers")
+    .select("group_id")
+    .eq("profile_id", user.id);
+  const ids = (rows ?? []).map((r) => r.group_id);
+  if (ids.length === 0) return [];
+  const first = await supabase.from("groups").select(GROUP_COLS_WITH).in("id", ids);
+  const data = first.error
+    ? (await supabase.from("groups").select(GROUP_COLS_BASE).in("id", ids)).data
+    : first.data;
+  return Promise.all(((data ?? []) as GroupRow[]).map((r) => withCounts(supabase, r)));
+}
+
 export async function getGroupBySlug(slug: string): Promise<Group | null> {
   const supabase = await createServerSupabase();
   if (!supabase) return DEMO_GROUPS[slug] ?? null;

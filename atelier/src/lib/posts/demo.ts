@@ -13,7 +13,7 @@ const DEMO_BLUR =
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 3"><rect width="4" height="3" fill="#c9c5b8"/></svg>',
   );
 
-const RAW: Omit<Post, "subcategory" | "body">[] = [
+const RAW: Omit<Post, "subcategory" | "body" | "tags">[] = [
   {
     id: "demo-theo-1",
     author_id: "00000000-0000-4000-a000-000000000002",
@@ -168,9 +168,10 @@ const RAW: Omit<Post, "subcategory" | "body">[] = [
 // Demo posts predate subcategories/body — default them to null in one place,
 // then add one text post (a poem) to exercise the text-post surface.
 export const DEMO_POSTS: Post[] = [
-  ...RAW.map((p) => ({ ...p, subcategory: null, body: null })),
+  ...RAW.map((p) => ({ ...p, subcategory: null, body: null, tags: [] })),
   {
     id: "demo-text-1",
+    tags: ["poetry", "sea"],
     author_id: "00000000-0000-4000-a000-000000000001",
     author_handle: "ines",
     author_name: "Inês Almeida",

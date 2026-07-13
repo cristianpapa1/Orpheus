@@ -21,13 +21,32 @@ async function requireAdminClient() {
 }
 
 export async function removePost(formData: FormData) {
+  const supabase = await createServerSupabase();
+  const adminId = supabase ? (await supabase.auth.getUser()).data.user?.id : null;
   const admin = await requireAdminClient();
   const id = String(formData.get("id") ?? "");
-  const { error } = await admin.from("posts").delete().eq("id", id);
+  // Soft-delete: reversible + audited (removed_by/removed_at).
+  const { error } = await admin
+    .from("posts")
+    .update({ removed_at: new Date().toISOString(), removed_by: adminId })
+    .eq("id", id);
   if (error) redirect("/admin/content?error=post");
   revalidatePath("/admin/content");
   revalidatePath("/feed");
   redirect("/admin/content?removed=post");
+}
+
+export async function reinstatePost(formData: FormData) {
+  const admin = await requireAdminClient();
+  const id = String(formData.get("id") ?? "");
+  const { error } = await admin
+    .from("posts")
+    .update({ removed_at: null, removed_by: null })
+    .eq("id", id);
+  if (error) redirect("/admin/content?error=post");
+  revalidatePath("/admin/content");
+  revalidatePath("/feed");
+  redirect("/admin/content?reinstated=1");
 }
 
 export async function removeGroup(formData: FormData) {
