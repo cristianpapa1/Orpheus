@@ -62,6 +62,18 @@ export const SUBCATEGORIES = {
     "digital",
     "mixed-media",
   ],
+  handmade: [
+    "ceramics",
+    "woodwork",
+    "textiles",
+    "metalwork",
+    "jewelry",
+    "glass",
+    "bookbinding",
+    "leather",
+  ],
+  photography: ["film", "digital", "portrait", "documentary", "street"],
+  dance: ["ballet", "contemporary", "folk", "street", "experimental"],
 } as const satisfies Partial<Record<PostCategory, readonly string[]>>;
 
 /** Human label for a subcategory slug (Title-Cased, hyphens → spaces). */

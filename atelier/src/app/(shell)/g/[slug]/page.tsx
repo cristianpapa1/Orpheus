@@ -23,6 +23,7 @@ import {
 import { createServerSupabase } from "@/lib/supabase/server";
 import { getFavoritesForPosts } from "@/lib/favorites/queries";
 import { getMutualFollows } from "@/lib/profile/queries";
+import { disciplineLabel } from "@atelier/core/taxonomy/disciplines";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -103,6 +104,19 @@ export default async function GroupPage({ params, searchParams }: Props) {
       <WindowGrid className="mb-4">
         <Window title="About" accent="blue" span="col-span-12 md:col-span-5">
           <p className="text-body">{group.description}</p>
+          {group.interests.length > 0 ? (
+            <p data-group-disciplines className="mt-3 flex flex-wrap gap-1">
+              {group.interests.map((t) => (
+                <Link
+                  key={t}
+                  href={`/groups?tag=${encodeURIComponent(t)}`}
+                  className="border-2 border-ink px-2 py-0.5 text-caption font-bold uppercase hover:bg-yellow"
+                >
+                  {disciplineLabel(t)}
+                </Link>
+              ))}
+            </p>
+          ) : null}
 
           {/* Viewer controls by relation */}
           <div className="mt-5 flex flex-wrap gap-2" data-relation={relation}>

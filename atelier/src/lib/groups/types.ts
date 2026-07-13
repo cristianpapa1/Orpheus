@@ -7,6 +7,8 @@ export interface Group {
   created_by: string;
   member_count: number;
   follower_count: number;
+  /** Discipline tags (cat:* / sub:*) the group is for. */
+  interests: string[];
 }
 
 export interface GroupMember {

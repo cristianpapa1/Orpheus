@@ -56,6 +56,14 @@ export function Nav({
         </nav>
 
         <div className="flex items-center gap-4">
+          <form action="/search" className="hidden md:block">
+            <input
+              name="q"
+              placeholder="Search"
+              aria-label="Search"
+              className="w-28 border-2 border-ink bg-paper px-2 py-1 text-caption uppercase outline-none transition-all focus:w-44 focus:border-blue"
+            />
+          </form>
           {/* No email/name here; sign out lives on the profile page. */}
           {email ? (
             <Link

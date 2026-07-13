@@ -17,7 +17,6 @@ import {
   formatPostDate,
   subcategoryLabel,
 } from "@atelier/core/posts/types";
-import { ReportControl } from "@/components/moderation/ReportControl";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 interface Props {
@@ -97,7 +96,9 @@ export default async function PostDetailPage({ params }: Props) {
               @{post.author_handle}
             </p>
           ) : null}
-          <p className="mt-4 text-body">{post.caption || "Untitled work."}</p>
+          {post.media_type !== "text" ? (
+            <p className="mt-4 text-body">{post.caption || "Untitled work."}</p>
+          ) : null}
           {mentions.length > 0 ? (
             <p data-post-mentions className="mt-3 flex flex-wrap items-baseline gap-2 text-caption uppercase">
               <span className="font-bold opacity-70">With</span>
@@ -112,15 +113,6 @@ export default async function PostDetailPage({ params }: Props) {
                 </Link>
               ))}
             </p>
-          ) : null}
-          {isSupabaseConfigured() ? (
-            <div className="mt-4">
-              <ReportControl
-                subjectType="post"
-                subjectId={post.id}
-                backTo={`/p/${post.id}`}
-              />
-            </div>
           ) : null}
           <dl className="mt-6 flex flex-col gap-1 text-caption uppercase">
             <div className="flex justify-between border-t-2 border-ink pt-2">

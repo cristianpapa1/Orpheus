@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { GROUP_SLUG_RE, slugifyGroupName } from "@/lib/groups/types";
+import { parseDisciplines } from "@atelier/core/taxonomy/disciplines";
 
 /* Group lifecycle server actions. Form-friendly: they take FormData and
    redirect with query flags; RLS enforces every rule a second time. */
@@ -26,17 +27,24 @@ export async function createGroup(formData: FormData) {
     .trim()
     .slice(0, 600);
   const is_private = formData.get("is_private") === "on";
+  const interests = parseDisciplines(formData.getAll("interests").map(String));
 
   const slug = slugifyGroupName(name);
   if (name.length < 3 || !GROUP_SLUG_RE.test(slug)) {
     redirect("/groups?error=name");
   }
 
-  const { data: group, error } = await supabase
+  const base = { name, slug, description, is_private, created_by: user.id };
+  let ins = await supabase
     .from("groups")
-    .insert({ name, slug, description, is_private, created_by: user.id })
+    .insert({ ...base, interests })
     .select("id, slug")
     .single();
+  // If the interests column isn't there yet (pre-0018), retry without it.
+  if (ins.error && !ins.error.code?.startsWith("23")) {
+    ins = await supabase.from("groups").insert(base).select("id, slug").single();
+  }
+  const { data: group, error } = ins;
   if (error || !group) {
     redirect(error?.code === "23505" ? "/groups?error=taken" : "/groups?error=create");
   }

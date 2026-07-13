@@ -19,7 +19,14 @@ type GroupRow = {
   description: string;
   is_private: boolean;
   created_by: string;
+  interests?: string[] | null;
 };
+
+// `interests` (0018) read defensively — fall back to the base columns if the
+// column isn't there yet, so /groups never breaks pre-migration.
+const GROUP_COLS_WITH =
+  "id, name, slug, description, is_private, created_by, interests";
+const GROUP_COLS_BASE = "id, name, slug, description, is_private, created_by";
 
 async function withCounts(
   supabase: NonNullable<Awaited<ReturnType<typeof createServerSupabase>>>,
@@ -35,7 +42,12 @@ async function withCounts(
       .select("*", { count: "exact", head: true })
       .eq("group_id", row.id),
   ]);
-  return { ...row, member_count: members ?? 0, follower_count: followers ?? 0 };
+  return {
+    ...row,
+    interests: row.interests ?? [],
+    member_count: members ?? 0,
+    follower_count: followers ?? 0,
+  };
 }
 
 export async function getGroups(): Promise<Group[]> {
@@ -45,21 +57,30 @@ export async function getGroups(): Promise<Group[]> {
       a.name.localeCompare(b.name),
     );
   }
-  const { data } = await supabase
-    .from("groups")
-    .select("id, name, slug, description, is_private, created_by")
-    .order("name");
+  const first = await supabase.from("groups").select(GROUP_COLS_WITH).order("name");
+  const data = first.error
+    ? (await supabase.from("groups").select(GROUP_COLS_BASE).order("name")).data
+    : first.data;
   return Promise.all(((data ?? []) as GroupRow[]).map((r) => withCounts(supabase, r)));
 }
 
 export async function getGroupBySlug(slug: string): Promise<Group | null> {
   const supabase = await createServerSupabase();
   if (!supabase) return DEMO_GROUPS[slug] ?? null;
-  const { data } = await supabase
+  const first = await supabase
     .from("groups")
-    .select("id, name, slug, description, is_private, created_by")
+    .select(GROUP_COLS_WITH)
     .eq("slug", slug)
     .maybeSingle();
+  const data = first.error
+    ? (
+        await supabase
+          .from("groups")
+          .select(GROUP_COLS_BASE)
+          .eq("slug", slug)
+          .maybeSingle()
+      ).data
+    : first.data;
   return data ? withCounts(supabase, data as GroupRow) : null;
 }
 
