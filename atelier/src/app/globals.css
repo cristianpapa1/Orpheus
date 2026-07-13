@@ -57,6 +57,32 @@ body {
 }
 
 /*
+  Scrollbars — one monolithic black bar, square, no rounding, matching the
+  2px-ink border language. Applies everywhere (page + any overflow area) and
+  re-maps through the school tokens like the rest of the chrome.
+*/
+* {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: var(--color-ink) var(--color-paper);
+}
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-paper);
+  border-left: 2px solid var(--color-ink);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-ink);
+  border: 0;
+  border-radius: 0;
+}
+::-webkit-scrollbar-corner {
+  background: var(--color-paper);
+}
+
+/*
   Track A — artistic schools. Each scope re-maps the SAME token contract;
   components are untouched. Bauhaus (the :root values) stays the default
   and the site chrome. Utility classes (bg-red, border-ink, …) resolve
