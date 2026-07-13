@@ -1,38 +1,51 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { sharePost, toggleFavorite } from "@/app/(shell)/post/interactions";
 import { createReport } from "@/lib/moderation/actions";
 import { REASON_LABEL, REPORT_REASONS } from "@atelier/core/moderation/types";
 import type { FavInfo } from "@/lib/favorites/queries";
-import type { MutualFollow } from "@/lib/profile/queries";
+
+export interface Contact {
+  id: string;
+  handle: string;
+  display_name: string;
+}
 
 /**
- * Post interactions: favorite (heart + count, optimistic), double-tap to
- * favorite when it wraps the media, and an "Act" menu that bundles Share
- * (send to a mutual follow via chat) and Report.
+ * Post interactions: favorite (heart + count), double-tap to favorite when it
+ * wraps the media, and an "Act" menu with three things —
+ *   • Share  — the device's native share sheet (copy-link fallback)
+ *   • Send to — search your follows (recent chats first) → drops the post into
+ *               your chat with them and opens the conversation
+ *   • Report — reason + note to moderators
  */
 export function FavoritePost({
   postId,
+  caption,
   fav,
-  mutuals = [],
+  following = [],
   backTo,
   children,
 }: {
   postId: string;
+  caption?: string;
   fav?: FavInfo;
-  mutuals?: MutualFollow[];
-  /** Where a report redirects back to (default: the post page). */
+  following?: Contact[];
   backTo?: string;
   children?: React.ReactNode;
 }) {
+  const router = useRouter();
   const showFav = Boolean(fav);
   const reportBackTo = backTo ?? `/p/${postId}`;
   const [favorited, setFavorited] = useState(fav?.mine ?? false);
   const [count, setCount] = useState(fav?.count ?? 0);
   const [burst, setBurst] = useState(false);
   const [actOpen, setActOpen] = useState(false);
-  const [shareMsg, setShareMsg] = useState<string | null>(null);
+  const [sub, setSub] = useState<"none" | "send" | "report">("none");
+  const [sendQuery, setSendQuery] = useState("");
+  const [msg, setMsg] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   const flash = () => {
@@ -75,13 +88,50 @@ export function FavoritePost({
     });
   };
 
-  const doShare = (m: MutualFollow) => {
-    setShareMsg(null);
+  const nativeShare = async () => {
+    const url = `${window.location.origin}/p/${postId}`;
+    const title = caption || "Atelier";
+    // Web Share API (the OS "send to any app" sheet), with a copy fallback.
+    const nav = navigator as Navigator & {
+      share?: (d: { title?: string; url?: string }) => Promise<void>;
+    };
+    if (nav.share) {
+      try {
+        await nav.share({ title, url });
+        return;
+      } catch {
+        /* user dismissed — fall through to copy */
+      }
+    }
+    try {
+      await navigator.clipboard?.writeText(url);
+      setMsg("Link copied");
+    } catch {
+      setMsg(url);
+    }
+  };
+
+  const doSend = (c: Contact) => {
+    setMsg(null);
     startTransition(async () => {
-      const r = await sharePost(postId, m.id);
-      setShareMsg(r.ok ? `Sent to ${m.display_name}` : (r.error ?? "Couldn't share."));
+      const r = await sharePost(postId, c.id);
+      if (r.ok && r.threadId) {
+        router.push(`/chat/${r.threadId}`); // jump into the conversation
+      } else {
+        setMsg(r.error ?? "Couldn't send.");
+      }
     });
   };
+
+  const q = sendQuery.trim().toLowerCase();
+  const sendList = q
+    ? following.filter((c) =>
+        `${c.display_name} @${c.handle}`.toLowerCase().includes(q),
+      )
+    : following;
+
+  const menuBtn =
+    "w-full border-2 border-ink px-3 py-2 text-left text-caption font-bold uppercase hover:bg-yellow";
 
   return (
     <>
@@ -121,80 +171,129 @@ export function FavoritePost({
         <div className="relative">
           <button
             type="button"
-            onClick={() => setActOpen((o) => !o)}
+            onClick={() => {
+              setActOpen((o) => !o);
+              setSub("none");
+              setMsg(null);
+            }}
             data-act
             aria-expanded={actOpen}
             className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-blue hover:border-blue hover:text-paper"
           >
             Act ▾
           </button>
+
           {actOpen ? (
             <div className="absolute left-0 z-20 mt-1 w-72 border-2 border-ink bg-paper p-3">
-              {/* Share / send to a mutual follow */}
-              {mutuals.length > 0 ? (
-                <div className="mb-3">
-                  <p className="mb-1 text-caption font-bold uppercase opacity-70">
-                    Send to someone you both follow
-                  </p>
-                  <ul className="flex max-h-40 flex-col gap-1 overflow-auto">
-                    {mutuals.map((m) => (
-                      <li key={m.id}>
-                        <button
-                          type="button"
-                          onClick={() => doShare(m)}
-                          disabled={pending}
-                          data-share-target={m.id}
-                          className="w-full border-2 border-ink px-2 py-1 text-left text-caption font-bold hover:bg-yellow disabled:opacity-50"
-                        >
-                          {m.display_name}
-                          {m.handle ? ` · @${m.handle}` : ""}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                  {shareMsg ? (
-                    <p role="status" className="mt-1 text-caption font-bold uppercase">
-                      {shareMsg}
+              {/* three actions */}
+              <div className="flex flex-col gap-2">
+                <button type="button" data-share onClick={nativeShare} className={menuBtn}>
+                  Share…
+                </button>
+                <button
+                  type="button"
+                  data-send-to
+                  onClick={() => setSub(sub === "send" ? "none" : "send")}
+                  className={menuBtn}
+                >
+                  Send to {sub === "send" ? "▾" : "▸"}
+                </button>
+                <button
+                  type="button"
+                  data-report-toggle
+                  onClick={() => setSub(sub === "report" ? "none" : "report")}
+                  className={menuBtn}
+                >
+                  Report {sub === "report" ? "▾" : "▸"}
+                </button>
+              </div>
+
+              {msg ? (
+                <p role="status" className="mt-2 text-caption font-bold uppercase">
+                  {msg}
+                </p>
+              ) : null}
+
+              {/* Send to — searchable follow list, recent chats first */}
+              {sub === "send" ? (
+                <div className="mt-3 border-t-2 border-ink pt-3">
+                  {following.length === 0 ? (
+                    <p className="text-caption uppercase opacity-70">
+                      Follow people to send them work.
                     </p>
-                  ) : null}
+                  ) : (
+                    <>
+                      <input
+                        value={sendQuery}
+                        onChange={(e) => setSendQuery(e.target.value)}
+                        placeholder="Search contacts…"
+                        data-send-search
+                        className="mb-2 w-full border-2 border-ink bg-paper px-2 py-1 text-body outline-none focus:border-blue"
+                      />
+                      <ul className="flex max-h-48 flex-col gap-1 overflow-auto">
+                        {sendList.map((c) => (
+                          <li key={c.id}>
+                            <button
+                              type="button"
+                              onClick={() => doSend(c)}
+                              disabled={pending}
+                              data-send-target={c.id}
+                              className="w-full border-2 border-ink px-2 py-1 text-left text-caption font-bold hover:bg-yellow disabled:opacity-50"
+                            >
+                              {c.display_name}
+                              {c.handle ? ` · @${c.handle}` : ""}
+                            </button>
+                          </li>
+                        ))}
+                        {sendList.length === 0 ? (
+                          <li className="text-caption uppercase opacity-70">No match.</li>
+                        ) : null}
+                      </ul>
+                    </>
+                  )}
                 </div>
               ) : null}
 
               {/* Report */}
-              <p className="mb-1 text-caption font-bold uppercase opacity-70">Report</p>
-              <form action={createReport} className="flex flex-col gap-2" data-report-form>
-                <input type="hidden" name="subject_type" value="post" />
-                <input type="hidden" name="subject_id" value={postId} />
-                <input type="hidden" name="back_to" value={reportBackTo} />
-                <select
-                  name="reason"
-                  required
-                  defaultValue=""
-                  className="border-2 border-ink bg-paper px-2 py-1 text-body outline-none focus:border-blue"
+              {sub === "report" ? (
+                <form
+                  action={createReport}
+                  data-report-form
+                  className="mt-3 flex flex-col gap-2 border-t-2 border-ink pt-3"
                 >
-                  <option value="" disabled>
-                    Reason…
-                  </option>
-                  {REPORT_REASONS.map((r) => (
-                    <option key={r} value={r}>
-                      {REASON_LABEL[r]}
+                  <input type="hidden" name="subject_type" value="post" />
+                  <input type="hidden" name="subject_id" value={postId} />
+                  <input type="hidden" name="back_to" value={reportBackTo} />
+                  <select
+                    name="reason"
+                    required
+                    defaultValue=""
+                    className="border-2 border-ink bg-paper px-2 py-1 text-body outline-none focus:border-blue"
+                  >
+                    <option value="" disabled>
+                      Reason…
                     </option>
-                  ))}
-                </select>
-                <textarea
-                  name="detail"
-                  rows={2}
-                  maxLength={600}
-                  placeholder="Anything moderators should know (optional)"
-                  className="border-2 border-ink bg-paper px-2 py-1 text-body outline-none focus:border-blue"
-                />
-                <button
-                  type="submit"
-                  className="self-start border-2 border-ink bg-ink px-3 py-1 text-caption font-bold uppercase text-paper hover:bg-red hover:border-red"
-                >
-                  Send report
-                </button>
-              </form>
+                    {REPORT_REASONS.map((r) => (
+                      <option key={r} value={r}>
+                        {REASON_LABEL[r]}
+                      </option>
+                    ))}
+                  </select>
+                  <textarea
+                    name="detail"
+                    rows={2}
+                    maxLength={600}
+                    placeholder="Anything moderators should know (optional)"
+                    className="border-2 border-ink bg-paper px-2 py-1 text-body outline-none focus:border-blue"
+                  />
+                  <button
+                    type="submit"
+                    className="self-start border-2 border-ink bg-ink px-3 py-1 text-caption font-bold uppercase text-paper hover:bg-red hover:border-red"
+                  >
+                    Send report
+                  </button>
+                </form>
+              ) : null}
             </div>
           ) : null}
         </div>

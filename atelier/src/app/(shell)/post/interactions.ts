@@ -71,12 +71,14 @@ export async function toggleFavorite(postId: string): Promise<FavoriteResult> {
 export interface ShareResult {
   ok: boolean;
   error?: string;
+  /** The chat thread the post was dropped into (for redirect). */
+  threadId?: string;
 }
 
 /**
- * Share a post to someone the sender MUTUALLY follows, as a chat message with
- * the post link. Verifies the mutual-follow relationship, then get-or-creates
- * the thread and posts the message.
+ * Send a post to someone the sender FOLLOWS, as a chat message with the post
+ * link. Get-or-creates the thread, posts the message, and returns the thread
+ * id so the client can jump straight into the conversation.
  */
 export async function sharePost(
   postId: string,
@@ -87,26 +89,18 @@ export async function sharePost(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "Sign in to share." };
-  if (targetId === user.id) return { ok: false, error: "Can't share to yourself." };
+  if (!user) return { ok: false, error: "Sign in to send." };
+  if (targetId === user.id) return { ok: false, error: "Can't send to yourself." };
 
-  // Mutual-follow guard (both directions).
-  const [{ data: iFollow }, { data: followMe }] = await Promise.all([
-    supabase
-      .from("follows")
-      .select("followee_id")
-      .eq("follower_id", user.id)
-      .eq("followee_id", targetId)
-      .maybeSingle(),
-    supabase
-      .from("follows")
-      .select("follower_id")
-      .eq("follower_id", targetId)
-      .eq("followee_id", user.id)
-      .maybeSingle(),
-  ]);
-  if (!iFollow || !followMe) {
-    return { ok: false, error: "You can only share with people you both follow." };
+  // You can send to anyone you follow.
+  const { data: iFollow } = await supabase
+    .from("follows")
+    .select("followee_id")
+    .eq("follower_id", user.id)
+    .eq("followee_id", targetId)
+    .maybeSingle();
+  if (!iFollow) {
+    return { ok: false, error: "You can only send to people you follow." };
   }
 
   // Confirm the post exists (and grab a caption for the message).
@@ -149,5 +143,5 @@ export async function sharePost(
   if (msgErr) return { ok: false, error: "Couldn't send the message." };
 
   revalidatePath(`/chat/${threadId}`);
-  return { ok: true };
+  return { ok: true, threadId };
 }

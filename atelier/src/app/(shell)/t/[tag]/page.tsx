@@ -6,7 +6,7 @@ import { WindowGrid } from "@/components/ui/WindowGrid";
 import { getPostsByTag } from "@/lib/posts/queries";
 import { getFavoritesForPosts } from "@/lib/favorites/queries";
 import { getGroupsForPosts } from "@/lib/groups/queries";
-import { getMutualFollows } from "@/lib/profile/queries";
+import { getFollowingRanked } from "@/lib/profile/queries";
 import { parsePostTags } from "@atelier/core/posts/types";
 
 interface Props {
@@ -22,10 +22,10 @@ export default async function TagPage({ params }: Props) {
   const { tag: raw } = await params;
   const tag = parsePostTags(raw)[0] ?? raw.toLowerCase();
   const posts = await getPostsByTag(tag);
-  const [groupTags, favs, mutuals] = await Promise.all([
+  const [groupTags, favs, following] = await Promise.all([
     getGroupsForPosts(posts.map((p) => p.id)),
     getFavoritesForPosts(posts.map((p) => p.id)),
-    getMutualFollows(),
+    getFollowingRanked(),
   ]);
 
   return (
@@ -52,7 +52,7 @@ export default async function TagPage({ params }: Props) {
               index={i}
               groups={groupTags.get(post.id) ?? []}
               fav={favs?.get(post.id)}
-              mutuals={mutuals}
+              following={following}
             />
           ))}
         </WindowGrid>

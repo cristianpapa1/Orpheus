@@ -5,16 +5,16 @@ import { WindowGrid } from "@/components/ui/WindowGrid";
 import { getSavedPosts } from "@/lib/favorites/queries";
 import { getFavoritesForPosts } from "@/lib/favorites/queries";
 import { getGroupsForPosts } from "@/lib/groups/queries";
-import { getMutualFollows } from "@/lib/profile/queries";
+import { getFollowingRanked } from "@/lib/profile/queries";
 
 export const metadata = { title: "Saved — Atelier" };
 
 export default async function SavedPage() {
   const posts = await getSavedPosts();
-  const [groupTags, favs, mutuals] = await Promise.all([
+  const [groupTags, favs, following] = await Promise.all([
     getGroupsForPosts(posts.map((p) => p.id)),
     getFavoritesForPosts(posts.map((p) => p.id)),
-    getMutualFollows(),
+    getFollowingRanked(),
   ]);
 
   return (
@@ -44,7 +44,7 @@ export default async function SavedPage() {
               index={i}
               groups={groupTags.get(post.id) ?? []}
               fav={favs?.get(post.id)}
-              mutuals={mutuals}
+              following={following}
             />
           ))}
         </WindowGrid>

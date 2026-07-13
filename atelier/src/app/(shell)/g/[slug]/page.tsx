@@ -22,7 +22,7 @@ import {
 } from "../../groups/actions";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { getFavoritesForPosts } from "@/lib/favorites/queries";
-import { getMutualFollows } from "@/lib/profile/queries";
+import { getFollowingRanked } from "@/lib/profile/queries";
 import { disciplineLabel } from "@atelier/core/taxonomy/disciplines";
 
 interface Props {
@@ -67,10 +67,10 @@ export default async function GroupPage({ params, searchParams }: Props) {
   const postGroupTags = canSeeFeed
     ? await getGroupsForPosts(posts.map((p) => p.id))
     : new Map();
-  const [favs, mutuals] = canSeeFeed
+  const [favs, following] = canSeeFeed
     ? await Promise.all([
         getFavoritesForPosts(posts.map((p) => p.id)),
-        getMutualFollows(),
+        getFollowingRanked(),
       ])
     : [null, []];
   const requests = relation === "owner" ? await getPendingRequests(group.id) : [];
@@ -267,7 +267,7 @@ export default async function GroupPage({ params, searchParams }: Props) {
               index={i}
               groups={postGroupTags.get(post.id) ?? []}
               fav={favs?.get(post.id)}
-              mutuals={mutuals}
+              following={following}
             />
           ))}
         </WindowGrid>

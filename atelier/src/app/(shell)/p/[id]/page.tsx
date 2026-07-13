@@ -8,7 +8,7 @@ import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
 import { getPostById, getPostMentions } from "@/lib/posts/queries";
 import { getFavoritesForPosts } from "@/lib/favorites/queries";
-import { getMutualFollows, getViewerId } from "@/lib/profile/queries";
+import { getFollowingRanked, getViewerId } from "@/lib/profile/queries";
 import { getComments } from "@/lib/comments/queries";
 import { isViewerAdmin } from "@/lib/donations/queries";
 import { addComment, deleteComment } from "../../post/comments";
@@ -36,11 +36,11 @@ export default async function PostDetailPage({ params }: Props) {
   const { id } = await params;
   const post = await getPostById(id);
   if (!post) notFound();
-  const [mentions, favs, mutuals, comments, viewerId, isAdmin] =
+  const [mentions, favs, following, comments, viewerId, isAdmin] =
     await Promise.all([
       getPostMentions(post.id),
       getFavoritesForPosts([post.id]),
-      getMutualFollows(),
+      getFollowingRanked(),
       getComments(post.id),
       getViewerId(),
       isViewerAdmin(),
@@ -51,7 +51,7 @@ export default async function PostDetailPage({ params }: Props) {
     <WindowGrid>
       <div data-post={post.id} className="col-span-12 flex flex-col md:col-span-8">
         <Window title={CATEGORY_LABEL[post.category]} accent="red" className="h-full">
-          <FavoritePost postId={post.id} fav={favs?.get(post.id)} mutuals={mutuals}>
+          <FavoritePost postId={post.id} caption={post.caption} fav={favs?.get(post.id)} following={following}>
           {post.media_type === "text" ? (
             <>
               {post.caption ? (

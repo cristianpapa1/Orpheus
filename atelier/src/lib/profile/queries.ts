@@ -385,6 +385,62 @@ export async function getFollowing(): Promise<FollowedProfile[]> {
   }));
 }
 
+/**
+ * People you follow, ordered for the post "Send to" list: those you've chatted
+ * with most recently first (by latest message), then the rest alphabetically.
+ */
+export async function getFollowingRanked(): Promise<FollowedProfile[]> {
+  const following = await getFollowing();
+  if (following.length <= 1) return following;
+
+  const supabase = await createServerSupabase();
+  if (!supabase) return following;
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return following;
+
+  // Map each of the viewer's threads to the other participant.
+  const { data: threads } = await supabase
+    .from("chat_threads")
+    .select("id, participant_a, participant_b");
+  const otherByThread = new Map<string, string>();
+  for (const t of (threads ?? []) as {
+    id: string;
+    participant_a: string;
+    participant_b: string;
+  }[]) {
+    otherByThread.set(
+      t.id,
+      t.participant_a === user.id ? t.participant_b : t.participant_a,
+    );
+  }
+
+  // Rank contacts by most-recent message.
+  const rank = new Map<string, number>();
+  const threadIds = [...otherByThread.keys()];
+  if (threadIds.length > 0) {
+    const { data: msgs } = await supabase
+      .from("chat_messages")
+      .select("thread_id, created_at")
+      .in("thread_id", threadIds)
+      .order("created_at", { ascending: false })
+      .limit(300);
+    let i = 0;
+    for (const m of (msgs ?? []) as { thread_id: string }[]) {
+      const other = otherByThread.get(m.thread_id);
+      if (!other || rank.has(other)) continue;
+      rank.set(other, i++);
+    }
+  }
+
+  return [...following].sort((a, b) => {
+    const ra = rank.has(a.id) ? rank.get(a.id)! : Infinity;
+    const rb = rank.has(b.id) ? rank.get(b.id)! : Infinity;
+    return ra - rb || a.display_name.localeCompare(b.display_name);
+  });
+}
+
 export async function getViewerId(): Promise<string | null> {
   const supabase = await createServerSupabase();
   if (!supabase) return null;
