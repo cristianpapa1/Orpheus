@@ -9,9 +9,17 @@ interface Props {
   messages: ChatMessage[];
   otherName: string;
   viewerId: string | null;
+  /** Hide the compose box (e.g. a pending contact request — accept first). */
+  locked?: boolean;
 }
 
-export function ThreadMessages({ threadId, messages, otherName, viewerId }: Props) {
+export function ThreadMessages({
+  threadId,
+  messages,
+  otherName,
+  viewerId,
+  locked = false,
+}: Props) {
   const formRef = useRef<HTMLFormElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -77,6 +85,11 @@ export function ThreadMessages({ threadId, messages, otherName, viewerId }: Prop
         <div ref={bottomRef} />
       </div>
 
+      {locked ? (
+        <p className="text-caption font-bold uppercase opacity-70">
+          Accept this request to reply.
+        </p>
+      ) : (
       <form action={onSubmit} ref={formRef} className="flex gap-3">
         <input
           name="body"
@@ -94,6 +107,7 @@ export function ThreadMessages({ threadId, messages, otherName, viewerId }: Prop
           Send
         </button>
       </form>
+      )}
     </div>
   );
 }

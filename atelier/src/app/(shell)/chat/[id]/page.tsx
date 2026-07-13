@@ -4,6 +4,7 @@ import { WindowGrid } from "@/components/ui/WindowGrid";
 import { getThreadMessages } from "@/lib/chat/queries";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { ThreadMessages } from "./ThreadMessages";
+import { acceptRequest, dismissRequest } from "../actions";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -18,6 +19,28 @@ export default async function ThreadPage({ params }: Props) {
 
   return (
     <div>
+      {thread.is_request ? (
+        <div
+          data-request-banner
+          className="mb-4 flex flex-wrap items-center gap-3 border-2 border-ink bg-yellow px-4 py-3"
+        >
+          <span className="text-caption font-bold uppercase">
+            Contact request from {thread.other_name}
+          </span>
+          <form action={acceptRequest}>
+            <input type="hidden" name="thread_id" value={thread.id} />
+            <button className="border-2 border-ink bg-ink px-4 py-1 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue">
+              Accept
+            </button>
+          </form>
+          <form action={dismissRequest}>
+            <input type="hidden" name="thread_id" value={thread.id} />
+            <button className="border-2 border-ink px-4 py-1 text-caption font-bold uppercase hover:bg-red hover:border-red hover:text-paper">
+              Dismiss
+            </button>
+          </form>
+        </div>
+      ) : null}
       <WindowGrid>
         <Window
           title={`${thread.other_name} — @${thread.other_handle}`}
@@ -29,6 +52,7 @@ export default async function ThreadPage({ params }: Props) {
             messages={messages}
             otherName={thread.other_name}
             viewerId={viewerId}
+            locked={thread.is_request}
           />
         </Window>
 

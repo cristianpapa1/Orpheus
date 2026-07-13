@@ -9,6 +9,9 @@ export interface ChatThread {
   last_message: string | null;
   last_message_at: string | null;
   created_at: string;
+  /** true when this is a pending contact request FOR the viewer (they're the
+      recipient of a non-mutual first contact and haven't accepted yet). */
+  is_request: boolean;
 }
 
 export interface ChatMessage {

@@ -11,6 +11,7 @@ export const DEMO_THREADS: ChatThread[] = [
     last_message: "Would love to see the full set when you\u2019re done",
     last_message_at: "2026-07-08T14:30:00Z",
     created_at: "2026-07-07T10:00:00Z",
+    is_request: true,
   },
   {
     id: "demo-thread-2",
@@ -22,6 +23,7 @@ export const DEMO_THREADS: ChatThread[] = [
     last_message: "The kiln should be ready by Friday",
     last_message_at: "2026-07-08T09:15:00Z",
     created_at: "2026-07-06T16:00:00Z",
+    is_request: false,
   },
 ];
 

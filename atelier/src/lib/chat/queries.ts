@@ -7,7 +7,13 @@ type ThreadRow = {
   participant_a: string;
   participant_b: string;
   created_at: string;
+  requested_by?: string | null;
+  accepted_at?: string | null;
 };
+
+const THREAD_COLS_WITH =
+  "id, participant_a, participant_b, created_at, requested_by, accepted_at";
+const THREAD_COLS_BASE = "id, participant_a, participant_b, created_at";
 
 function resolveThread(
   row: ThreadRow,
@@ -27,6 +33,12 @@ function resolveThread(
     last_message: lastMessage,
     last_message_at: lastMessageAt,
     created_at: row.created_at,
+    // Pending request FOR the viewer: someone else initiated a non-mutual
+    // thread and it hasn't been accepted.
+    is_request:
+      Boolean(row.requested_by) &&
+      !row.accepted_at &&
+      row.requested_by !== viewerId,
   };
 }
 
@@ -37,11 +49,21 @@ export async function getChatThreads(): Promise<ChatThread[]> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
 
-  const { data: threads } = await supabase
+  const filter = `participant_a.eq.${user.id},participant_b.eq.${user.id}`;
+  const first = await supabase
     .from("chat_threads")
-    .select("id, participant_a, participant_b, created_at")
-    .or(`participant_a.eq.${user.id},participant_b.eq.${user.id}`)
+    .select(THREAD_COLS_WITH)
+    .or(filter)
     .order("created_at", { ascending: false });
+  const threads = first.error
+    ? (
+        await supabase
+          .from("chat_threads")
+          .select(THREAD_COLS_BASE)
+          .or(filter)
+          .order("created_at", { ascending: false })
+      ).data
+    : first.data;
 
   if (!threads) return [];
 
@@ -88,11 +110,20 @@ export async function getThreadMessages(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { thread: null, messages: [] };
 
-  const { data: t } = await supabase
+  const firstT = await supabase
     .from("chat_threads")
-    .select("id, participant_a, participant_b, created_at")
+    .select(THREAD_COLS_WITH)
     .eq("id", threadId)
     .maybeSingle();
+  const t = firstT.error
+    ? (
+        await supabase
+          .from("chat_threads")
+          .select(THREAD_COLS_BASE)
+          .eq("id", threadId)
+          .maybeSingle()
+      ).data
+    : firstT.data;
 
   if (!t) return { thread: null, messages: [] };
 

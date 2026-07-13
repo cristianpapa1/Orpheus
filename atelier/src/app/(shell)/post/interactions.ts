@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { notify } from "@/lib/notifications/notify";
+import { getOrCreateThread } from "@/lib/chat/threads";
 
 export interface FavoriteResult {
   ok: boolean;
@@ -111,26 +112,14 @@ export async function sharePost(
     .maybeSingle();
   if (!post) return { ok: false, error: "Post not found." };
 
-  // Get-or-create the thread (ordered participants).
-  const a = user.id < targetId ? user.id : targetId;
-  const b = user.id < targetId ? targetId : user.id;
-  let threadId: string | undefined;
-  const { data: existing } = await supabase
-    .from("chat_threads")
-    .select("id")
-    .eq("participant_a", a)
-    .eq("participant_b", b)
-    .maybeSingle();
-  if (existing) {
-    threadId = existing.id;
-  } else {
-    const { data: thread, error } = await supabase
-      .from("chat_threads")
-      .insert({ participant_a: user.id, participant_b: targetId })
-      .select("id")
-      .single();
-    if (error || !thread) return { ok: false, error: "Couldn't start a conversation." };
-    threadId = thread.id;
+  // Get-or-create the thread (a non-mutual first contact becomes a request).
+  const { threadId, error: threadErr } = await getOrCreateThread(
+    supabase,
+    user.id,
+    targetId,
+  );
+  if (threadErr || !threadId) {
+    return { ok: false, error: "Couldn't start a conversation." };
   }
 
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://atelier.crktic.com";

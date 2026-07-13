@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { getOrCreateThread } from "@/lib/chat/threads";
 
 async function requireUser() {
   const supabase = await createServerSupabase();
@@ -27,28 +28,9 @@ export async function startOrGetThread(
   if (!other) return { ok: false, error: "User not found." };
   if (other.id === user.id) return { ok: false, error: "Can't message yourself." };
 
-  // Find existing thread (ordered by the trigger).
-  const a = user.id < other.id ? user.id : other.id;
-  const b = user.id < other.id ? other.id : user.id;
-
-  const { data: existing } = await supabase
-    .from("chat_threads")
-    .select("id")
-    .eq("participant_a", a)
-    .eq("participant_b", b)
-    .maybeSingle();
-
-  if (existing) return { ok: true, threadId: existing.id };
-
-  const { data: thread, error } = await supabase
-    .from("chat_threads")
-    .insert({ participant_a: user.id, participant_b: other.id })
-    .select("id")
-    .single();
-
-  if (error || !thread) return { ok: false, error: "Couldn't start conversation." };
-
-  return { ok: true, threadId: thread.id };
+  const { threadId, error } = await getOrCreateThread(supabase, user.id, other.id);
+  if (error || !threadId) return { ok: false, error: "Couldn't start conversation." };
+  return { ok: true, threadId };
 }
 
 export async function startChatAndRedirect(formData: FormData) {
@@ -65,26 +47,42 @@ export async function startChatAndRedirect(formData: FormData) {
   if (!other) redirect(`/u/${handle}?error=no-such-user`);
   if (other.id === user.id) redirect(`/u/${handle}?error=self`);
 
-  const a = user.id < other.id ? user.id : other.id;
-  const b = user.id < other.id ? other.id : user.id;
+  const { threadId, error } = await getOrCreateThread(supabase, user.id, other.id);
+  if (error || !threadId) redirect(`/u/${handle}?error=chat`);
+  redirect(`/chat/${threadId}`);
+}
 
-  const { data: existing } = await supabase
+/** Recipient accepts a contact request — the thread joins their main Messages. */
+export async function acceptRequest(formData: FormData) {
+  const threadId = String(formData.get("thread_id") ?? "");
+  const { supabase, user } = await requireUser();
+  if (!supabase || !user) redirect("/chat");
+
+  const { data: t } = await supabase
     .from("chat_threads")
-    .select("id")
-    .eq("participant_a", a)
-    .eq("participant_b", b)
+    .select("requested_by")
+    .eq("id", threadId)
     .maybeSingle();
+  // Only the recipient (not the initiator) accepts.
+  if (t && t.requested_by !== user.id) {
+    await supabase
+      .from("chat_threads")
+      .update({ accepted_at: new Date().toISOString() })
+      .eq("id", threadId);
+  }
+  revalidatePath("/chat");
+  revalidatePath(`/chat/${threadId}`);
+  redirect(`/chat/${threadId}`);
+}
 
-  if (existing) redirect(`/chat/${existing.id}`);
-
-  const { data: thread } = await supabase
-    .from("chat_threads")
-    .insert({ participant_a: user.id, participant_b: other.id })
-    .select("id")
-    .single();
-
-  if (!thread) redirect(`/u/${handle}?error=chat`);
-  redirect(`/chat/${thread.id}`);
+/** Recipient dismisses a contact request — the thread is removed. */
+export async function dismissRequest(formData: FormData) {
+  const threadId = String(formData.get("thread_id") ?? "");
+  const { supabase, user } = await requireUser();
+  if (!supabase || !user) redirect("/chat");
+  await supabase.from("chat_threads").delete().eq("id", threadId);
+  revalidatePath("/chat");
+  redirect("/chat");
 }
 
 export async function sendMessage(formData: FormData) {
