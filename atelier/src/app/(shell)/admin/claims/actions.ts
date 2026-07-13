@@ -6,6 +6,7 @@ import { isViewerAdmin } from "@/lib/donations/queries";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email/resend";
+import { notify } from "@/lib/notifications/notify";
 
 /* Admin-only claim resolution. Approving hands the seeded profile to the
    claimant via managed_by (service role — an admin doesn't own that row) and
@@ -88,6 +89,13 @@ export async function resolveClaim(formData: FormData) {
       .eq("profile_id", profileId)
       .eq("status", "pending");
     await notifyApproved(admin, profileId, claimantId); // best-effort email
+    await notify(supabase, {
+      actorId: user.id,
+      recipientId: claimantId,
+      type: "claim_approved",
+      subjectType: "profile",
+      subjectId: profileId,
+    });
   }
 
   revalidatePath("/admin/claims");

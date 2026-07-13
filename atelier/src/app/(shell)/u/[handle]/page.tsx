@@ -72,6 +72,15 @@ export default async function PublicProfilePage({ params, searchParams }: Props)
     <div data-school={profile.school} className="-m-2 p-2">
       <div className="mb-6 flex flex-wrap items-center gap-4">
         <h1 className="text-h1 font-bold uppercase">{profile.display_name}</h1>
+        {claim.claimed ? (
+          <span
+            data-verified
+            title="Claimed by its owner"
+            className="border-2 border-ink bg-ink px-2 py-1 text-caption font-bold uppercase text-paper"
+          >
+            ✓ Verified
+          </span>
+        ) : null}
         <span data-follower-count className="text-caption font-bold uppercase">
           {profile.follower_count}{" "}
           {profile.follower_count === 1 ? "follower" : "followers"}

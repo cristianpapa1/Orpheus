@@ -10,7 +10,13 @@ const TABS = [
   { href: "/profile", label: "Profile", accent: "bg-yellow" },
 ] as const;
 
-export function Nav({ email }: { email: string | null }) {
+export function Nav({
+  email,
+  unread = 0,
+}: {
+  email: string | null;
+  unread?: number;
+}) {
   const pathname = usePathname();
 
   return (
@@ -51,7 +57,26 @@ export function Nav({ email }: { email: string | null }) {
 
         <div className="flex items-center gap-4">
           {/* No email/name here; sign out lives on the profile page. */}
-          {email ? null : (
+          {email ? (
+            <Link
+              href="/notifications"
+              data-notif-bell
+              aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
+              className={`relative border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-yellow ${
+                pathname.startsWith("/notifications") ? "bg-ink text-paper" : ""
+              }`}
+            >
+              Alerts
+              {unread > 0 ? (
+                <span
+                  data-unread
+                  className="ml-1 inline-block min-w-4 border-2 border-ink bg-red px-1 text-center text-caption font-bold text-paper"
+                >
+                  {unread > 99 ? "99+" : unread}
+                </span>
+              ) : null}
+            </Link>
+          ) : (
             <Link
               href="/login"
               className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-blue hover:border-blue hover:text-paper"

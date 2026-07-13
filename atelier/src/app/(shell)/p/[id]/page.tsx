@@ -8,7 +8,10 @@ import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
 import { getPostById, getPostMentions } from "@/lib/posts/queries";
 import { getFavoritesForPosts } from "@/lib/favorites/queries";
-import { getMutualFollows } from "@/lib/profile/queries";
+import { getMutualFollows, getViewerId } from "@/lib/profile/queries";
+import { getComments } from "@/lib/comments/queries";
+import { isViewerAdmin } from "@/lib/donations/queries";
+import { addComment, deleteComment } from "../../post/comments";
 import {
   CATEGORY_LABEL,
   formatPostDate,
@@ -34,11 +37,16 @@ export default async function PostDetailPage({ params }: Props) {
   const { id } = await params;
   const post = await getPostById(id);
   if (!post) notFound();
-  const [mentions, favs, mutuals] = await Promise.all([
-    getPostMentions(post.id),
-    getFavoritesForPosts([post.id]),
-    getMutualFollows(),
-  ]);
+  const [mentions, favs, mutuals, comments, viewerId, isAdmin] =
+    await Promise.all([
+      getPostMentions(post.id),
+      getFavoritesForPosts([post.id]),
+      getMutualFollows(),
+      getComments(post.id),
+      getViewerId(),
+      isViewerAdmin(),
+    ]);
+  const configured = isSupabaseConfigured();
 
   return (
     <WindowGrid>
@@ -134,6 +142,78 @@ export default async function PostDetailPage({ params }: Props) {
               </dd>
             </div>
           </dl>
+        </Window>
+      </div>
+
+      <div className="col-span-12 flex flex-col">
+        <Window title={`Conversation (${comments.length})`} accent="blue" className="h-full">
+          {comments.length === 0 ? (
+            <p className="text-body opacity-70">No comments yet.</p>
+          ) : (
+            <ul data-comments className="flex flex-col gap-3">
+              {comments.map((c) => (
+                <li key={c.id} data-comment={c.id} className="border-2 border-ink p-3">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <Link
+                      href={`/u/${c.author_handle || c.author_id}`}
+                      className="text-caption font-bold uppercase hover:text-blue"
+                    >
+                      {c.author_name}
+                      {c.author_handle ? ` · @${c.author_handle}` : ""}
+                    </Link>
+                    <span className="shrink-0 text-caption uppercase opacity-70">
+                      {c.created_at.slice(0, 10)}
+                    </span>
+                  </div>
+                  <p className="mt-2 whitespace-pre-wrap break-words text-body">
+                    {c.body}
+                  </p>
+                  {viewerId === c.author_id || isAdmin ? (
+                    <form action={deleteComment} className="mt-2">
+                      <input type="hidden" name="id" value={c.id} />
+                      <input type="hidden" name="post_id" value={post.id} />
+                      <button
+                        data-delete-comment
+                        className="border-2 border-ink px-2 py-0.5 text-caption font-bold uppercase hover:bg-red hover:border-red hover:text-paper"
+                      >
+                        Delete
+                      </button>
+                    </form>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {configured ? (
+            viewerId ? (
+              <form action={addComment} className="mt-4 flex flex-col gap-2">
+                <input type="hidden" name="post_id" value={post.id} />
+                <label htmlFor="comment-body" className="text-caption font-bold uppercase">
+                  Add a comment
+                </label>
+                <textarea
+                  id="comment-body"
+                  name="body"
+                  rows={3}
+                  maxLength={2000}
+                  required
+                  placeholder="Say something…"
+                  className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
+                />
+                <button className="self-start border-2 border-ink bg-ink px-4 py-1 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue">
+                  Post comment
+                </button>
+              </form>
+            ) : (
+              <p className="mt-4 text-caption font-bold uppercase">
+                <Link href="/login" className="border-b-2 border-ink hover:text-blue">
+                  Sign in
+                </Link>{" "}
+                to join the conversation.
+              </p>
+            )
+          ) : null}
         </Window>
       </div>
     </WindowGrid>

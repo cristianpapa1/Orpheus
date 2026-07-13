@@ -3,6 +3,7 @@ import { AppealBanner } from "@/components/AppealBanner";
 import { BottomNav } from "@/components/BottomNav";
 import { Nav } from "@/components/Nav";
 import { getActiveAppeal, getRaisedForAppeal } from "@/lib/donations/queries";
+import { getUnreadCount } from "@/lib/notifications/queries";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createServerSupabase } from "@/lib/supabase/server";
 
@@ -13,6 +14,7 @@ export default async function ShellLayout({
 }) {
   const supabase = await createServerSupabase();
   const user = supabase ? (await supabase.auth.getUser()).data.user : null;
+  const unread = user ? await getUnreadCount() : 0;
   const activeAppeal = await getActiveAppeal();
   const { getDismissedAppealId } = await import("@/app/appeal-actions");
   const dismissedId = await getDismissedAppealId();
@@ -22,7 +24,7 @@ export default async function ShellLayout({
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <Nav email={user?.email ?? null} />
+      <Nav email={user?.email ?? null} unread={unread} />
       {appeal ? <AppealBanner appeal={appeal} raisedCents={raised} /> : null}
       {!isSupabaseConfigured() ? (
         <p

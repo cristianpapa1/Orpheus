@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { notify } from "@/lib/notifications/notify";
 
 export interface FavoriteResult {
   ok: boolean;
@@ -40,6 +41,21 @@ export async function toggleFavorite(postId: string): Promise<FavoriteResult> {
     await supabase
       .from("post_favorites")
       .insert({ post_id: postId, profile_id: user.id });
+    // Notify the author that their work was favorited.
+    const { data: post } = await supabase
+      .from("posts")
+      .select("author_id")
+      .eq("id", postId)
+      .maybeSingle();
+    if (post) {
+      await notify(supabase, {
+        actorId: user.id,
+        recipientId: post.author_id,
+        type: "favorite",
+        subjectType: "post",
+        subjectId: postId,
+      });
+    }
   }
 
   const { count } = await supabase

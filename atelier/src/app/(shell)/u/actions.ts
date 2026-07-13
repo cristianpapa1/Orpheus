@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { notify } from "@/lib/notifications/notify";
 
 export interface FollowResult {
   ok: boolean;
@@ -29,6 +30,16 @@ export async function follow(
     .insert({ follower_id: user.id, followee_id: targetId });
 
   if (error && error.code !== "23505") return { ok: false, error: error.message };
+  // Notify the followed creator (skip if it was a duplicate no-op follow).
+  if (!error) {
+    await notify(supabase, {
+      actorId: user.id,
+      recipientId: targetId,
+      type: "follow",
+      subjectType: "profile",
+      subjectId: user.id,
+    });
+  }
   revalidatePath(`/u/${handle}`);
   return { ok: true };
 }

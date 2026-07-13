@@ -13,6 +13,7 @@ import {
 } from "@atelier/core/posts/types";
 import { moderatePost } from "@/lib/moderation/ai";
 import { publicMediaUrl } from "@/lib/posts/queries";
+import { notify } from "@/lib/notifications/notify";
 
 const MAX_BLUR_CHARS = 6000; // matches the DB check constraint
 
@@ -260,6 +261,15 @@ export async function publishPost(
       await supabase
         .from("post_mentions")
         .insert(mutual.map((mentioned_id) => ({ post_id: data.id, mentioned_id })));
+      for (const mentioned_id of mutual) {
+        await notify(supabase, {
+          actorId: user.id,
+          recipientId: mentioned_id,
+          type: "mention",
+          subjectType: "post",
+          subjectId: data.id,
+        });
+      }
     }
   }
 
