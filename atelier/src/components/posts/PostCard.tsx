@@ -26,12 +26,14 @@ export function PostCard({
   groups = [],
   fav,
   following = [],
+  canReportQuality = false,
 }: {
   post: Post;
   index?: number;
   groups?: GroupTag[];
   fav?: FavInfo;
   following?: Contact[];
+  canReportQuality?: boolean;
 }) {
   const frame = frameClasses(post.display.frame);
 
@@ -118,7 +120,13 @@ export function PostCard({
               ))}
             </p>
           ) : null}
-          <FavoritePost postId={post.id} caption={post.caption} fav={fav} following={following} />
+          <FavoritePost
+            postId={post.id}
+            caption={post.caption}
+            fav={fav}
+            following={following}
+            canReportQuality={canReportQuality}
+          />
         </div>
       </Window>
     </div>

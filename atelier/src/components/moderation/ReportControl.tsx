@@ -2,6 +2,7 @@ import { createReport } from "@/lib/moderation/actions";
 import {
   REASON_LABEL,
   REPORT_REASONS,
+  STAMPED_ONLY_REASONS,
   type ReportSubject,
 } from "@atelier/core/moderation/types";
 
@@ -13,11 +14,16 @@ export function ReportControl({
   subjectType,
   subjectId,
   backTo,
+  canReportQuality = false,
 }: {
   subjectType: ReportSubject;
   subjectId: string;
   backTo: string;
+  canReportQuality?: boolean;
 }) {
+  const reasons = REPORT_REASONS.filter(
+    (r) => !STAMPED_ONLY_REASONS.includes(r) || canReportQuality,
+  );
   return (
     <details data-report-control className="inline-block">
       <summary className="cursor-pointer border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-yellow">
@@ -43,7 +49,7 @@ export function ReportControl({
           <option value="" disabled>
             Pick one…
           </option>
-          {REPORT_REASONS.map((r) => (
+          {reasons.map((r) => (
             <option key={r} value={r}>
               {REASON_LABEL[r]}
             </option>

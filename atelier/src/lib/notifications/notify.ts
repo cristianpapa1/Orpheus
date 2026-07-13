@@ -9,7 +9,8 @@ export type NotificationType =
   | "mention"
   | "comment"
   | "claim_approved"
-  | "follow";
+  | "follow"
+  | "quality_stamp";
 
 /**
  * Best-effort notification insert. No-op when notifying yourself, and silently

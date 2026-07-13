@@ -4,7 +4,11 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { sharePost, toggleFavorite } from "@/app/(shell)/post/interactions";
 import { createReport } from "@/lib/moderation/actions";
-import { REASON_LABEL, REPORT_REASONS } from "@atelier/core/moderation/types";
+import {
+  REASON_LABEL,
+  REPORT_REASONS,
+  STAMPED_ONLY_REASONS,
+} from "@atelier/core/moderation/types";
 import type { FavInfo } from "@/lib/favorites/queries";
 
 export interface Contact {
@@ -27,6 +31,7 @@ export function FavoritePost({
   fav,
   following = [],
   backTo,
+  canReportQuality = false,
   children,
 }: {
   postId: string;
@@ -34,8 +39,12 @@ export function FavoritePost({
   fav?: FavInfo;
   following?: Contact[];
   backTo?: string;
+  canReportQuality?: boolean;
   children?: React.ReactNode;
 }) {
+  const reasons = REPORT_REASONS.filter(
+    (r) => !STAMPED_ONLY_REASONS.includes(r) || canReportQuality,
+  );
   const router = useRouter();
   const showFav = Boolean(fav);
   const reportBackTo = backTo ?? `/p/${postId}`;
@@ -273,7 +282,7 @@ export function FavoritePost({
                     <option value="" disabled>
                       Reason…
                     </option>
-                    {REPORT_REASONS.map((r) => (
+                    {reasons.map((r) => (
                       <option key={r} value={r}>
                         {REASON_LABEL[r]}
                       </option>

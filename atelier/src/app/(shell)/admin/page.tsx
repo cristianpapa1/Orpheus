@@ -26,6 +26,12 @@ const TOOLS: { href: string; title: string; accent: WindowAccent; body: string }
     body: "Approve, reject, and revoke requests to claim community institution profiles.",
   },
   {
+    href: "/admin/quality",
+    title: "Quality stamps",
+    accent: "blue",
+    body: "Review eligible members and grant the quality stamp — trusted reviewers who flag low-quality work.",
+  },
+  {
     href: "/admin/appeals",
     title: "Donation appeals",
     accent: "red",

@@ -37,6 +37,16 @@ export async function createReport(formData: FormData) {
     redirect(`${backTo}?error=report`);
   }
 
+  // A "quality" flag may only come from a quality-stamped member.
+  if (reason === "quality") {
+    const { data: me } = await supabase
+      .from("profiles")
+      .select("quality_stamp")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (!me?.quality_stamp) redirect(`${backTo}?error=not-stamped`);
+  }
+
   // Rate limit: ≤20 reports per day per user.
   const dayAgo = new Date(Date.now() - 24 * 3600_000).toISOString();
   const { count } = await supabase

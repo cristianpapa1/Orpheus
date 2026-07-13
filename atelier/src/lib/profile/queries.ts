@@ -201,12 +201,14 @@ export interface ProfileClaimState {
   is_seed: boolean;
   claimed: boolean;
   managed_by: string | null;
+  quality_stamped: boolean;
 }
 
 const CLAIM_OFF: ProfileClaimState = {
   is_seed: false,
   claimed: false,
   managed_by: null,
+  quality_stamped: false,
 };
 
 /**
@@ -221,7 +223,7 @@ export async function getProfileClaimState(
   if (!supabase) return CLAIM_OFF;
   const { data, error } = await supabase
     .from("profiles")
-    .select("is_seed, claimed_at, managed_by")
+    .select("is_seed, claimed_at, managed_by, quality_stamp")
     .eq("id", profileId)
     .maybeSingle();
   if (error || !data) return CLAIM_OFF;
@@ -229,7 +231,69 @@ export async function getProfileClaimState(
     is_seed: Boolean(data.is_seed),
     claimed: Boolean(data.claimed_at),
     managed_by: data.managed_by ?? null,
+    quality_stamped: Boolean(data.quality_stamp),
   };
+}
+
+/** Whether the signed-in viewer holds a quality stamp. Defensive → false. */
+export async function isViewerQualityStamped(): Promise<boolean> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return false;
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return false;
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("quality_stamp")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (error || !data) return false;
+  return Boolean(data.quality_stamp);
+}
+
+export interface QualityCandidate {
+  id: string;
+  handle: string;
+  display_name: string;
+  posts: number;
+  mutuals: number;
+  onboarded_at: string;
+}
+
+/** Profiles eligible for a quality stamp (admin-gated RPC). Defensive → []. */
+export async function getQualityCandidates(): Promise<QualityCandidate[]> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return [];
+  const { data, error } = await supabase.rpc("quality_candidates");
+  if (error || !data) return [];
+  return (data as QualityCandidate[]).map((c) => ({
+    id: c.id,
+    handle: c.handle ?? "",
+    display_name: c.display_name ?? c.handle ?? "Unnamed",
+    posts: Number(c.posts),
+    mutuals: Number(c.mutuals),
+    onboarded_at: c.onboarded_at,
+  }));
+}
+
+/** Current quality-stamped members (admin list). Defensive → []. */
+export async function getQualityStampedMembers(): Promise<
+  { id: string; handle: string; display_name: string }[]
+> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, handle, display_name")
+    .eq("quality_stamp", true)
+    .order("display_name");
+  if (error || !data) return [];
+  return data.map((p) => ({
+    id: p.id,
+    handle: p.handle ?? "",
+    display_name: p.display_name ?? p.handle ?? "Unnamed",
+  }));
 }
 
 export interface ManagedProfile {

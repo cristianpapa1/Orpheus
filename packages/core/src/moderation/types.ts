@@ -12,6 +12,7 @@ export const REPORT_REASONS = [
   "harassment",
   "stolen_work",
   "illegal",
+  "quality",
   "other",
 ] as const;
 export type ReportReason = (typeof REPORT_REASONS)[number];
@@ -21,8 +22,12 @@ export const REASON_LABEL: Record<ReportReason, string> = {
   harassment: "Harassment",
   stolen_work: "Stolen work",
   illegal: "Illegal content",
+  quality: "Low quality",
   other: "Something else",
 };
+
+/** Reasons only a quality-stamped member may file. */
+export const STAMPED_ONLY_REASONS: ReportReason[] = ["quality"];
 
 export const REPORT_STATUSES = [
   "open",

@@ -9,6 +9,7 @@ import {
   getProfileClaimState,
   getViewerId,
   isFollowing,
+  isViewerQualityStamped,
 } from "@/lib/profile/queries";
 import { getPostsByAuthor } from "@/lib/posts/queries";
 import { getEventsByProfile } from "@/lib/events/queries";
@@ -51,6 +52,7 @@ export default async function PublicProfilePage({ params, searchParams }: Props)
 
   const configured = isSupabaseConfigured();
   const viewerId = configured ? await getViewerId() : null;
+  const viewerStamped = configured ? await isViewerQualityStamped() : false;
 
   let state: FollowState;
   if (!configured) state = "preview";
@@ -81,6 +83,15 @@ export default async function PublicProfilePage({ params, searchParams }: Props)
             ✓ Verified
           </span>
         ) : null}
+        {claim.quality_stamped ? (
+          <span
+            data-quality
+            title="Quality member — a trusted reviewer"
+            className="border-2 border-ink bg-yellow px-2 py-1 text-caption font-bold uppercase"
+          >
+            ✦ Quality
+          </span>
+        ) : null}
         <span data-follower-count className="text-caption font-bold uppercase">
           {profile.follower_count}{" "}
           {profile.follower_count === 1 ? "follower" : "followers"}
@@ -102,6 +113,7 @@ export default async function PublicProfilePage({ params, searchParams }: Props)
               subjectType="profile"
               subjectId={profile.id}
               backTo={`/u/${slug}`}
+              canReportQuality={viewerStamped}
             />
             <form action={blocked ? unblockUser : blockUser}>
               <input type="hidden" name="handle" value={slug} />

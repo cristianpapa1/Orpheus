@@ -31,6 +31,11 @@ function describe(n: NotificationItem): { text: string; href: string } {
         text: `Your claim was approved — you now manage a profile`,
         href: `/u/${n.subject_id ?? ""}`,
       };
+    case "quality_stamp":
+      return {
+        text: `You earned a Quality stamp — you're now a trusted reviewer`,
+        href: `/u/${n.subject_id ?? ""}`,
+      };
     default:
       return { text: `${who} did something`, href: "/feed" };
   }

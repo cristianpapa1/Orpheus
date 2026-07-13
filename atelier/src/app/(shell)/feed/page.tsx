@@ -5,14 +5,15 @@ import { WindowGrid } from "@/components/ui/WindowGrid";
 import { getFeedPosts } from "@/lib/posts/queries";
 import { getGroupsForPosts } from "@/lib/groups/queries";
 import { getFavoritesForPosts } from "@/lib/favorites/queries";
-import { getFollowingRanked } from "@/lib/profile/queries";
+import { getFollowingRanked, isViewerQualityStamped } from "@/lib/profile/queries";
 
 export default async function FeedPage() {
   const posts = await getFeedPosts();
-  const [groupTags, favs, following] = await Promise.all([
+  const [groupTags, favs, following, stamped] = await Promise.all([
     getGroupsForPosts(posts.map((p) => p.id)),
     getFavoritesForPosts(posts.map((p) => p.id)),
     getFollowingRanked(),
+    isViewerQualityStamped(),
   ]);
 
   return (
@@ -62,6 +63,7 @@ export default async function FeedPage() {
               groups={groupTags.get(post.id) ?? []}
               fav={favs?.get(post.id)}
               following={following}
+              canReportQuality={stamped}
             />
           ))}
         </WindowGrid>
