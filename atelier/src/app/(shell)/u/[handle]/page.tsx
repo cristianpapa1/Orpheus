@@ -12,6 +12,7 @@ import {
   isViewerQualityStamped,
 } from "@/lib/profile/queries";
 import { getPostsByAuthor } from "@/lib/posts/queries";
+import { getStoreLinkForOwner } from "@/lib/commerce/stores";
 import { getEventsByProfile } from "@/lib/events/queries";
 import { getJobsByProfile } from "@/lib/jobs/queries";
 import { ReportControl } from "@/components/moderation/ReportControl";
@@ -49,6 +50,7 @@ export default async function PublicProfilePage({ params, searchParams }: Props)
   const jobs = await getJobsByProfile(profile.id);
   const blocked = await isBlocked(profile.id);
   const claim = await getProfileClaimState(profile.id);
+  const storeLink = await getStoreLinkForOwner(profile.id);
 
   const configured = isSupabaseConfigured();
   const viewerId = configured ? await getViewerId() : null;
@@ -128,6 +130,16 @@ export default async function PublicProfilePage({ params, searchParams }: Props)
           </>
         ) : null}
       </div>
+
+      {storeLink ? (
+        <a
+          href={storeLink.url}
+          data-astelier-store
+          className="mb-6 inline-flex items-center gap-2 border-2 border-ink bg-yellow px-4 py-2 text-caption font-bold uppercase hover:bg-ink hover:text-paper"
+        >
+          Shop at Astelier → {storeLink.name}
+        </a>
+      ) : null}
 
       {isManager ? (
         <p data-manages className="mb-6 border-2 border-ink bg-yellow px-3 py-2 text-caption font-bold uppercase">

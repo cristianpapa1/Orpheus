@@ -6,9 +6,10 @@ import {
   isSupabaseConfigured,
 } from "@/lib/supabase/config";
 
-// Future shop routes require a session; the 15-follow gate itself is enforced
-// in-page (see lib/gate.ts). "/" stays public so the gate/landing can render.
-const PROTECTED = ["/sell", "/store", "/orders", "/browse"];
+// Only seller + buyer-private routes need a session. Store pages and browse are
+// PUBLIC — the whole point of Atelier's "Shop at Astelier" link is that anyone
+// can open a store. The 15-follow gate is enforced in-page (see lib/gate.ts).
+const PROTECTED = ["/sell", "/orders"];
 
 /**
  * Refreshes the Supabase session on every navigation and gates the seller/
@@ -62,11 +63,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/sell/:path*",
-    "/store/:path*",
-    "/orders/:path*",
-    "/browse/:path*",
-    "/login",
-  ],
+  matcher: ["/sell/:path*", "/orders/:path*", "/login"],
 };

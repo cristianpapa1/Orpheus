@@ -59,9 +59,12 @@ export default async function AstelierHome() {
                 catalog are next.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
-                <span className="border-2 border-ink px-4 py-2 text-caption font-bold uppercase opacity-50">
-                  Open your store — soon
-                </span>
+                <Link
+                  href="/sell"
+                  className="border-2 border-ink bg-ink px-4 py-2 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue"
+                >
+                  Open your store →
+                </Link>
                 <span className="border-2 border-ink px-4 py-2 text-caption font-bold uppercase opacity-50">
                   Browse makers — soon
                 </span>
