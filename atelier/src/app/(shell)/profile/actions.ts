@@ -1,6 +1,5 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { SUPABASE_URL } from "@/lib/supabase/config";
@@ -36,41 +35,6 @@ export interface SaveProfileInput {
 export interface SaveProfileResult {
   ok: boolean;
   error?: string;
-}
-
-/**
- * Appearance-only settings (school + accent) — a plain form action from
- * /profile/settings. Touches nothing else on the profile.
- */
-export async function saveAppearance(formData: FormData) {
-  const supabase = await createServerSupabase();
-  if (!supabase) redirect("/profile/settings?error=unavailable");
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const school = toSchool(formData.get("school"));
-  const accentRaw = String(formData.get("accent") ?? "");
-  const accent = ["red", "blue", "yellow"].includes(accentRaw)
-    ? accentRaw
-    : "red";
-
-  const { error } = await supabase
-    .from("profiles")
-    .update({ school, accent, updated_at: new Date().toISOString() })
-    .eq("id", user.id);
-  if (error) redirect("/profile/settings?error=save");
-
-  const { data } = await supabase
-    .from("profiles")
-    .select("handle")
-    .eq("id", user.id)
-    .maybeSingle();
-  if (data?.handle) revalidatePath(`/u/${data.handle}`);
-  revalidatePath("/profile");
-  redirect("/profile/settings?saved=1");
 }
 
 /**

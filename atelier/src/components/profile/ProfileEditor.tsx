@@ -316,12 +316,6 @@ export function ProfileEditor({
             onChange={(e) => setIdentity({ ...identity, bio: e.target.value })}
             className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
           />
-          <p className="text-caption uppercase opacity-70">
-            School &amp; accent moved to{" "}
-            <a href="/profile/settings" className="border-b-2 border-ink font-bold">
-              Settings
-            </a>
-          </p>
           <p className="text-caption font-bold uppercase">Contact information</p>
           <p className="text-caption uppercase opacity-70">
             A website, an email, a phone, or an address — you choose each kind.
