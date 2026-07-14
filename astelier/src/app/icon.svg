@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Atelier — a small composition: three flat Bauhaus primitives arranged
+       off-centre and overlapping. A tiny abstract painting, no outlines. -->
+  <polygon points="62,15 91,75 33,75" fill="#2145c9" />
+  <circle cx="34" cy="49" r="24" fill="#f2b705" />
+  <polygon points="74,26 86,38 74,50 62,38" fill="#e1251b" />
+</svg>

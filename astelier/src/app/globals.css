@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+/*
+  Atelier — Bauhaus design tokens.
+  Palette discipline: black, white, red, blue, yellow. Nothing else.
+  Cards read as *windows* in a facade: 2px ink borders, warm paper fills,
+  primary accent squares, generous negative space.
+*/
+@theme {
+  /* ── palette ─────────────────────────────────────── */
+  --color-ink: #121210; /* black */
+  --color-paper: #f5f3ec; /* white (warm gallery white) */
+  --color-red: #e1251b;
+  --color-blue: #2145c9;
+  --color-yellow: #f2b705;
+
+  /* ── typography — geometric sans, strict scale ───── */
+  --font-sans: var(--font-grotesk), "Futura", "Century Gothic", ui-sans-serif,
+    system-ui, sans-serif;
+
+  --text-display: 4rem;
+  --text-display--line-height: 1.02;
+  --text-display--letter-spacing: -0.02em;
+  --text-h1: 2.5rem;
+  --text-h1--line-height: 1.1;
+  --text-h2: 1.5rem;
+  --text-h2--line-height: 1.2;
+  --text-body: 1rem;
+  --text-body--line-height: 1.55;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.4;
+  --text-caption--letter-spacing: 0.18em;
+
+  /* ── modular unit (8px base grid) ────────────────── */
+  --spacing-unit: 8px;
+}
+
+:root {
+  /* raw unit for non-Tailwind consumers */
+  --unit: 8px;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+::selection {
+  background: var(--color-yellow);
+  color: var(--color-ink);
+}
+
+/* a11y — visible, on-system focus indication everywhere */
+:focus-visible {
+  outline: 3px solid var(--color-blue);
+  outline-offset: 2px;
+}
+
+/*
+  Scrollbars — one monolithic black bar, square, no rounding, matching the
+  2px-ink border language. Applies everywhere (page + any overflow area) and
+  re-maps through the school tokens like the rest of the chrome.
+*/
+* {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: var(--color-ink) var(--color-paper);
+}
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-paper);
+  border-left: 2px solid var(--color-ink);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-ink);
+  border: 0;
+  border-radius: 0;
+}
+::-webkit-scrollbar-corner {
+  background: var(--color-paper);
+}
+
+/*
+  Track A — artistic schools. Each scope re-maps the SAME token contract;
+  components are untouched. Bauhaus (the :root values) stays the default
+  and the site chrome. Utility classes (bg-red, border-ink, …) resolve
+  through these variables, so everything inside a scope converges.
+*/
+[data-school="de-stijl"] {
+  /* Mondrian: pure white field, black gridlines, unmixed primaries */
+  --color-ink: #111111;
+  --color-paper: #ffffff;
+  --color-red: #dd0100;
+  --color-blue: #225095;
+  --color-yellow: #fac901;
+}
+
+[data-school="constructivism"] {
+  /* Rodchenko: agitprop red and black on aged cream, ochre accents */
+  --color-ink: #1a1614;
+  --color-paper: #e8e0d5;
+  --color-red: #c8102e;
+  --color-blue: #3d3a38;
+  --color-yellow: #d9a404;
+}
+
+[data-school="swiss"] {
+  /* Müller-Brockmann: clinical white, near-black, one disciplined red */
+  --color-ink: #000000;
+  --color-paper: #ffffff;
+  --color-red: #e30613;
+  --color-blue: #0057a8;
+  --color-yellow: #e3b505;
+}
+
+[data-school="memphis"] {
+  /* Sottsass: the playful heresy — pastel field, teal and pink accents */
+  --color-ink: #22203a;
+  --color-paper: #fff8e7;
+  --color-red: #f45b69;
+  --color-blue: #2ec4b6;
+  --color-yellow: #ffd23f;
+}
+
+[data-school] {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
