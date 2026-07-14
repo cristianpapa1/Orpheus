@@ -122,7 +122,7 @@ export async function sharePost(
     return { ok: false, error: "Couldn't start a conversation." };
   }
 
-  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://aunflaneur.com";
+  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://atelier.aunflaneur.com";
   const label = post.caption ? `"${post.caption}"` : "a post";
   const { error: msgErr } = await supabase.from("chat_messages").insert({
     thread_id: threadId,
