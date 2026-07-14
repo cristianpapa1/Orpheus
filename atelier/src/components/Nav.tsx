@@ -23,10 +23,10 @@ export function Nav({
     <header className="border-b-2 border-ink bg-paper">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6">
         <Link href="/feed" className="flex items-center gap-3 py-4">
-          <span className="flex gap-1" aria-hidden>
+          <span className="flex items-center gap-1" aria-hidden>
             <span className="size-3 bg-red" />
-            <span className="size-3 bg-blue" />
-            <span className="size-3 bg-yellow" />
+            <span className="size-3 bg-blue [clip-path:polygon(50%_0%,100%_100%,0%_100%)]" />
+            <span className="size-3 rounded-full bg-yellow" />
           </span>
           <span className="text-h2 font-bold uppercase tracking-tight">
             Atelier
