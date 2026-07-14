@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Window } from "@/components/ui/Window";
+import { Avatar } from "@/components/profile/Avatar";
 import { GRID_COLS, type LayoutBlock } from "@atelier/core/profile/layout";
 import {
   CONTACT_KIND_LABEL,
@@ -123,10 +124,15 @@ function BlockBody({
     case "bio":
       return (
         <div>
-          <p className="text-h2 font-bold uppercase">{profile.display_name}</p>
-          <p className="mt-1 text-caption font-bold uppercase">
-            @{profile.handle}
-          </p>
+          <div className="flex items-center gap-3">
+            <Avatar url={profile.avatar_url} name={profile.display_name} size="md" />
+            <div className="min-w-0">
+              <p className="text-h2 font-bold uppercase">{profile.display_name}</p>
+              <p className="mt-1 text-caption font-bold uppercase">
+                @{profile.handle}
+              </p>
+            </div>
+          </div>
           {profile.account_type === "institution" && profile.institution_kind ? (
             <p
               data-institution-badge={profile.institution_kind}

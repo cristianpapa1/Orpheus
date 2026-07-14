@@ -49,6 +49,7 @@ export default async function ProfileEditPage({
           display_name: profile.display_name,
           handle: profile.handle,
           bio: profile.bio,
+          avatar_url: profile.avatar_url,
           contacts: profile.contacts,
           accent: profile.accent,
           school: profile.school,

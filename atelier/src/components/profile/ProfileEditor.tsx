@@ -22,6 +22,9 @@ import {
   type ProfileIdentity,
 } from "@atelier/core/profile/types";
 import { saveProfile } from "@/app/(shell)/profile/actions";
+import { createClient } from "@/lib/supabase/client";
+import { SUPABASE_URL } from "@/lib/supabase/config";
+import { Avatar } from "@/components/profile/Avatar";
 
 const CONTACT_PLACEHOLDER: Record<ContactKind, string> = {
   link: "https://…",
@@ -60,7 +63,9 @@ export function ProfileEditor({
   const [identity, setIdentity] = useState(initialIdentity);
   const [status, setStatus] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [uploading, setUploading] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
   const dragRef = useRef<DragState | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
 
@@ -159,10 +164,66 @@ export function ProfileEditor({
         layout: serializeLayout(layout),
         accent: identity.accent,
         school: identity.school,
+        avatar_url: identity.avatar_url ?? null,
         targetId,
       });
       setStatus(result.ok ? "Saved." : (result.error ?? "Save failed."));
     });
+  };
+
+  /** Upload a chosen photo to the media bucket and stage its URL. It only
+   *  persists when the user presses Save (saveProfile writes avatar_url). */
+  const onAvatarPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // let the same file be re-picked after a remove
+    if (!file) return;
+    if (!canPersist) {
+      setStatus("Photo upload needs a live connection.");
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      setStatus("Choose an image file.");
+      return;
+    }
+    if (file.size > 6_000_000) {
+      setStatus("That image is over 6 MB — pick a smaller one.");
+      return;
+    }
+    const supabase = createClient();
+    if (!supabase) {
+      setStatus("Supabase is not configured.");
+      return;
+    }
+    setUploading(true);
+    setStatus(null);
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        setStatus("Sign in to upload.");
+        return;
+      }
+      const ext =
+        file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") ||
+        "jpg";
+      // Store under the UPLOADER's own folder — storage RLS keys on the first
+      // path segment being auth.uid(), so this works even when a manager edits
+      // an institution they don't own the id of.
+      const path = `${user.id}/avatar/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage
+        .from("media")
+        .upload(path, file, { contentType: file.type, upsert: true });
+      if (error) {
+        setStatus(`Upload failed: ${error.message}`);
+        return;
+      }
+      const url = `${SUPABASE_URL}/storage/v1/object/public/media/${path}`;
+      setIdentity((id) => ({ ...id, avatar_url: url }));
+      setStatus("Photo added — press Save to keep it.");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const setContact = (i: number, patch: Partial<ContactEntry>) =>
@@ -185,6 +246,46 @@ export function ProfileEditor({
           <h2 className="text-caption font-bold uppercase">Identity</h2>
         </header>
         <div className="flex flex-col gap-3 p-4">
+          <span className="text-caption font-bold uppercase">Profile photo</span>
+          <div className="flex items-center gap-3">
+            <Avatar
+              url={identity.avatar_url}
+              name={identity.display_name || "?"}
+              size="lg"
+            />
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                disabled={uploading}
+                className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-blue hover:border-blue hover:text-paper disabled:opacity-50"
+              >
+                {uploading
+                  ? "Uploading…"
+                  : identity.avatar_url
+                    ? "Change"
+                    : "Upload"}
+              </button>
+              {identity.avatar_url ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setIdentity((id) => ({ ...id, avatar_url: null }))
+                  }
+                  className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-red hover:border-red hover:text-paper"
+                >
+                  Remove
+                </button>
+              ) : null}
+            </div>
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              onChange={onAvatarPick}
+              className="hidden"
+            />
+          </div>
           <label className="text-caption font-bold uppercase" htmlFor="display_name">
             Display name
           </label>

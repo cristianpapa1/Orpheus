@@ -275,8 +275,102 @@ async function seedHeroPost(admin: Admin, userId: string, row: Scraped) {
   console.log(`  🖼️  hero post for @${row.handle} (${category})`);
 }
 
+/** Find a square logo for a site: prefer its apple-touch-icon (a clean square
+ *  brand mark), else Google's favicon service (always square). Both make far
+ *  better circular avatars than a wide og:image hero. */
+async function findLogoUrl(siteUrl: string): Promise<string> {
+  try {
+    const res = await fetch(siteUrl, {
+      redirect: "follow",
+      headers: { "user-agent": "Mozilla/5.0 (AtelierSeed)" },
+    });
+    if (res.ok) {
+      const html = (await res.text()).slice(0, 200_000);
+      const tag = html.match(
+        /<link[^>]+rel=["'][^"']*apple-touch-icon[^"']*["'][^>]*>/i,
+      )?.[0];
+      const href = tag?.match(/href=["']([^"']+)["']/i)?.[1];
+      if (href) return new URL(href, siteUrl).href;
+    }
+  } catch {
+    /* fall through to the favicon service */
+  }
+  const host = new URL(siteUrl).hostname;
+  return `https://www.google.com/s2/favicons?domain=${host}&sz=256`;
+}
+
+/**
+ * Set a small circular logo avatar on each seeded institution. Deliberately
+ * independent of seedHeroPost (which is skipped once an institution has posts),
+ * so it can add/refresh avatars on already-seeded profiles. Idempotent.
+ */
+async function seedAvatars(): Promise<void> {
+  const URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!URL || !SERVICE) {
+    throw new Error("--avatars needs NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY");
+  }
+  const admin = serviceClient(URL, SERVICE);
+  const { data: list } = await admin.auth.admin.listUsers({ perPage: 1000 });
+
+  for (const seed of SEEDS) {
+    const email = `${seed.handle}@seed.atelier.local`;
+    const userId = list?.users.find((u) => u.email === email)?.id;
+    if (!userId) {
+      console.warn(`⚠️  @${seed.handle}: not seeded yet — run --commit first`);
+      continue;
+    }
+
+    const logo = await findLogoUrl(seed.url);
+    let res: Response;
+    try {
+      res = await fetch(logo, { redirect: "follow" });
+    } catch {
+      console.warn(`  logo ${seed.handle}: fetch failed`);
+      continue;
+    }
+    if (!res.ok) {
+      console.warn(`  logo ${seed.handle}: HTTP ${res.status}`);
+      continue;
+    }
+    const type = (res.headers.get("content-type") ?? "").split(";")[0].trim();
+    const ext = IMG_EXT[type] ?? "png";
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    if (bytes.byteLength === 0 || bytes.byteLength > 5_000_000) {
+      console.warn(`  logo ${seed.handle}: skipped (${bytes.byteLength} bytes)`);
+      continue;
+    }
+
+    const path = `${userId}/avatar/logo.${ext}`;
+    const { error: upErr } = await admin.storage
+      .from("media")
+      .upload(path, bytes, { contentType: type || "image/png", upsert: true });
+    if (upErr) {
+      console.warn(`  logo ${seed.handle}: upload ${upErr.message}`);
+      continue;
+    }
+
+    const publicUrl = `${URL}/storage/v1/object/public/media/${path}`;
+    const { error: setErr } = await admin
+      .from("profiles")
+      .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
+      .eq("id", userId);
+    if (setErr) {
+      console.warn(`  logo ${seed.handle}: set avatar ${setErr.message}`);
+      continue;
+    }
+    console.log(`  🟢 avatar @${seed.handle} (${type || "image"})`);
+  }
+}
+
 async function main() {
   const args = new Set(process.argv.slice(2));
+
+  if (args.has("--avatars")) {
+    await seedAvatars();
+    return;
+  }
+
   const rows =
     args.has("--skip-crawl") || args.has("--commit")
       ? await readStaging().catch(async () => {

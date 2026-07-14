@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { MediaBody } from "@/components/posts/MediaBody";
 import { TextBody } from "@/components/posts/TextBody";
 import { FavoritePost } from "@/components/posts/FavoritePost";
+import { Avatar } from "@/components/profile/Avatar";
 import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
 import { getPostById, getPostMentions } from "@/lib/posts/queries";
@@ -90,17 +91,26 @@ export default async function PostDetailPage({ params }: Props) {
       </div>
       <div className="col-span-12 flex flex-col md:col-span-4">
         <Window title="About this work" accent="blue" className="h-full">
-          <Link
-            href={`/u/${post.author_handle || post.author_id}`}
-            className="text-h2 font-bold uppercase hover:text-blue"
-          >
-            {post.author_name}
-          </Link>
-          {post.author_handle ? (
-            <p className="mt-1 text-caption font-bold uppercase">
-              @{post.author_handle}
-            </p>
-          ) : null}
+          <div className="flex items-center gap-3">
+            <Avatar
+              url={post.author_avatar_url}
+              name={post.author_name}
+              size="md"
+            />
+            <div className="min-w-0">
+              <Link
+                href={`/u/${post.author_handle || post.author_id}`}
+                className="text-h2 font-bold uppercase hover:text-blue"
+              >
+                {post.author_name}
+              </Link>
+              {post.author_handle ? (
+                <p className="mt-1 text-caption font-bold uppercase">
+                  @{post.author_handle}
+                </p>
+              ) : null}
+            </div>
+          </div>
           {post.media_type !== "text" ? (
             <p className="mt-4 text-body">{post.caption || "Untitled work."}</p>
           ) : null}

@@ -3,9 +3,21 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { SUPABASE_URL } from "@/lib/supabase/config";
 import { toSchool } from "@atelier/core/design/schools";
 import { parseLayout, serializeLayout } from "@atelier/core/profile/layout";
 import { HANDLE_RE, parseContacts } from "@atelier/core/profile/types";
+
+/** Photos live in our own public media bucket. Only accept a cleared value
+ *  (null) or a URL under that bucket — never an arbitrary external URL, which
+ *  could be a tracking pixel or point anywhere. Anything else leaves the
+ *  stored photo untouched. */
+const AVATAR_URL_PREFIX = `${SUPABASE_URL}/storage/v1/object/public/media/`;
+function cleanAvatarUrl(v: unknown): string | null | undefined {
+  if (v === null || v === "") return null;
+  if (typeof v === "string" && v.startsWith(AVATAR_URL_PREFIX)) return v;
+  return undefined;
+}
 
 export interface SaveProfileInput {
   display_name: string;
@@ -15,6 +27,8 @@ export interface SaveProfileInput {
   layout: string; // serialized ProfileLayout
   accent?: string;
   school?: string;
+  /** Public profile photo URL (from our media bucket), or null to clear. */
+  avatar_url?: string | null;
   /** Edit a profile you MANAGE instead of your own (institution claim). */
   targetId?: string;
 }
@@ -105,18 +119,22 @@ export async function saveProfile(
     : "red";
   const school = toSchool(input.school);
 
+  const update: Record<string, unknown> = {
+    display_name,
+    handle,
+    bio,
+    links: contacts,
+    layout: JSON.parse(serializeLayout(layout)),
+    accent,
+    school,
+    updated_at: new Date().toISOString(),
+  };
+  const avatar = cleanAvatarUrl(input.avatar_url);
+  if (avatar !== undefined) update.avatar_url = avatar;
+
   const { error } = await supabase
     .from("profiles")
-    .update({
-      display_name,
-      handle,
-      bio,
-      links: contacts,
-      layout: JSON.parse(serializeLayout(layout)),
-      accent,
-      school,
-      updated_at: new Date().toISOString(),
-    })
+    .update(update)
     .eq("id", targetId);
 
   if (error) {

@@ -187,6 +187,8 @@ export interface Post {
   author_id: string;
   author_handle: string;
   author_name: string;
+  /** Author's circular profile photo (null → monogram fallback). */
+  author_avatar_url: string | null;
   caption: string;
   category: PostCategory;
   /** Optional style within the category (music → jazz). Null when not set. */

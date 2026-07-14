@@ -11,6 +11,7 @@ import {
 import { CATEGORY_LABEL, formatPostDate, type Post } from "@atelier/core/posts/types";
 import type { GroupTag } from "@/lib/groups/types";
 import { FavoritePost, type Contact } from "@/components/posts/FavoritePost";
+import { Avatar } from "@/components/profile/Avatar";
 import type { FavInfo } from "@/lib/favorites/queries";
 
 const ACCENTS: WindowAccent[] = ["red", "blue", "yellow"];
@@ -74,13 +75,20 @@ export function PostCard({
           </div>
         )}
         <div className="p-4">
-          <div className="flex items-baseline justify-between gap-3">
+          <div className="flex items-center justify-between gap-3">
             <Link
               href={`/u/${post.author_handle || post.author_id}`}
-              className="text-caption font-bold uppercase hover:text-blue"
+              className="flex min-w-0 items-center gap-2 text-caption font-bold uppercase hover:text-blue"
             >
-              {post.author_name}
-              {post.author_handle ? ` · @${post.author_handle}` : ""}
+              <Avatar
+                url={post.author_avatar_url}
+                name={post.author_name}
+                size="sm"
+              />
+              <span className="truncate">
+                {post.author_name}
+                {post.author_handle ? ` · @${post.author_handle}` : ""}
+              </span>
             </Link>
             <time
               dateTime={post.created_at}
