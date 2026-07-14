@@ -12,7 +12,7 @@ import { notify } from "@/lib/notifications/notify";
    claimant via managed_by (service role — an admin doesn't own that row) and
    emails them; revoking hands it back. */
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://atelier.crktic.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://aunflaneur.com";
 
 /** Email the claimant that they now manage the profile. Best-effort. */
 async function notifyApproved(

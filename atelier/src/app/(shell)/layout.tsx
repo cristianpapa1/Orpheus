@@ -58,7 +58,8 @@ export default async function ShellLayout({
         ·{" "}
         <Link href="/privacy" data-footer-privacy className="border-b-2 border-ink hover:text-blue">
           privacy
-        </Link>
+        </Link>{" "}
+        · <span className="opacity-70">© À un flâneur</span>
       </footer>
     </div>
   );

@@ -22,7 +22,7 @@ export default function TermsPage() {
         </Window>
         <Window title="Liability" accent="red" span="col-span-12 md:col-span-6">
           <p className="text-body">
-            Atelier is provided as-is by a small team. We work to keep it up
+            Atelier is operated by À un flâneur, provided as-is by a small team. We work to keep it up
             and safe, but we cannot warrant uninterrupted service. External
             links (tickets, job applications) lead to services we don&apos;t
             control.
