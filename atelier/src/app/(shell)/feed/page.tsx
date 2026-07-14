@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PostCard } from "@/components/posts/PostCard";
+import { BauhausReveal } from "@/components/BauhausReveal";
 import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
 import { getFeedPosts } from "@/lib/posts/queries";
@@ -18,6 +19,7 @@ export default async function FeedPage() {
 
   return (
     <div>
+      <BauhausReveal />
       <div className="mb-6 flex items-center justify-between gap-4">
         <h1 className="text-h1 font-bold uppercase">Feed</h1>
         <Link

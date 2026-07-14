@@ -1,5 +1,6 @@
 import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
+import { BauhausReveal } from "@/components/BauhausReveal";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { signInWithEmail, signInWithGoogle } from "./actions";
 
@@ -23,6 +24,7 @@ export default async function LoginPage({
 
   return (
     <main className="mx-auto w-full max-w-4xl grow px-6 py-16">
+      <BauhausReveal />
       <WindowGrid>
         <Window title="Atelier" accent="red" span="col-span-12 md:col-span-7">
           <h1 className="text-display font-bold uppercase">
