@@ -3,6 +3,7 @@
 import { useOptimistic, useRef, useEffect } from "react";
 import { sendMessage } from "../actions";
 import type { ChatMessage } from "@/lib/chat/types";
+import { MessageBody } from "@/components/chat/MessageBody";
 
 interface Props {
   threadId: string;
@@ -67,7 +68,9 @@ export function ThreadMessages({
                     : "bg-paper text-ink"
                 }`}
               >
-                <p className="text-body break-words">{msg.body}</p>
+                <p className="text-body break-words whitespace-pre-wrap">
+                  <MessageBody body={msg.body} />
+                </p>
                 <p
                   className={`mt-1 text-caption ${
                     isSelf ? "text-paper/60" : "opacity-60"
