@@ -3,6 +3,7 @@ import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
 import { getManagedProfiles, getOwnProfile } from "@/lib/profile/queries";
 import { isViewerAdmin } from "@/lib/donations/queries";
+import { getUnreadCount } from "@/lib/notifications/queries";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { signOut } from "@/app/login/actions";
 
@@ -10,6 +11,7 @@ export default async function ProfilePage() {
   const profile = await getOwnProfile();
   const managed = await getManagedProfiles();
   const isAdmin = await isViewerAdmin();
+  const unread = await getUnreadCount();
   const configured = isSupabaseConfigured();
 
   return (
@@ -33,6 +35,21 @@ export default async function ProfilePage() {
             className="border-2 border-ink bg-ink px-4 py-2 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue"
           >
             Open the editor
+          </Link>
+          <Link
+            href="/notifications"
+            data-interactions-link
+            className="relative border-2 border-ink px-4 py-2 text-caption font-bold uppercase hover:bg-yellow"
+          >
+            Interactions
+            {unread > 0 ? (
+              <span
+                data-unread
+                className="ml-2 inline-block min-w-4 border-2 border-ink bg-red px-1 text-center text-caption font-bold text-paper"
+              >
+                {unread > 99 ? "99+" : unread}
+              </span>
+            ) : null}
           </Link>
           <Link
             href="/profile/events"

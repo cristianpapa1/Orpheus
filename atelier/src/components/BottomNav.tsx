@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+// Profile is NOT here — it lives in the top-right button (with the unread
+// interactions badge), same as desktop. These are the three primary feeds.
 const TABS = [
   { href: "/feed", label: "Feed", accent: "bg-red" },
   { href: "/groups", label: "Groups", accent: "bg-blue" },
   { href: "/chat", label: "Chat", accent: "bg-yellow" },
-  { href: "/profile", label: "Profile", accent: "bg-red" },
 ] as const;
 
 /**
@@ -24,7 +25,7 @@ export function BottomNav() {
       aria-label="Primary, mobile"
       className="fixed inset-x-0 bottom-0 z-40 border-t-2 border-ink bg-paper pb-[env(safe-area-inset-bottom)] md:hidden"
     >
-      <div className="grid grid-cols-4">
+      <div className="grid grid-cols-3">
         {TABS.map((tab) => {
           const active = pathname.startsWith(tab.href);
           return (

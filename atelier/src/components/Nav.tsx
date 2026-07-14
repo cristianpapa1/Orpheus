@@ -7,7 +7,6 @@ const TABS = [
   { href: "/feed", label: "Feed", accent: "bg-red" },
   { href: "/groups", label: "Groups", accent: "bg-blue" },
   { href: "/chat", label: "Chat", accent: "bg-yellow" },
-  { href: "/profile", label: "Profile", accent: "bg-yellow" },
 ] as const;
 
 export function Nav({
@@ -67,14 +66,16 @@ export function Nav({
           {/* No email/name here; sign out lives on the profile page. */}
           {email ? (
             <Link
-              href="/notifications"
-              data-notif-bell
-              aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
+              href="/profile"
+              data-profile-link
+              aria-label={
+                unread > 0 ? `Profile, ${unread} unread interactions` : "Profile"
+              }
               className={`relative border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-yellow ${
-                pathname.startsWith("/notifications") ? "bg-ink text-paper" : ""
+                pathname.startsWith("/profile") ? "bg-ink text-paper" : ""
               }`}
             >
-              Alerts
+              Profile
               {unread > 0 ? (
                 <span
                   data-unread

@@ -7,7 +7,7 @@ import {
 } from "@/lib/notifications/queries";
 import { markAllRead } from "./actions";
 
-export const metadata = { title: "Notifications — Atelier" };
+export const metadata = { title: "Interactions — Atelier" };
 
 function describe(n: NotificationItem): { text: string; href: string } {
   const who = n.actor_name;
@@ -48,7 +48,7 @@ export default async function NotificationsPage() {
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-h1 font-bold uppercase">Notifications</h1>
+        <h1 className="text-h1 font-bold uppercase">Interactions</h1>
         {hasUnread ? (
           <form action={markAllRead}>
             <button className="border-2 border-ink px-4 py-2 text-caption font-bold uppercase hover:bg-yellow">
