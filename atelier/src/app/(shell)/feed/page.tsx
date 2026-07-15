@@ -57,7 +57,10 @@ export default async function FeedPage() {
           </Window>
         </WindowGrid>
       ) : (
-        <WindowGrid>
+        // Masonry: one column on phones (everything stacks), 2–3 on wider
+        // screens. CSS columns pack posts by natural height — no forced equal
+        // rows, no blank gaps. (PostCard's grid col-span is inert here.)
+        <div className="columns-1 gap-4 md:columns-2 xl:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
           {posts.map((post, i) => (
             <PostCard
               key={post.id}
@@ -70,7 +73,7 @@ export default async function FeedPage() {
               viewerId={viewerId}
             />
           ))}
-        </WindowGrid>
+        </div>
       )}
     </div>
   );

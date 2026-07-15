@@ -10,7 +10,7 @@ import {
   disciplineLabel,
   disciplinesMatch,
 } from "@atelier/core/taxonomy/disciplines";
-import { POST_CATEGORIES, CATEGORY_LABEL } from "@atelier/core/posts/types";
+import { DisciplineDropdown } from "@/components/groups/DisciplineDropdown";
 import { createGroup, followGroup } from "./actions";
 
 const ERRORS: Record<string, string> = {
@@ -173,32 +173,7 @@ export default async function GroupsPage({
               Pick the disciplines — painters, journalists, woodworkers… — so the
               right people can find it.
             </p>
-            <div
-              data-discipline-picker
-              className="flex max-h-56 flex-col gap-2 overflow-auto border-2 border-ink p-2"
-            >
-              {POST_CATEGORIES.map((c) => (
-                <fieldset key={c} className="flex flex-col gap-1">
-                  <legend className="text-caption font-bold uppercase opacity-70">
-                    {CATEGORY_LABEL[c]}
-                  </legend>
-                  <div className="flex flex-wrap gap-x-3 gap-y-1">
-                    {DISCIPLINE_OPTIONS.filter((o) => o.category === c).map((o) => (
-                      <label key={o.value} className="flex items-center gap-1 text-caption">
-                        <input
-                          type="checkbox"
-                          name="interests"
-                          value={o.value}
-                          disabled={!configured}
-                          className="size-3 accent-ink"
-                        />
-                        {o.label}
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
-              ))}
-            </div>
+            <DisciplineDropdown disabled={!configured} />
 
             <label className="flex items-center gap-2 text-caption font-bold uppercase">
               <input type="checkbox" name="is_private" disabled={!configured} className="size-4 accent-ink" />
