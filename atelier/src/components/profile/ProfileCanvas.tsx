@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Window } from "@/components/ui/Window";
 import { Avatar } from "@/components/profile/Avatar";
+import { GalleryPostDelete } from "@/components/profile/GalleryPostDelete";
 import { GRID_COLS, type LayoutBlock } from "@atelier/core/profile/layout";
 import {
   CONTACT_KIND_LABEL,
@@ -30,12 +31,15 @@ export function ProfileCanvas({
   events = [],
   jobs = [],
   now = "1970-01-01T00:00:00Z",
+  ownerView = false,
 }: {
   profile: PublicProfile;
   posts?: Post[];
   events?: EventItem[];
   jobs?: JobPost[];
   now?: string;
+  /** The viewer is the profile's owner — surface author-only controls (delete). */
+  ownerView?: boolean;
 }) {
   // Honor the owner's COLUMN arrangement (x, w) and their top-to-bottom
   // ORDER (y, then x), but let each window's HEIGHT follow its published
@@ -80,6 +84,7 @@ export function ProfileCanvas({
               events={events}
               jobs={jobs}
               now={now}
+              ownerView={ownerView}
             />
           </Window>
         </div>
@@ -112,6 +117,7 @@ function BlockBody({
   events,
   jobs,
   now,
+  ownerView,
 }: {
   block: LayoutBlock;
   profile: PublicProfile;
@@ -119,6 +125,7 @@ function BlockBody({
   events: EventItem[];
   jobs: JobPost[];
   now: string;
+  ownerView: boolean;
 }) {
   switch (block.type) {
     case "bio":
@@ -173,56 +180,57 @@ function BlockBody({
     case "gallery":
       return posts.length ? (
         <div className="grid h-full grid-cols-3 content-start gap-2">
-          {posts.slice(0, 6).map((post) =>
-            post.media_type === "text" ? (
-              <Link
-                key={post.id}
-                href={`/p/${post.id}`}
-                data-gallery-post={post.id}
-                className="block border-2 border-ink hover:border-blue"
-              >
-                <span className="flex aspect-square flex-col gap-1 overflow-hidden bg-ink/5 p-2">
-                  {post.caption ? (
-                    <span className="text-caption font-bold uppercase">
-                      {post.caption}
-                    </span>
-                  ) : null}
-                  {post.body ? (
-                    <span className="line-clamp-6 whitespace-pre-wrap break-words text-caption leading-snug opacity-80">
-                      {post.body}
-                    </span>
-                  ) : null}
-                </span>
-              </Link>
-            ) : (
-              <Link
-                key={post.id}
-                href={`/p/${post.id}`}
-                data-gallery-post={post.id}
-                className="block border-2 border-ink hover:border-blue"
-              >
-                <span className="relative block">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={thumbUrl(post)}
-                    alt={post.alt_text || post.caption || `Work by ${profile.display_name}`}
-                    loading="lazy"
-                    decoding="async"
-                    className="aspect-square h-auto w-full object-cover"
-                  />
-                  {post.media_type !== "image" ? (
-                    <span
-                      data-media-badge={post.media_type}
-                      className="absolute right-1 top-1 border-2 border-ink bg-paper px-1 text-caption font-bold"
-                      aria-label={post.media_type}
-                    >
-                      {post.media_type === "video" ? "▶" : "♪"}
-                    </span>
-                  ) : null}
-                </span>
-              </Link>
-            ),
-          )}
+          {posts.slice(0, 6).map((post) => (
+            <div key={post.id} className="relative">
+              {post.media_type === "text" ? (
+                <Link
+                  href={`/p/${post.id}`}
+                  data-gallery-post={post.id}
+                  className="block border-2 border-ink hover:border-blue"
+                >
+                  <span className="flex aspect-square flex-col gap-1 overflow-hidden bg-ink/5 p-2">
+                    {post.caption ? (
+                      <span className="text-caption font-bold uppercase">
+                        {post.caption}
+                      </span>
+                    ) : null}
+                    {post.body ? (
+                      <span className="line-clamp-6 whitespace-pre-wrap break-words text-caption leading-snug opacity-80">
+                        {post.body}
+                      </span>
+                    ) : null}
+                  </span>
+                </Link>
+              ) : (
+                <Link
+                  href={`/p/${post.id}`}
+                  data-gallery-post={post.id}
+                  className="block border-2 border-ink hover:border-blue"
+                >
+                  <span className="relative block">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={thumbUrl(post)}
+                      alt={post.alt_text || post.caption || `Work by ${profile.display_name}`}
+                      loading="lazy"
+                      decoding="async"
+                      className="aspect-square h-auto w-full object-cover"
+                    />
+                    {post.media_type !== "image" ? (
+                      <span
+                        data-media-badge={post.media_type}
+                        className="absolute left-1 top-1 border-2 border-ink bg-paper px-1 text-caption font-bold"
+                        aria-label={post.media_type}
+                      >
+                        {post.media_type === "video" ? "▶" : "♪"}
+                      </span>
+                    ) : null}
+                  </span>
+                </Link>
+              )}
+              {ownerView ? <GalleryPostDelete postId={post.id} /> : null}
+            </div>
+          ))}
         </div>
       ) : (
         <div className="flex h-full flex-col">
@@ -240,7 +248,7 @@ function BlockBody({
       return posts.length ? (
         <ul className="flex flex-col gap-2">
           {posts.slice(0, 4).map((post) => (
-            <li key={post.id}>
+            <li key={post.id} className="relative flex items-center gap-2 pr-8">
               <Link
                 href={`/p/${post.id}`}
                 className="border-b-2 border-ink text-body font-bold hover:border-blue hover:text-blue"
@@ -249,6 +257,7 @@ function BlockBody({
                   post.body?.slice(0, 60) ||
                   "Untitled work"}
               </Link>
+              {ownerView ? <GalleryPostDelete postId={post.id} /> : null}
             </li>
           ))}
         </ul>

@@ -203,6 +203,7 @@ export default async function PublicProfilePage({ params, searchParams }: Props)
         events={events}
         jobs={jobs}
         now={new Date().toISOString()}
+        ownerView={viewerId === profile.id}
       />
     </div>
   );
