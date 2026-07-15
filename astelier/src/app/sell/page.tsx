@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { StoreEditor } from "@/components/StoreEditor";
+import { ImportPanel } from "@/components/ImportPanel";
 import { getGateState } from "@/lib/gate";
 import { getMyStore } from "@/lib/stores/queries";
 import { getProductsForStore } from "@/lib/products/queries";
@@ -86,6 +87,8 @@ export default async function SellPage() {
                 No products yet — add your first.
               </p>
             )}
+
+            <ImportPanel />
           </section>
         ) : null}
       </main>
