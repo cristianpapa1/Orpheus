@@ -20,12 +20,14 @@ type GroupRow = {
   is_private: boolean;
   created_by: string;
   interests?: string[] | null;
+  discussion_read?: string | null;
+  discussion_mode?: string | null;
 };
 
-// `interests` (0018) read defensively — fall back to the base columns if the
-// column isn't there yet, so /groups never breaks pre-migration.
+// `interests` (0018) + discussion settings (0024) read defensively — fall back
+// to the base columns if a column isn't there yet, so /groups never breaks.
 const GROUP_COLS_WITH =
-  "id, name, slug, description, is_private, created_by, interests";
+  "id, name, slug, description, is_private, created_by, interests, discussion_read, discussion_mode";
 const GROUP_COLS_BASE = "id, name, slug, description, is_private, created_by";
 
 async function withCounts(
@@ -45,6 +47,8 @@ async function withCounts(
   return {
     ...row,
     interests: row.interests ?? [],
+    discussion_read: row.discussion_read ?? "members",
+    discussion_mode: row.discussion_mode ?? "open",
     member_count: members ?? 0,
     follower_count: followers ?? 0,
   };

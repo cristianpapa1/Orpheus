@@ -24,6 +24,9 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { getFavoritesForPosts } from "@/lib/favorites/queries";
 import { getFollowingRanked, isViewerQualityStamped, getViewerId } from "@/lib/profile/queries";
 import { disciplineLabel } from "@atelier/core/taxonomy/disciplines";
+import { getGroupDiscussion, discussionAccess } from "@/lib/groups/discussion";
+import { GroupDiscussion } from "@/components/groups/GroupDiscussion";
+import { updateGroupDiscussion } from "../../groups/discussion-actions";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -76,6 +79,8 @@ export default async function GroupPage({ params, searchParams }: Props) {
     : [null, [], false];
   const requests = relation === "owner" ? await getPendingRequests(group.id) : [];
   const viewerId = await getViewerId();
+  const access = discussionAccess(group.discussion_read, group.discussion_mode, relation);
+  const threads = access.canRead ? await getGroupDiscussion(group.id) : [];
   const configured = isSupabaseConfigured();
 
   return (
@@ -244,7 +249,59 @@ export default async function GroupPage({ params, searchParams }: Props) {
         ) : null}
       </WindowGrid>
 
-      <h2 className="mb-4 text-h2 font-bold uppercase">Group feed</h2>
+      <div className="mb-4 mt-8 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-h2 font-bold uppercase">Discussion</h2>
+        {relation === "owner" ? (
+          <details className="relative">
+            <summary className="cursor-pointer border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-yellow">
+              Settings
+            </summary>
+            <form
+              action={updateGroupDiscussion}
+              className="absolute right-0 z-20 mt-1 flex w-64 flex-col gap-3 border-2 border-ink bg-paper p-3"
+            >
+              <input type="hidden" name="group_id" value={group.id} />
+              <input type="hidden" name="slug" value={group.slug} />
+              <label className="text-caption font-bold uppercase">Who can read</label>
+              <select name="discussion_read" defaultValue={group.discussion_read} className="border-2 border-ink bg-paper px-2 py-1 text-body">
+                <option value="members">Members only</option>
+                <option value="public">Anyone</option>
+              </select>
+              <label className="text-caption font-bold uppercase">Who can post</label>
+              <select name="discussion_mode" defaultValue={group.discussion_mode} className="border-2 border-ink bg-paper px-2 py-1 text-body">
+                <option value="open">Open — members post & reply</option>
+                <option value="announce">Announcements — owners post, members reply</option>
+                <option value="broadcast">Announcements — owners only</option>
+              </select>
+              <button className="self-start border-2 border-ink bg-ink px-3 py-1 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue">
+                Save
+              </button>
+            </form>
+          </details>
+        ) : null}
+      </div>
+      <WindowGrid>
+        {access.canRead ? (
+          <Window title="Discussion" accent="blue" span="col-span-12 md:col-span-8">
+            <GroupDiscussion
+              threads={threads}
+              access={access}
+              groupId={group.id}
+              slug={group.slug}
+              viewerId={viewerId}
+              isOwner={relation === "owner"}
+            />
+          </Window>
+        ) : (
+          <Window title="Members only" accent="yellow" span="col-span-12 md:col-span-6">
+            <p className="text-body opacity-70">
+              This group&apos;s discussion is for members. Join to read and post.
+            </p>
+          </Window>
+        )}
+      </WindowGrid>
+
+      <h2 className="mb-4 mt-8 text-h2 font-bold uppercase">Group feed</h2>
       {!canSeeFeed ? (
         <WindowGrid>
           <Window title="Private feed" accent="yellow" span="col-span-12 md:col-span-6">

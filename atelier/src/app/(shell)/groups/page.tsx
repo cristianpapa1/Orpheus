@@ -175,6 +175,35 @@ export default async function GroupsPage({
             </p>
             <DisciplineDropdown disabled={!configured} />
 
+            <p className="text-caption font-bold uppercase">Discussion</p>
+            <div className="flex flex-wrap gap-3">
+              <label className="flex flex-col gap-1 text-caption font-bold uppercase">
+                Who can read
+                <select
+                  name="discussion_read"
+                  defaultValue="members"
+                  disabled={!configured}
+                  className="border-2 border-ink bg-paper px-2 py-1 text-body normal-case disabled:opacity-50"
+                >
+                  <option value="members">Members only</option>
+                  <option value="public">Anyone</option>
+                </select>
+              </label>
+              <label className="flex flex-col gap-1 text-caption font-bold uppercase">
+                Who can post
+                <select
+                  name="discussion_mode"
+                  defaultValue="open"
+                  disabled={!configured}
+                  className="border-2 border-ink bg-paper px-2 py-1 text-body normal-case disabled:opacity-50"
+                >
+                  <option value="open">Open — members post & reply</option>
+                  <option value="announce">Announcements + replies</option>
+                  <option value="broadcast">Announcements only</option>
+                </select>
+              </label>
+            </div>
+
             <label className="flex items-center gap-2 text-caption font-bold uppercase">
               <input type="checkbox" name="is_private" disabled={!configured} className="size-4 accent-ink" />
               Private feed (members share; others must be admitted)

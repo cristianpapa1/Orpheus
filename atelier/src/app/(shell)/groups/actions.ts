@@ -28,6 +28,12 @@ export async function createGroup(formData: FormData) {
     .slice(0, 600);
   const is_private = formData.get("is_private") === "on";
   const interests = parseDisciplines(formData.getAll("interests").map(String));
+  const discussion_read =
+    formData.get("discussion_read") === "public" ? "public" : "members";
+  const modeRaw = String(formData.get("discussion_mode") ?? "open");
+  const discussion_mode = ["open", "announce", "broadcast"].includes(modeRaw)
+    ? modeRaw
+    : "open";
 
   const slug = slugifyGroupName(name);
   if (name.length < 3 || !GROUP_SLUG_RE.test(slug)) {
@@ -37,7 +43,7 @@ export async function createGroup(formData: FormData) {
   const base = { name, slug, description, is_private, created_by: user.id };
   let ins = await supabase
     .from("groups")
-    .insert({ ...base, interests })
+    .insert({ ...base, interests, discussion_read, discussion_mode })
     .select("id, slug")
     .single();
   // If the interests column isn't there yet (pre-0018), retry without it.

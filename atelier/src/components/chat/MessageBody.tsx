@@ -1,14 +1,14 @@
 import type { ReactNode } from "react";
 
-// Render a chat message body as text with tappable links. Shared posts arrive as
-// plain text like `Shared "Low Tide": https://atelier.aunflaneur.com/p/<id>`, and on a
-// phone a bare URL isn't tappable — this turns any http(s) URL into an <a>.
+// Render a message body as text with tappable links AND @mentions. Shared posts
+// arrive as plain text like `Shared "Low Tide": https://atelier.aunflaneur.com/p/<id>`
+// and mentions as `@handle` — this turns both into links.
 //
-// Safe by construction: we only ever build <a href> from a matched http(s) token and
-// let React escape every text segment. No dangerouslySetInnerHTML, so message text can
-// never inject markup.
+// Safe by construction: links are only ever built from a matched http(s) token or a
+// @handle token, and every text segment is React-escaped. No dangerouslySetInnerHTML.
 
-const URL_RE = /https?:\/\/[^\s<]+/g;
+// URLs (group 1) or @mentions (group 2). Handles: 3–30 of [a-z0-9_], per profiles.
+const TOKEN_RE = /(https?:\/\/[^\s<]+)|(@[A-Za-z0-9_]{3,30})/g;
 
 // Our own hosts (Atelier on aunflaneur.com, plus crktic.com kept alive post-cutover).
 // Links to these navigate in the same tab — tapping a shared post takes you to it.
@@ -34,25 +34,39 @@ export function MessageBody({ body }: { body: string }): ReactNode {
   let last = 0;
   let key = 0;
 
-  for (const match of body.matchAll(URL_RE)) {
+  for (const match of body.matchAll(TOKEN_RE)) {
     const start = match.index;
     const raw = match[0];
-    const [url, trailing] = splitTrailingPunct(raw);
-
     if (start > last) parts.push(body.slice(last, start));
 
-    const external = !isInternal(url);
-    parts.push(
-      <a
-        key={key++}
-        href={url}
-        {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-        className="break-all underline underline-offset-2 hover:opacity-70"
-      >
-        {url}
-      </a>,
-    );
-    if (trailing) parts.push(trailing);
+    if (match[1]) {
+      // URL
+      const [url, trailing] = splitTrailingPunct(raw);
+      const external = !isInternal(url);
+      parts.push(
+        <a
+          key={key++}
+          href={url}
+          {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+          className="break-all underline underline-offset-2 hover:opacity-70"
+        >
+          {url}
+        </a>,
+      );
+      if (trailing) parts.push(trailing);
+    } else {
+      // @mention → the person's public profile
+      const handle = raw.slice(1);
+      parts.push(
+        <a
+          key={key++}
+          href={`/u/${handle.toLowerCase()}`}
+          className="font-bold underline underline-offset-2 hover:text-blue"
+        >
+          @{handle}
+        </a>,
+      );
+    }
     last = start + raw.length;
   }
 

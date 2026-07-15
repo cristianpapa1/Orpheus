@@ -19,6 +19,8 @@ export const DEMO_GROUPS: Record<string, Group> = {
     member_count: 3,
     follower_count: 23,
     interests: ["cat:photography", "sub:photography:film"],
+    discussion_read: "members",
+    discussion_mode: "open",
   },
   "clay-wood": {
     id: "10000000-0000-4000-a000-000000000002",
@@ -31,6 +33,8 @@ export const DEMO_GROUPS: Record<string, Group> = {
     member_count: 1,
     follower_count: 7,
     interests: ["cat:handmade", "sub:handmade:ceramics", "sub:handmade:woodwork"],
+    discussion_read: "members",
+    discussion_mode: "announce",
   },
 };
 

@@ -9,6 +9,11 @@ export interface Group {
   follower_count: number;
   /** Discipline tags (cat:* / sub:*) the group is for. */
   interests: string[];
+  /** Who can read the discussion: 'public' | 'members'. */
+  discussion_read: string;
+  /** Who can post: 'open' (members) | 'announce' (owners post, members reply) |
+   *  'broadcast' (owners only). */
+  discussion_mode: string;
 }
 
 export interface GroupMember {
