@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { sharePost, toggleFavorite } from "@/app/(shell)/post/interactions";
+import { sharePost, toggleFavorite, deleteOwnPost } from "@/app/(shell)/post/interactions";
 import { createReport } from "@/lib/moderation/actions";
 import {
   REASON_LABEL,
@@ -32,6 +32,7 @@ export function FavoritePost({
   following = [],
   backTo,
   canReportQuality = false,
+  canDelete = false,
   checkoutUrl,
   children,
 }: {
@@ -41,6 +42,8 @@ export function FavoritePost({
   following?: Contact[];
   backTo?: string;
   canReportQuality?: boolean;
+  /** Viewer owns this post — show a Delete action. */
+  canDelete?: boolean;
   /** When set, the Act menu shows "Checkout at Astelier" linking here. */
   checkoutUrl?: string | null;
   children?: React.ReactNode;
@@ -55,7 +58,7 @@ export function FavoritePost({
   const [count, setCount] = useState(fav?.count ?? 0);
   const [burst, setBurst] = useState(false);
   const [actOpen, setActOpen] = useState(false);
-  const [sub, setSub] = useState<"none" | "send" | "report">("none");
+  const [sub, setSub] = useState<"none" | "send" | "report" | "delete">("none");
   const [sendQuery, setSendQuery] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -121,6 +124,15 @@ export function FavoritePost({
     } catch {
       setMsg(url);
     }
+  };
+
+  const doDelete = () => {
+    setMsg(null);
+    startTransition(async () => {
+      const r = await deleteOwnPost(postId);
+      if (r.ok) router.refresh(); // post is soft-deleted → drops out of the feed
+      else setMsg(r.error ?? "Couldn't delete.");
+    });
   };
 
   const doSend = (c: Contact) => {
@@ -229,6 +241,16 @@ export function FavoritePost({
                 >
                   Report {sub === "report" ? "▾" : "▸"}
                 </button>
+                {canDelete ? (
+                  <button
+                    type="button"
+                    data-delete-toggle
+                    onClick={() => setSub(sub === "delete" ? "none" : "delete")}
+                    className="w-full border-2 border-ink px-3 py-2 text-left text-caption font-bold uppercase text-red hover:bg-red hover:border-red hover:text-paper"
+                  >
+                    Delete post {sub === "delete" ? "▾" : "▸"}
+                  </button>
+                ) : null}
               </div>
 
               {msg ? (
@@ -316,6 +338,32 @@ export function FavoritePost({
                     Send report
                   </button>
                 </form>
+              ) : null}
+
+              {sub === "delete" ? (
+                <div className="mt-3 flex flex-col gap-2 border-t-2 border-ink pt-3">
+                  <p className="text-caption font-bold uppercase">
+                    Delete this post? It disappears from every feed.
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      data-delete-confirm
+                      onClick={doDelete}
+                      disabled={pending}
+                      className="border-2 border-red bg-red px-3 py-1 text-caption font-bold uppercase text-paper hover:opacity-80 disabled:opacity-50"
+                    >
+                      {pending ? "Deleting…" : "Delete"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSub("none")}
+                      className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-yellow"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
               ) : null}
             </div>
           ) : null}

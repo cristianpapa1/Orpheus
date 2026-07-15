@@ -57,7 +57,7 @@ export default async function PostDetailPage({ params }: Props) {
     <WindowGrid>
       <div data-post={post.id} className="col-span-12 flex flex-col md:col-span-8">
         <Window title={CATEGORY_LABEL[post.category]} accent="red" className="h-full">
-          <FavoritePost postId={post.id} caption={post.caption} fav={favs?.get(post.id)} following={following} canReportQuality={stamped} checkoutUrl={post.checkout_url}>
+          <FavoritePost postId={post.id} caption={post.caption} fav={favs?.get(post.id)} following={following} canReportQuality={stamped} canDelete={!!viewerId && viewerId === post.author_id} checkoutUrl={post.checkout_url}>
           {post.media_type === "text" ? (
             <>
               {post.caption ? (

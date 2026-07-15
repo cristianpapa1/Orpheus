@@ -28,6 +28,7 @@ export function PostCard({
   fav,
   following = [],
   canReportQuality = false,
+  viewerId = null,
 }: {
   post: Post;
   index?: number;
@@ -35,6 +36,7 @@ export function PostCard({
   fav?: FavInfo;
   following?: Contact[];
   canReportQuality?: boolean;
+  viewerId?: string | null;
 }) {
   const frame = frameClasses(post.display.frame);
 
@@ -134,6 +136,7 @@ export function PostCard({
             fav={fav}
             following={following}
             canReportQuality={canReportQuality}
+            canDelete={!!viewerId && viewerId === post.author_id}
             checkoutUrl={post.checkout_url}
           />
         </div>

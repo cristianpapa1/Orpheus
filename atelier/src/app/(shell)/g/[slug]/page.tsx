@@ -22,7 +22,7 @@ import {
 } from "../../groups/actions";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { getFavoritesForPosts } from "@/lib/favorites/queries";
-import { getFollowingRanked, isViewerQualityStamped } from "@/lib/profile/queries";
+import { getFollowingRanked, isViewerQualityStamped, getViewerId } from "@/lib/profile/queries";
 import { disciplineLabel } from "@atelier/core/taxonomy/disciplines";
 
 interface Props {
@@ -75,6 +75,7 @@ export default async function GroupPage({ params, searchParams }: Props) {
       ])
     : [null, [], false];
   const requests = relation === "owner" ? await getPendingRequests(group.id) : [];
+  const viewerId = await getViewerId();
   const configured = isSupabaseConfigured();
 
   return (
@@ -270,6 +271,7 @@ export default async function GroupPage({ params, searchParams }: Props) {
               fav={favs?.get(post.id)}
               following={following}
               canReportQuality={stamped}
+              viewerId={viewerId}
             />
           ))}
         </WindowGrid>

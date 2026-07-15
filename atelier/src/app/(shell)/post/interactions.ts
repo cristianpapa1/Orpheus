@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/admin";
 import { notify } from "@/lib/notifications/notify";
 import { getOrCreateThread } from "@/lib/chat/threads";
 
@@ -133,4 +134,43 @@ export async function sharePost(
 
   revalidatePath(`/chat/${threadId}`);
   return { ok: true, threadId };
+}
+
+export interface DeleteResult {
+  ok: boolean;
+  error?: string;
+}
+
+/**
+ * Delete the signed-in user's OWN post. Soft-delete (removed_at) — it vanishes
+ * from every feed/profile immediately but stays recoverable by an admin, same
+ * mechanism as moderation takedown. Author-only, enforced server-side.
+ */
+export async function deleteOwnPost(postId: string): Promise<DeleteResult> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return { ok: false, error: "Unavailable." };
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Sign in to delete." };
+
+  const { data: post } = await supabase
+    .from("posts")
+    .select("author_id")
+    .eq("id", postId)
+    .maybeSingle();
+  if (!post) return { ok: false, error: "Post not found." };
+  if (post.author_id !== user.id) return { ok: false, error: "That isn't your post." };
+
+  const admin = createServiceClient();
+  if (!admin) return { ok: false, error: "Unavailable." };
+  const { error } = await admin
+    .from("posts")
+    .update({ removed_at: new Date().toISOString(), removed_by: user.id })
+    .eq("id", postId);
+  if (error) return { ok: false, error: "Couldn't delete the post." };
+
+  revalidatePath("/feed");
+  revalidatePath("/profile");
+  return { ok: true };
 }
