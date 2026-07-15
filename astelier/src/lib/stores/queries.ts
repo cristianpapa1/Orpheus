@@ -67,3 +67,18 @@ export async function getStoreBySlug(slug: string): Promise<Store | null> {
   if (error || !data) return null;
   return toStore(data as StoreRow);
 }
+
+/** A store by id (for a product's parent), active only, or null. */
+export async function getStoreById(id: string): Promise<Store | null> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from("astelier_stores")
+    .select(STORE_COLUMNS)
+    .eq("id", id)
+    .eq("is_active", true)
+    .maybeSingle();
+  if (error || !data) return null;
+  return toStore(data as StoreRow);
+}
