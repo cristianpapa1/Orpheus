@@ -6,6 +6,7 @@ import {
   isMediaType,
   isPostCategory,
   parseVariantPaths,
+  parsePostImages,
   type Post,
 } from "@atelier/core/posts/types";
 
@@ -17,7 +18,7 @@ import {
 // posts↔profiles relationship, so the implicit embed is ambiguous (PostgREST
 // "more than one relationship" error) and would break every post read.
 const POST_SELECT =
-  "id, author_id, caption, category, subcategory, body, tags, checkout_url, image_path, image_width, image_height, original_path, variants, blur_data, alt_text, media_type, media_path, duration_seconds, display, created_at, author:profiles!posts_author_id_fkey(handle, display_name, avatar_url)";
+  "id, author_id, caption, category, subcategory, body, tags, checkout_url, image_path, image_width, image_height, original_path, variants, images, blur_data, alt_text, media_type, media_path, duration_seconds, display, created_at, author:profiles!posts_author_id_fkey(handle, display_name, avatar_url)";
 
 type PostRow = {
   id: string;
@@ -33,6 +34,7 @@ type PostRow = {
   image_height: number | null;
   original_path: string | null;
   variants: unknown;
+  images: unknown;
   blur_data: string | null;
   alt_text: string | null;
   media_type: string | null;
@@ -53,6 +55,16 @@ export function publicMediaUrl(path: string): string {
 
 function toPost(row: PostRow): Post | null {
   if (!isPostCategory(row.category)) return null;
+  const variants = parseVariantPaths(row.variants, publicMediaUrl);
+  const parsedImages = parsePostImages(row.images, publicMediaUrl);
+  // Multi-image posts carry the full set; older single-image posts derive a
+  // one-element array from the legacy cover so rendering is uniform.
+  const images =
+    parsedImages.length > 0
+      ? parsedImages
+      : variants.length
+        ? [{ variants, blur_data: row.blur_data }]
+        : [];
   return {
     id: row.id,
     author_id: row.author_id,
@@ -69,7 +81,8 @@ function toPost(row: PostRow): Post | null {
     image_width: row.image_width,
     image_height: row.image_height,
     original_url: row.original_path ? publicMediaUrl(row.original_path) : null,
-    variants: parseVariantPaths(row.variants, publicMediaUrl),
+    variants,
+    images,
     blur_data: row.blur_data,
     alt_text: row.alt_text,
     media_type: isMediaType(row.media_type) ? row.media_type : "image",

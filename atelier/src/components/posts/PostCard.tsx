@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Window, type WindowAccent } from "@/components/ui/Window";
 import { MediaBody } from "@/components/posts/MediaBody";
 import { ResponsiveImage } from "@/components/posts/ResponsiveImage";
+import { PostCarousel } from "@/components/posts/PostCarousel";
 import { TextBody } from "@/components/posts/TextBody";
 import {
   aspectClass,
@@ -61,6 +62,14 @@ export function PostCard({
             ) : null}
             <TextBody body={post.body ?? ""} />
           </Link>
+        ) : post.media_type === "image" && post.images.length > 1 ? (
+          <div className={frame.wrapper}>
+            <PostCarousel
+              images={post.images}
+              alt={post.alt_text ?? post.caption}
+              className={`${frame.image} ${aspectClass(post.display.aspect)}`}
+            />
+          </div>
         ) : post.media_type === "image" ? (
           <Link href={`/p/${post.id}`} className={frame.wrapper}>
             <ResponsiveImage

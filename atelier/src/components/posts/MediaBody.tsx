@@ -1,4 +1,5 @@
 import { ResponsiveImage } from "@/components/posts/ResponsiveImage";
+import { PostCarousel } from "@/components/posts/PostCarousel";
 import { TextBody } from "@/components/posts/TextBody";
 import { MediaPlayer } from "@/components/posts/MediaPlayer";
 import { formatDuration, type Post } from "@atelier/core/posts/types";
@@ -71,6 +72,17 @@ export function MediaBody({
           durationSeconds={post.duration_seconds}
         />
       </span>
+    );
+  }
+
+  if (post.images.length > 1) {
+    return (
+      <PostCarousel
+        images={post.images}
+        alt={post.alt_text ?? post.caption}
+        eager={eager}
+        className={className}
+      />
     );
   }
 

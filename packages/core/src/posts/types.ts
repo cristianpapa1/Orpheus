@@ -209,6 +209,9 @@ export interface Post {
   variants: PostVariant[];
   /** Tiny inline blur-up placeholder (data URI). */
   blur_data: string | null;
+  /** All images for a multi-image (carousel) post — each with its own variants.
+   *  Cover = images[0]. Single-image posts have exactly one entry. */
+  images: PostImage[];
   /** Author-written alt text (a11y); falls back to caption when null. */
   alt_text: string | null;
   /** Track B: image | video | audio. AV originals live untouched in storage. */
@@ -241,6 +244,33 @@ export function parseVariantPaths(
     variants.push({ width: v.width, url: toUrl(v.path) });
   }
   return variants.sort((a, b) => a.width - b.width);
+}
+
+/** One image in a carousel post: its own display variants + blur placeholder. */
+export interface PostImage {
+  variants: PostVariant[];
+  blur_data: string | null;
+}
+
+/** Validate the DB `images` jsonb (array of {variants:[{width,path}], blur})
+ *  into PostImage[] with resolved URLs. Empty/invalid → []. */
+export function parsePostImages(
+  value: unknown,
+  toUrl: (path: string) => string,
+): PostImage[] {
+  if (!Array.isArray(value)) return [];
+  const images: PostImage[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+    const o = item as Record<string, unknown>;
+    const variants = parseVariantPaths(o.variants, toUrl);
+    if (!variants.length) continue;
+    images.push({
+      variants,
+      blur_data: typeof o.blur === "string" ? o.blur : null,
+    });
+  }
+  return images;
 }
 
 export function isPostCategory(value: unknown): value is PostCategory {

@@ -32,6 +32,9 @@ export interface PublishPostInput {
   original_path?: string | null;
   /** Storage paths of the display variants, ascending width. */
   variants?: { width: number; height: number; path: string }[];
+  /** Multi-image (carousel) posts: every image's variants + blur. Cover is
+   *  images[0] and also fills the single image_path/variants above. */
+  images?: { variants: { width: number; path: string }[]; blur: string | null }[];
   /** Largest display variant — kept as the post's primary image. */
   image_path?: string;
   width?: number | null;
@@ -232,6 +235,7 @@ export async function publishPost(
       display,
       tags: parsePostTags(input.tags),
       checkout_url: cleanCheckoutUrl(input.checkout_url),
+      images: Array.isArray(input.images) ? input.images.slice(0, 10) : [],
       ...payload,
     })
     .select("id")

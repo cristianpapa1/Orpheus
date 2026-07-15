@@ -62,6 +62,7 @@ export function PostComposer({
   initialCheckoutUrl?: string;
 }) {
   const [prepared, setPrepared] = useState<Prepared | null>(null);
+  const [extraImages, setExtraImages] = useState<Prepared[]>([]); // images 2..10 (carousel)
   const [caption, setCaption] = useState(initialCaption ?? "");
   const [altText, setAltText] = useState("");
   const [body, setBody] = useState("");
@@ -124,20 +125,28 @@ export function PostComposer({
 
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setError("Choose an image file.");
+    // Image posts take up to 10 (carousel); an audio cover takes exactly 1.
+    const max = mediaType === "image" ? 10 : 1;
+    const files = Array.from(e.target.files ?? []).slice(0, max);
+    if (!files.length) return;
+    if (files.some((f) => !f.type.startsWith("image/"))) {
+      setError("Choose image files.");
       return;
     }
     try {
-      const result = await prepareUpload(file);
+      const preps: Prepared[] = [];
+      for (const f of files) {
+        const result = await prepareUpload(f);
+        preps.push({
+          ...result,
+          previewUrl: URL.createObjectURL(result.variants.at(-1)?.blob ?? f),
+        });
+      }
+      // release the previous previews
       if (prepared) URL.revokeObjectURL(prepared.previewUrl);
-      const largest = result.variants.at(-1);
-      setPrepared({
-        ...result,
-        previewUrl: URL.createObjectURL(largest?.blob ?? file),
-      });
+      extraImages.forEach((x) => URL.revokeObjectURL(x.previewUrl));
+      setPrepared(preps[0]);
+      setExtraImages(preps.slice(1));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't read that image.");
     }
@@ -275,6 +284,32 @@ export function PostComposer({
           variants.push({ width: v.width, height: v.height, path });
         }
 
+        // 2b. Multi-image (carousel): upload each extra image's variants and
+        // build the images array. The cover (already uploaded above) is first.
+        const images: {
+          variants: { width: number; path: string }[];
+          blur: string | null;
+        }[] = [];
+        if (mediaType === "image" && extraImages.length) {
+          images.push({
+            variants: variants.map((v) => ({ width: v.width, path: v.path })),
+            blur: prepared.blur,
+          });
+          for (const img of extraImages) {
+            const st = crypto.randomUUID();
+            const vs: { width: number; path: string }[] = [];
+            for (const v of img.variants) {
+              const p = `${user.id}/display/${st}-${v.width}.webp`;
+              const { error: exErr } = await supabase.storage
+                .from("media")
+                .upload(p, v.blob, { contentType: "image/webp" });
+              if (exErr) throw new Error(exErr.message);
+              vs.push({ width: v.width, path: p });
+            }
+            images.push({ variants: vs, blur: img.blur });
+          }
+        }
+
         // 3. Record the post — paths + metadata only.
         setStage("recording");
         const largest = variants.at(-1)!;
@@ -287,6 +322,7 @@ export function PostComposer({
           display,
           original_path: originalPath,
           variants,
+          images: images.length ? images : undefined,
           image_path: largest.path,
           width: prepared.variants.at(-1)?.width ?? prepared.originalWidth,
           height: prepared.variants.at(-1)?.height ?? prepared.originalHeight,
@@ -422,12 +458,13 @@ export function PostComposer({
       {mediaType === "image" || mediaType === "audio" ? (
         <>
           <label htmlFor="image" className="text-caption font-bold uppercase">
-            {mediaType === "audio" ? "Cover image (required)" : "Work (image)"}
+            {mediaType === "audio" ? "Cover image (required)" : "Work — up to 10 images"}
           </label>
           <input
             id="image"
             type="file"
             accept="image/*"
+            multiple={mediaType === "image"}
             onChange={onFileChange}
             className="border-2 border-ink bg-paper px-3 py-2 text-body file:mr-3 file:border-2 file:border-ink file:bg-ink file:px-3 file:py-1 file:text-caption file:font-bold file:uppercase file:text-paper"
           />
@@ -446,12 +483,30 @@ export function PostComposer({
       ) : null}
 
       {prepared && mediaType !== "text" ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={prepared.previewUrl}
-          alt="Upload preview"
-          className="max-h-96 w-auto border-2 border-ink object-contain"
-        />
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={prepared.previewUrl}
+            alt="Upload preview"
+            className="max-h-96 w-auto border-2 border-ink object-contain"
+          />
+          {extraImages.length ? (
+            <div data-extra-images className="flex flex-wrap items-center gap-2">
+              {extraImages.map((img, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={i}
+                  src={img.previewUrl}
+                  alt=""
+                  className="size-16 border-2 border-ink object-cover"
+                />
+              ))}
+              <span className="text-caption font-bold uppercase opacity-70">
+                {extraImages.length + 1} images · carousel
+              </span>
+            </div>
+          ) : null}
+        </>
       ) : null}
 
       {mediaType !== "text" ? (
