@@ -70,6 +70,7 @@ export function PostComposer({
   const [mediaType, setMediaType] = useState<MediaType>("image");
   const [avFile, setAvFile] = useState<File | null>(null);
   const [avDuration, setAvDuration] = useState<number | null>(null);
+  const [readingFile, setReadingFile] = useState<File | null>(null); // optional audio on a text post
   const [category, setCategory] = useState("");
   const [subcategory, setSubcategory] = useState("");
   const [display, setDisplay] = useState<PostDisplay>(DEFAULT_DISPLAY);
@@ -157,6 +158,37 @@ export function PostComposer({
         return;
       }
       startTransition(async () => {
+        // Optional "reading": upload the audio, attach it to the text post.
+        let mediaPath: string | null = null;
+        if (readingFile) {
+          const supabase = createClient();
+          if (!supabase) {
+            setError("Preview mode — publishing is disabled.");
+            return;
+          }
+          const {
+            data: { user },
+          } = await supabase.auth.getUser();
+          if (!user) {
+            setError("Sign in to publish.");
+            return;
+          }
+          setStage("uploading");
+          const ext =
+            MEDIA_EXT.audio[readingFile.type] ??
+            readingFile.name.split(".").pop() ??
+            "bin";
+          mediaPath = `${user.id}/media/${crypto.randomUUID()}.${ext}`;
+          const { error: upErr } = await supabase.storage
+            .from("media")
+            .upload(mediaPath, readingFile, { contentType: readingFile.type });
+          if (upErr) {
+            setError(upErr.message);
+            setStage("idle");
+            return;
+          }
+          setStage("recording");
+        }
         const result = await publishPost({
           caption,
           category,
@@ -166,6 +198,7 @@ export function PostComposer({
           checkout_url: checkoutUrl,
           display: DEFAULT_DISPLAY,
           media_type: "text",
+          media_path: mediaPath,
           group_ids: groupIds,
           mention_ids: mentionIds,
         });
@@ -339,6 +372,30 @@ export function PostComposer({
           <p className="text-caption uppercase opacity-70">
             {body.length} / {MAX_BODY_CHARS} · line breaks are kept
           </p>
+
+          <label htmlFor="reading_file" className="text-caption font-bold uppercase">
+            Reading (optional) — add an audio file of you reading it
+          </label>
+          <input
+            id="reading_file"
+            data-reading-file
+            type="file"
+            accept="audio/*"
+            onChange={(e) => setReadingFile(e.target.files?.[0] ?? null)}
+            className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
+          />
+          {readingFile ? (
+            <p className="text-caption uppercase opacity-70">
+              ♪ {readingFile.name} —{" "}
+              <button
+                type="button"
+                onClick={() => setReadingFile(null)}
+                className="border-b-2 border-ink font-bold hover:text-red"
+              >
+                remove
+              </button>
+            </p>
+          ) : null}
         </>
       ) : null}
 

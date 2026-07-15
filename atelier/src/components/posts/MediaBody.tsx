@@ -19,7 +19,19 @@ export function MediaBody({
   className?: string;
 }) {
   if (post.media_type === "text") {
-    return <TextBody body={post.body ?? ""} className={className} />;
+    return (
+      <span data-media="text" className="block">
+        <TextBody body={post.body ?? ""} className={className} />
+        {post.media_url ? (
+          // A poem with its reading — the audio rides along on the text post.
+          <MediaPlayer
+            kind="audio"
+            src={post.media_url}
+            durationSeconds={post.duration_seconds}
+          />
+        ) : null}
+      </span>
+    );
   }
 
   if (post.media_type === "video" && post.media_url) {
