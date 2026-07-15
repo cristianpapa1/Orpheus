@@ -7,7 +7,7 @@ import {
 } from "@/app/(shell)/groups/discussion-actions";
 import type {
   GroupMessage,
-  GroupThread,
+  GroupThreadDetail,
   DiscussionAccess,
 } from "@/lib/groups/discussion";
 
@@ -17,10 +17,14 @@ const FIELD =
 function MessageRow({
   msg,
   slug,
+  threadId,
+  isOpening,
   canDelete,
 }: {
   msg: GroupMessage;
   slug: string;
+  threadId: string;
+  isOpening: boolean;
   canDelete: boolean;
 }) {
   return (
@@ -45,8 +49,10 @@ function MessageRow({
         <form action={deleteGroupMessage} className="mt-0.5">
           <input type="hidden" name="id" value={msg.id} />
           <input type="hidden" name="slug" value={slug} />
+          <input type="hidden" name="thread_id" value={threadId} />
+          {isOpening ? <input type="hidden" name="opening" value="1" /> : null}
           <button className="text-caption font-bold uppercase opacity-60 hover:text-red hover:opacity-100">
-            Delete
+            {isOpening ? "Delete discussion" : "Delete"}
           </button>
         </form>
       ) : null}
@@ -54,110 +60,85 @@ function MessageRow({
   );
 }
 
-function ReplyForm({
-  groupId,
-  slug,
-  parentId,
-}: {
-  groupId: string;
-  slug: string;
-  parentId: string;
-}) {
-  return (
-    <form action={postGroupMessage} className="mt-2 flex flex-col gap-2">
-      <input type="hidden" name="group_id" value={groupId} />
-      <input type="hidden" name="slug" value={slug} />
-      <input type="hidden" name="parent_id" value={parentId} />
-      <textarea
-        name="body"
-        required
-        rows={2}
-        maxLength={4000}
-        placeholder="Reply… @mention or paste a link"
-        className={FIELD}
-      />
-      <button className="self-start border-2 border-ink bg-ink px-3 py-1 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue">
-        Reply
-      </button>
-    </form>
-  );
-}
-
-export function GroupDiscussion({
-  threads,
+export function GroupThreadView({
+  detail,
   access,
   groupId,
   slug,
   viewerId,
   isOwner,
 }: {
-  threads: GroupThread[];
+  detail: GroupThreadDetail;
   access: DiscussionAccess;
   groupId: string;
   slug: string;
   viewerId: string | null;
   isOwner: boolean;
 }) {
+  const { thread, replies } = detail;
   const canDelete = (authorId: string) => isOwner || viewerId === authorId;
 
   return (
-    <div className="flex flex-col gap-4">
-      <p className="text-caption font-bold uppercase opacity-70">{access.label}</p>
+    <div className="flex flex-col gap-5">
+      {thread.title ? (
+        <h1 className="text-h2 font-bold uppercase">{thread.title}</h1>
+      ) : null}
 
-      {access.canPostTop ? (
+      <div className="border-2 border-ink p-3">
+        <MessageRow
+          msg={thread}
+          slug={slug}
+          threadId={thread.id}
+          isOpening
+          canDelete={canDelete(thread.author_id)}
+        />
+      </div>
+
+      <div>
+        <p className="mb-2 text-caption font-bold uppercase opacity-70">
+          {replies.length} {replies.length === 1 ? "reply" : "replies"}
+        </p>
+        {replies.length ? (
+          <ul className="flex flex-col gap-3 border-l-2 border-ink/30 pl-3">
+            {replies.map((r) => (
+              <li key={r.id}>
+                <MessageRow
+                  msg={r}
+                  slug={slug}
+                  threadId={thread.id}
+                  isOpening={false}
+                  canDelete={canDelete(r.author_id)}
+                />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-body opacity-70">No replies yet.</p>
+        )}
+      </div>
+
+      {access.canReply ? (
         <form action={postGroupMessage} className="flex flex-col gap-2">
           <input type="hidden" name="group_id" value={groupId} />
           <input type="hidden" name="slug" value={slug} />
+          <input type="hidden" name="parent_id" value={thread.id} />
           <textarea
             name="body"
             required
             rows={3}
             maxLength={4000}
-            data-discussion-compose
-            placeholder="Say something to the group… @mention people, paste a post or Astelier link"
+            data-reply-compose
+            placeholder="Reply… @mention or paste a link"
             className={FIELD}
           />
           <button className="self-start border-2 border-ink bg-ink px-4 py-2 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue">
-            Post
+            Reply
           </button>
         </form>
       ) : (
         <p className="border-2 border-dashed border-ink/40 px-3 py-2 text-caption font-bold uppercase opacity-70">
-          {access.canReply
-            ? "Only owners start threads here — you can reply below."
-            : "Only owners post here."}
+          You can read this discussion, but only members may reply.
         </p>
-      )}
-
-      {threads.length === 0 ? (
-        <p className="text-body opacity-70">No messages yet.</p>
-      ) : (
-        <ul className="flex flex-col gap-5">
-          {threads.map((t) => (
-            <li key={t.id} className="border-2 border-ink p-3">
-              <MessageRow msg={t} slug={slug} canDelete={canDelete(t.author_id)} />
-
-              {t.replies.length ? (
-                <ul className="mt-3 flex flex-col gap-3 border-l-2 border-ink/30 pl-3">
-                  {t.replies.map((r) => (
-                    <li key={r.id}>
-                      <MessageRow msg={r} slug={slug} canDelete={canDelete(r.author_id)} />
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-
-              {access.canReply ? (
-                <details className="mt-2">
-                  <summary className="cursor-pointer text-caption font-bold uppercase opacity-70 hover:opacity-100">
-                    Reply
-                  </summary>
-                  <ReplyForm groupId={groupId} slug={slug} parentId={t.id} />
-                </details>
-              ) : null}
-            </li>
-          ))}
-        </ul>
       )}
     </div>
   );

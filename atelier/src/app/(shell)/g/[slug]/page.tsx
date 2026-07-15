@@ -24,8 +24,8 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { getFavoritesForPosts } from "@/lib/favorites/queries";
 import { getFollowingRanked, isViewerQualityStamped, getViewerId } from "@/lib/profile/queries";
 import { disciplineLabel } from "@atelier/core/taxonomy/disciplines";
-import { getGroupDiscussion, discussionAccess } from "@/lib/groups/discussion";
-import { GroupDiscussion } from "@/components/groups/GroupDiscussion";
+import { getGroupThreads, discussionAccess } from "@/lib/groups/discussion";
+import { GroupThreadList } from "@/components/groups/GroupThreadList";
 import { updateGroupDiscussion } from "../../groups/discussion-actions";
 
 interface Props {
@@ -80,7 +80,7 @@ export default async function GroupPage({ params, searchParams }: Props) {
   const requests = relation === "owner" ? await getPendingRequests(group.id) : [];
   const viewerId = await getViewerId();
   const access = discussionAccess(group.discussion_read, group.discussion_mode, relation);
-  const threads = access.canRead ? await getGroupDiscussion(group.id) : [];
+  const threads = access.canRead ? await getGroupThreads(group.id) : [];
   const configured = isSupabaseConfigured();
 
   return (
@@ -283,13 +283,11 @@ export default async function GroupPage({ params, searchParams }: Props) {
       <WindowGrid>
         {access.canRead ? (
           <Window title="Discussion" accent="blue" span="col-span-12 md:col-span-8">
-            <GroupDiscussion
+            <GroupThreadList
               threads={threads}
               access={access}
               groupId={group.id}
               slug={group.slug}
-              viewerId={viewerId}
-              isOwner={relation === "owner"}
             />
           </Window>
         ) : (

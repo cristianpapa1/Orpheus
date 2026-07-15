@@ -29,11 +29,15 @@ export async function postGroupMessage(formData: FormData) {
   const groupId = String(formData.get("group_id") ?? "");
   const parentId = String(formData.get("parent_id") ?? "") || null;
   const body = String(formData.get("body") ?? "").trim().slice(0, 4000);
+  // Only top-level threads carry a title; replies leave it null.
+  const title = parentId
+    ? null
+    : String(formData.get("title") ?? "").trim().slice(0, 140) || null;
   if (!groupId || !body) redirect(`${back}?derror=empty`);
 
   const { data: msg, error } = await supabase
     .from("group_messages")
-    .insert({ group_id: groupId, author_id: user.id, parent_id: parentId, body })
+    .insert({ group_id: groupId, author_id: user.id, parent_id: parentId, title, body })
     .select("id")
     .single();
   // RLS rejects when the mode/membership doesn't allow it.
@@ -91,8 +95,11 @@ export async function postGroupMessage(formData: FormData) {
     );
   }
 
-  revalidatePath(back);
-  redirect(back);
+  // Land in the discussion's own page — the new thread's, or the parent's for a reply.
+  const threadId = parentId ?? (msg.id as string);
+  const to = `${back}/t/${threadId}`;
+  revalidatePath(to);
+  redirect(to);
 }
 
 /** Soft-delete a discussion message — author or group owner (RLS enforces). */
@@ -113,8 +120,13 @@ export async function deleteGroupMessage(formData: FormData) {
       .update({ removed_at: new Date().toISOString(), removed_by: user.id })
       .eq("id", id);
   }
-  revalidatePath(back);
-  redirect(back);
+  // A reply deletion returns to its thread; deleting the opening drops the whole
+  // thread, so return to the board.
+  const threadId = String(formData.get("thread_id") ?? "");
+  const isOpening = String(formData.get("opening") ?? "") === "1";
+  const to = !isOpening && threadId ? `${back}/t/${threadId}` : back;
+  revalidatePath(to);
+  redirect(to);
 }
 
 /** Owner sets who can read/post the discussion. */
