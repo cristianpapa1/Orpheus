@@ -7,6 +7,11 @@ import { getGateState } from "@/lib/gate";
 import { getMyStore } from "@/lib/stores/queries";
 import { getProductsForStore } from "@/lib/products/queries";
 import { deleteProductForm } from "@/app/sell/products/actions";
+import {
+  getProductViewCounts,
+  getStoreViews,
+  getFollowerReach,
+} from "@/lib/analytics/queries";
 import { formatMoney } from "@atelier/core/commerce/money";
 import { PRODUCT_STATUS_LABEL } from "@atelier/core/commerce/products";
 
@@ -19,6 +24,15 @@ export default async function SellPage() {
 
   const store = await getMyStore();
   const products = store ? await getProductsForStore(store.id) : [];
+  const [viewCounts, storeViews, reach] = store
+    ? await Promise.all([
+        getProductViewCounts(store.id),
+        getStoreViews(store.id),
+        getFollowerReach(store.owner_id),
+      ])
+    : [new Map<string, number>(), 0, 0];
+  const liveProducts = products.filter((p) => p.status === "live");
+  const catalogValue = liveProducts.reduce((s, p) => s + p.price_cents, 0);
 
   return (
     <>
@@ -34,6 +48,22 @@ export default async function SellPage() {
         </p>
 
         <StoreEditor initial={store} />
+
+        {store ? (
+          <section className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-4">
+            {[
+              { label: "Store views", value: storeViews.toLocaleString() },
+              { label: "Followers reached", value: reach.toLocaleString() },
+              { label: "Live products", value: String(liveProducts.length) },
+              { label: "Catalog value", value: formatMoney(catalogValue) },
+            ].map((s) => (
+              <div key={s.label} className="border-2 border-ink p-4">
+                <p className="text-h2 font-bold tabular-nums">{s.value}</p>
+                <p className="mt-1 text-caption font-bold uppercase opacity-70">{s.label}</p>
+              </div>
+            ))}
+          </section>
+        ) : null}
 
         {store ? (
           <section className="mt-10">
@@ -75,7 +105,7 @@ export default async function SellPage() {
                         {p.title}
                       </Link>
                       <span className="ml-2 text-caption uppercase opacity-70">
-                        {formatMoney(p.price_cents, p.currency)} · {PRODUCT_STATUS_LABEL[p.status]}
+                        {formatMoney(p.price_cents, p.currency)} · {PRODUCT_STATUS_LABEL[p.status]} · {viewCounts.get(p.id) ?? 0} views
                       </span>
                     </div>
                     <div className="flex items-center gap-2">

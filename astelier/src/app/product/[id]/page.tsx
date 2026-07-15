@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Nav } from "@/components/Nav";
+import { ViewBeacon } from "@/components/ViewBeacon";
 import { getGateState } from "@/lib/gate";
 import { getProductById } from "@/lib/products/queries";
 import { getStoreById } from "@/lib/stores/queries";
@@ -36,6 +37,7 @@ export default async function ProductPage({
   return (
     <>
       <Nav signedIn={gate.signedIn} />
+      {product.status === "live" ? <ViewBeacon kind="product" id={product.id} /> : null}
       <main
         id="main"
         data-school={store?.school}
