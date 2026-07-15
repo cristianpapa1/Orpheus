@@ -134,6 +134,7 @@ export function PostCard({
             fav={fav}
             following={following}
             canReportQuality={canReportQuality}
+            checkoutUrl={post.checkout_url}
           />
         </div>
       </Window>

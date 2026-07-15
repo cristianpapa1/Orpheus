@@ -48,11 +48,27 @@ export interface PublishPostInput {
   group_ids?: string[];
   /** People to tag — caller must MUTUALLY follow each (both directions). */
   mention_ids?: string[];
+  /** Optional Astelier store/product URL — powers the Act "Checkout at Astelier". */
+  checkout_url?: string | null;
 }
 
 export interface PublishPostResult {
   ok: boolean;
   error?: string;
+}
+
+// The checkout link may only point at Astelier — never an arbitrary URL. Keeps
+// the "Checkout at Astelier" button honest and un-abusable.
+const ASTELIER_HOST =
+  process.env.NEXT_PUBLIC_ASTELIER_HOST ?? "astelier.aunflaneur.com";
+function cleanCheckoutUrl(v: unknown): string | null {
+  if (typeof v !== "string" || !v.trim()) return null;
+  try {
+    const u = new URL(v.trim());
+    return u.protocol === "https:" && u.hostname === ASTELIER_HOST ? u.href : null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -215,6 +231,7 @@ export async function publishPost(
       subcategory,
       display,
       tags: parsePostTags(input.tags),
+      checkout_url: cleanCheckoutUrl(input.checkout_url),
       ...payload,
     })
     .select("id")

@@ -197,6 +197,8 @@ export interface Post {
   body: string | null;
   /** Free-form topic tags (folksonomy discovery, /t/<tag>). */
   tags: string[];
+  /** Optional Astelier store/product URL — powers the Act "Checkout at Astelier". */
+  checkout_url: string | null;
   /** Empty string for text posts (no image). */
   image_url: string;
   image_width: number | null;

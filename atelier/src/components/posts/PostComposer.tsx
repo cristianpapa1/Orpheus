@@ -61,6 +61,7 @@ export function PostComposer({
   const [altText, setAltText] = useState("");
   const [body, setBody] = useState("");
   const [tags, setTags] = useState("");
+  const [checkoutUrl, setCheckoutUrl] = useState("");
   const [mediaType, setMediaType] = useState<MediaType>("image");
   const [avFile, setAvFile] = useState<File | null>(null);
   const [avDuration, setAvDuration] = useState<number | null>(null);
@@ -157,6 +158,7 @@ export function PostComposer({
           subcategory: subcategory || null,
           body: trimmed,
           tags,
+          checkout_url: checkoutUrl,
           display: DEFAULT_DISPLAY,
           media_type: "text",
           group_ids: groupIds,
@@ -243,6 +245,7 @@ export function PostComposer({
           category,
           subcategory: subcategory || null,
           tags,
+          checkout_url: checkoutUrl,
           display,
           original_path: originalPath,
           variants,
@@ -476,6 +479,22 @@ export function PostComposer({
       />
       <p className="text-caption uppercase opacity-70">
         Comma or space separated · up to 8 · lets people find work by topic
+      </p>
+
+      <label htmlFor="checkout_url" className="text-caption font-bold uppercase">
+        Astelier link (optional)
+      </label>
+      <input
+        id="checkout_url"
+        data-checkout-url
+        value={checkoutUrl}
+        onChange={(e) => setCheckoutUrl(e.target.value)}
+        placeholder="https://astelier.aunflaneur.com/store/your-shop"
+        className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
+      />
+      <p className="text-caption uppercase opacity-70">
+        Selling this? Paste your Astelier store or product link — adds a “Checkout
+        at Astelier” button to the post&apos;s Act menu.
       </p>
 
       {mediaType !== "text" ? (

@@ -17,7 +17,7 @@ import {
 // posts↔profiles relationship, so the implicit embed is ambiguous (PostgREST
 // "more than one relationship" error) and would break every post read.
 const POST_SELECT =
-  "id, author_id, caption, category, subcategory, body, tags, image_path, image_width, image_height, original_path, variants, blur_data, alt_text, media_type, media_path, duration_seconds, display, created_at, author:profiles!posts_author_id_fkey(handle, display_name, avatar_url)";
+  "id, author_id, caption, category, subcategory, body, tags, checkout_url, image_path, image_width, image_height, original_path, variants, blur_data, alt_text, media_type, media_path, duration_seconds, display, created_at, author:profiles!posts_author_id_fkey(handle, display_name, avatar_url)";
 
 type PostRow = {
   id: string;
@@ -27,6 +27,7 @@ type PostRow = {
   subcategory: string | null;
   body: string | null;
   tags: string[] | null;
+  checkout_url: string | null;
   image_path: string | null;
   image_width: number | null;
   image_height: number | null;
@@ -63,6 +64,7 @@ function toPost(row: PostRow): Post | null {
     subcategory: row.subcategory,
     body: row.body,
     tags: row.tags ?? [],
+    checkout_url: row.checkout_url ?? null,
     image_url: row.image_path ? publicMediaUrl(row.image_path) : "",
     image_width: row.image_width,
     image_height: row.image_height,

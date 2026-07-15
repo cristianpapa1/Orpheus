@@ -32,6 +32,7 @@ export function FavoritePost({
   following = [],
   backTo,
   canReportQuality = false,
+  checkoutUrl,
   children,
 }: {
   postId: string;
@@ -40,6 +41,8 @@ export function FavoritePost({
   following?: Contact[];
   backTo?: string;
   canReportQuality?: boolean;
+  /** When set, the Act menu shows "Checkout at Astelier" linking here. */
+  checkoutUrl?: string | null;
   children?: React.ReactNode;
 }) {
   const reasons = REPORT_REASONS.filter(
@@ -194,8 +197,19 @@ export function FavoritePost({
 
           {actOpen ? (
             <div className="absolute left-0 z-20 mt-1 w-72 border-2 border-ink bg-paper p-3">
-              {/* three actions */}
+              {/* actions */}
               <div className="flex flex-col gap-2">
+                {checkoutUrl ? (
+                  <a
+                    href={checkoutUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-checkout
+                    className="block border-2 border-ink bg-ink px-3 py-2 text-left text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue"
+                  >
+                    Checkout at Astelier →
+                  </a>
+                ) : null}
                 <button type="button" data-share onClick={nativeShare} className={menuBtn}>
                   Share…
                 </button>
