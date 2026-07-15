@@ -16,6 +16,20 @@ export function Nav({ signedIn }: { signedIn: boolean }) {
           <span className="text-h2 font-bold uppercase tracking-tight">Astelier</span>
         </Link>
 
+        <nav aria-label="Discover" className="hidden items-center gap-4 md:flex">
+          <Link href="/browse" className="text-caption font-bold uppercase hover:text-blue">
+            Browse
+          </Link>
+          <form action="/search">
+            <input
+              name="q"
+              placeholder="Search"
+              aria-label="Search Astelier"
+              className="w-28 border-2 border-ink bg-paper px-2 py-1 text-caption uppercase outline-none transition-all focus:w-44 focus:border-blue"
+            />
+          </form>
+        </nav>
+
         <div className="flex items-center gap-3">
           <a
             href={ATELIER_URL}

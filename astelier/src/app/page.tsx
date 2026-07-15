@@ -65,9 +65,12 @@ export default async function AstelierHome() {
                 >
                   Open your store →
                 </Link>
-                <span className="border-2 border-ink px-4 py-2 text-caption font-bold uppercase opacity-50">
-                  Browse makers — soon
-                </span>
+                <Link
+                  href="/browse"
+                  className="border-2 border-ink px-4 py-2 text-caption font-bold uppercase hover:bg-yellow"
+                >
+                  Browse makers →
+                </Link>
               </div>
             </Window>
             <Window title="Access" accent="blue" span="col-span-12 md:col-span-5">

@@ -68,6 +68,20 @@ export async function getStoreBySlug(slug: string): Promise<Store | null> {
   return toStore(data as StoreRow);
 }
 
+/** All active stores, newest first — for discovery. Optional school filter. */
+export async function browseStores(school?: string | null): Promise<Store[]> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return [];
+  let q = supabase
+    .from("astelier_stores")
+    .select(STORE_COLUMNS)
+    .eq("is_active", true);
+  if (school) q = q.eq("school", school);
+  const { data, error } = await q.order("created_at", { ascending: false }).limit(60);
+  if (error || !data) return [];
+  return (data as StoreRow[]).map(toStore);
+}
+
 /** A store by id (for a product's parent), active only, or null. */
 export async function getStoreById(id: string): Promise<Store | null> {
   const supabase = await createServerSupabase();
