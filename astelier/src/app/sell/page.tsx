@@ -39,13 +39,26 @@ export default async function SellPage() {
           <section className="mt-10">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-h2 font-bold uppercase">Products</h2>
-              <Link
-                href="/sell/products/new"
-                className="border-2 border-ink bg-ink px-4 py-2 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue"
-              >
-                + Add product
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/store/${store.slug}`}
+                  className="border-2 border-ink px-4 py-2 text-caption font-bold uppercase hover:bg-yellow"
+                >
+                  View store →
+                </Link>
+                <Link
+                  href="/sell/products/new"
+                  className="border-2 border-ink bg-ink px-4 py-2 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue"
+                >
+                  + Add product
+                </Link>
+              </div>
             </div>
+            <p className="mt-2 text-caption font-bold uppercase opacity-70">
+              {products.length} total ·{" "}
+              {products.filter((p) => p.status === "live").length} live ·{" "}
+              {products.filter((p) => p.status === "draft").length} draft
+            </p>
 
             {products.length ? (
               <ul className="mt-4 flex flex-col gap-2">

@@ -21,9 +21,15 @@ const toPath = (url: string) => (url.startsWith(PREFIX) ? url.slice(PREFIX.lengt
 const FIELD = "border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue";
 const LABEL = "text-caption font-bold uppercase";
 
-export function ProductEditor({ initial }: { initial: Product | null }) {
+export function ProductEditor({
+  initial,
+  prefillTitle,
+}: {
+  initial: Product | null;
+  prefillTitle?: string;
+}) {
   const router = useRouter();
-  const [title, setTitle] = useState(initial?.title ?? "");
+  const [title, setTitle] = useState(initial?.title ?? prefillTitle ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [price, setPrice] = useState(
     initial ? (initial.price_cents / 100).toString() : "",
@@ -93,7 +99,9 @@ export function ProductEditor({ initial }: { initial: Product | null }) {
         external_url: externalUrl,
         status,
       });
-      if (r.ok) router.push("/sell");
+      // New products land on their own edit page (which offers "Post on Atelier");
+      // edits return to the store.
+      if (r.ok) router.push(initial ? "/sell" : `/sell/products/${r.id}`);
       else setMsg(r.error ?? "Save failed.");
     });
   };

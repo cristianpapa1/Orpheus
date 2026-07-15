@@ -7,8 +7,13 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export const metadata = { title: "New post — Atelier" };
 
-export default async function NewPostPage() {
-  const [memberGroups, mutuals] = await Promise.all([
+export default async function NewPostPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ caption?: string; checkout_url?: string }>;
+}) {
+  const [{ caption, checkout_url }, memberGroups, mutuals] = await Promise.all([
+    searchParams,
     getOwnMemberGroups(),
     getMutualFollows(),
   ]);
@@ -19,6 +24,8 @@ export default async function NewPostPage() {
           canPublish={isSupabaseConfigured()}
           memberGroups={memberGroups}
           mutuals={mutuals}
+          initialCaption={caption?.slice(0, 200)}
+          initialCheckoutUrl={checkout_url?.slice(0, 300)}
         />
       </Window>
       <Window title="House rules" accent="blue" span="col-span-12 md:col-span-4">

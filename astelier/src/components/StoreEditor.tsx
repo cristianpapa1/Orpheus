@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { SCHOOLS, SCHOOL_LABEL } from "@atelier/core/design/schools";
 import { slugify, type Store } from "@atelier/core/commerce/stores";
 import { saveStore } from "@/app/sell/actions";
 
@@ -21,7 +20,8 @@ export function StoreEditor({ initial }: { initial: Store | null }) {
   const [slug, setSlug] = useState(initial?.slug ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [accent, setAccent] = useState<string>(initial?.accent ?? "red");
-  const [school, setSchool] = useState<string>(initial?.school ?? "bauhaus");
+  // Artistic-school personalization is deferred; keep the stored value untouched.
+  const school = initial?.school ?? "bauhaus";
   const [status, setStatus] = useState<string | null>(null);
   const [savedSlug, setSavedSlug] = useState<string | null>(initial?.slug ?? null);
   const [pending, start] = useTransition();
@@ -97,22 +97,6 @@ export function StoreEditor({ initial }: { initial: Store | null }) {
             />
           ))}
         </div>
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <label className={LABEL} htmlFor="store-school">Artistic school</label>
-        <select
-          id="store-school"
-          value={school}
-          onChange={(e) => setSchool(e.target.value)}
-          className={FIELD}
-        >
-          {SCHOOLS.map((s) => (
-            <option key={s} value={s}>
-              {SCHOOL_LABEL[s]}
-            </option>
-          ))}
-        </select>
       </div>
 
       <div className="flex flex-wrap items-center gap-4">

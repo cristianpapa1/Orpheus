@@ -51,17 +51,22 @@ export function PostComposer({
   canPublish,
   memberGroups = [],
   mutuals = [],
+  initialCaption,
+  initialCheckoutUrl,
 }: {
   canPublish: boolean;
   memberGroups?: TaggableGroup[];
   mutuals?: MutualFollow[];
+  /** Prefill when arriving from Astelier ("Post on Atelier"). */
+  initialCaption?: string;
+  initialCheckoutUrl?: string;
 }) {
   const [prepared, setPrepared] = useState<Prepared | null>(null);
-  const [caption, setCaption] = useState("");
+  const [caption, setCaption] = useState(initialCaption ?? "");
   const [altText, setAltText] = useState("");
   const [body, setBody] = useState("");
   const [tags, setTags] = useState("");
-  const [checkoutUrl, setCheckoutUrl] = useState("");
+  const [checkoutUrl, setCheckoutUrl] = useState(initialCheckoutUrl ?? "");
   const [mediaType, setMediaType] = useState<MediaType>("image");
   const [avFile, setAvFile] = useState<File | null>(null);
   const [avDuration, setAvDuration] = useState<number | null>(null);
@@ -494,7 +499,13 @@ export function PostComposer({
       />
       <p className="text-caption uppercase opacity-70">
         Selling this? Paste your Astelier store or product link — adds a “Checkout
-        at Astelier” button to the post&apos;s Act menu.
+        at Astelier” button to the post&apos;s Act menu. No shop yet?{" "}
+        <a
+          href={`https://astelier.aunflaneur.com/sell/products/new?title=${encodeURIComponent(caption)}`}
+          className="border-b-2 border-ink font-bold hover:text-blue"
+        >
+          Sell it on Astelier →
+        </a>
       </p>
 
       {mediaType !== "text" ? (
