@@ -2,7 +2,8 @@ import Link from "next/link";
 import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
 import { getGroups, getViewerGroupSets } from "@/lib/groups/queries";
-import { getOwnProfile } from "@/lib/profile/queries";
+import { getOwnProfile, getViewerCreatorStatus } from "@/lib/profile/queries";
+import { CreatorGate } from "@/components/creator/CreatorGate";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { suggestGroupsByInterests } from "@atelier/core/groups/discovery";
 import {
@@ -28,10 +29,11 @@ export default async function GroupsPage({
   searchParams: Promise<{ error?: string; tag?: string; q?: string }>;
 }) {
   const { error, tag, q } = await searchParams;
-  const [groups, { followed, member }, own] = await Promise.all([
+  const [groups, { followed, member }, own, creatorStatus] = await Promise.all([
     getGroups(),
     getViewerGroupSets(),
     getOwnProfile(),
+    getViewerCreatorStatus(),
   ]);
   const followedSet = new Set(followed);
   const memberSet = new Set(member);
@@ -136,6 +138,10 @@ export default async function GroupsPage({
 
       <WindowGrid>
         <Window title="Start a group" accent="red" span="col-span-12 md:col-span-4">
+          {creatorStatus !== "approved" ? (
+            <CreatorGate status={creatorStatus} action="start a group" />
+          ) : (
+          <>
           {error ? (
             <p role="alert" className="mb-3 border-2 border-red px-3 py-2 text-caption font-bold uppercase text-red">
               {ERRORS[error] ?? "Something went wrong."}
@@ -221,6 +227,8 @@ export default async function GroupsPage({
               </p>
             ) : null}
           </form>
+          </>
+          )}
         </Window>
 
         {list.length === 0 ? (

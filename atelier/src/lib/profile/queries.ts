@@ -405,6 +405,97 @@ export async function getResolvedClaims(limit = 50): Promise<ResolvedClaim[]> {
   }));
 }
 
+export type CreatorStatus = "none" | "pending" | "approved" | "rejected";
+
+/** The signed-in viewer's creator standing — drives whether the composer and
+ *  group-creation surfaces show. Preview mode → 'approved' so the demo is fully
+ *  explorable; defaults to 'none' pre-migration. */
+export async function getViewerCreatorStatus(): Promise<CreatorStatus> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return "approved";
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return "none";
+  const { data } = await supabase
+    .from("profiles")
+    .select("creator_status")
+    .eq("id", user.id)
+    .maybeSingle();
+  const s = data?.creator_status;
+  return s === "pending" || s === "approved" || s === "rejected" ? s : "none";
+}
+
+export interface CreatorApplication {
+  id: string;
+  profile_id: string;
+  statement: string;
+  links: string[];
+  status: "pending" | "approved" | "rejected";
+  created_at: string;
+  reviewed_at: string | null;
+  applicant_handle: string;
+  applicant_name: string;
+  applicant_avatar_url: string | null;
+}
+
+// creator_applications has two FKs to profiles (profile_id + reviewed_by) — pin.
+const APP_SELECT =
+  "id, profile_id, statement, links, status, created_at, reviewed_at, applicant:profiles!creator_applications_profile_id_fkey(handle, display_name, avatar_url)";
+
+type AppRow = {
+  id: string;
+  profile_id: string;
+  statement: string;
+  links: unknown;
+  status: "pending" | "approved" | "rejected";
+  created_at: string;
+  reviewed_at: string | null;
+  applicant: { handle: string | null; display_name: string | null; avatar_url: string | null } | null;
+};
+
+function toApplication(a: AppRow): CreatorApplication {
+  return {
+    id: a.id,
+    profile_id: a.profile_id,
+    statement: a.statement,
+    links: Array.isArray(a.links) ? (a.links.filter((l) => typeof l === "string") as string[]) : [],
+    status: a.status,
+    created_at: a.created_at,
+    reviewed_at: a.reviewed_at,
+    applicant_handle: a.applicant?.handle ?? "",
+    applicant_name: a.applicant?.display_name ?? a.applicant?.handle ?? "Unnamed",
+    applicant_avatar_url: a.applicant?.avatar_url ?? null,
+  };
+}
+
+/** Creator applications awaiting review — the Admissions queue. Defensive; [] pre-migration. */
+export async function getPendingCreatorApplications(): Promise<CreatorApplication[]> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("creator_applications")
+    .select(APP_SELECT)
+    .eq("status", "pending")
+    .order("created_at", { ascending: true });
+  if (error || !data) return [];
+  return (data as unknown as AppRow[]).map(toApplication);
+}
+
+/** Reviewed creator applications for the Admissions history. Defensive. */
+export async function getResolvedCreatorApplications(limit = 50): Promise<CreatorApplication[]> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("creator_applications")
+    .select(APP_SELECT)
+    .neq("status", "pending")
+    .order("reviewed_at", { ascending: false })
+    .limit(limit);
+  if (error || !data) return [];
+  return (data as unknown as AppRow[]).map(toApplication);
+}
+
 export interface FollowedProfile {
   id: string;
   handle: string;

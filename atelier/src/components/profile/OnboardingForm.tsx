@@ -38,6 +38,9 @@ export function OnboardingForm({ initial }: Props) {
     initial.institution_kind ?? "",
   );
   const [interests, setInterests] = useState<string[]>(initial.interests);
+  const [wantsCreator, setWantsCreator] = useState(false);
+  const [creatorStatement, setCreatorStatement] = useState("");
+  const [creatorLinks, setCreatorLinks] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -54,6 +57,9 @@ export function OnboardingForm({ initial }: Props) {
       account_type: accountType,
       institution_kind: accountType === "institution" ? institutionKind || null : null,
       interests,
+      wants_creator: wantsCreator,
+      creator_statement: wantsCreator ? creatorStatement : "",
+      creator_links: wantsCreator ? creatorLinks.split("\n") : [],
     };
     startTransition(async () => {
       const result = await completeOnboarding(payload);
@@ -187,6 +193,67 @@ export function OnboardingForm({ initial }: Props) {
             </button>
           ))}
         </div>
+      </section>
+
+      {/* Member vs creator */}
+      <section className="flex flex-col gap-3">
+        <p className="text-caption font-bold uppercase">How will you use Atelier?</p>
+        <div className="flex flex-wrap gap-2" data-use-mode={wantsCreator ? "creator" : "member"}>
+          <button
+            type="button"
+            data-use-option="member"
+            onClick={() => setWantsCreator(false)}
+            className={chip(!wantsCreator)}
+          >
+            Just here to explore
+          </button>
+          <button
+            type="button"
+            data-use-option="creator"
+            onClick={() => setWantsCreator(true)}
+            className={chip(wantsCreator)}
+          >
+            I&apos;m a creator
+          </button>
+        </div>
+        <p className="text-caption uppercase opacity-70">
+          Anyone can browse, follow, and join groups. Posting work and starting
+          groups is for creators — a quick manual review keeps the space real.
+        </p>
+
+        {wantsCreator ? (
+          <div className="flex flex-col gap-3 border-2 border-ink bg-ink/5 p-4">
+            <label htmlFor="creator_statement" className="text-caption font-bold uppercase">
+              What will you post?
+            </label>
+            <textarea
+              id="creator_statement"
+              value={creatorStatement}
+              onChange={(e) => setCreatorStatement(e.target.value)}
+              rows={4}
+              maxLength={2000}
+              data-creator-statement
+              placeholder="What you make and how you'll use Atelier — the more concrete, the faster the review."
+              className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
+            />
+            <label htmlFor="creator_links" className="text-caption font-bold uppercase">
+              Links that prove your work (one per line)
+            </label>
+            <textarea
+              id="creator_links"
+              value={creatorLinks}
+              onChange={(e) => setCreatorLinks(e.target.value)}
+              rows={3}
+              data-creator-links
+              placeholder={"https://your-portfolio.com\nhttps://instagram.com/you"}
+              className="border-2 border-ink bg-paper px-3 py-2 font-mono text-caption outline-none focus:border-blue"
+            />
+            <p className="text-caption uppercase opacity-70">
+              You&apos;ll go in as a member right away; we&apos;ll email you when your
+              creator access is approved.
+            </p>
+          </div>
+        ) : null}
       </section>
 
       {error ? (

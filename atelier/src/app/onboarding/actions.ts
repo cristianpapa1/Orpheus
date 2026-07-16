@@ -8,6 +8,8 @@ import {
   isInstitutionKind,
   parseInterests,
 } from "@atelier/core/profile/types";
+import { fileCreatorApplication } from "@/lib/creator/apply";
+import { cleanCreatorLinks, STATEMENT_MIN } from "@/lib/creator/limits";
 
 export interface OnboardingInput {
   display_name: string;
@@ -15,6 +17,10 @@ export interface OnboardingInput {
   account_type: string;
   institution_kind: string | null;
   interests: string[];
+  /** The applicant declared they're a creator — file an application for review. */
+  wants_creator: boolean;
+  creator_statement: string;
+  creator_links: string[];
 }
 
 export interface OnboardingResult {
@@ -65,6 +71,20 @@ export async function completeOnboarding(
 
   const interests = parseInterests(input.interests);
 
+  // If they declared creator, validate the application up front so onboarding
+  // fails cleanly rather than committing an identity with a broken application.
+  if (input.wants_creator) {
+    if (input.creator_statement.trim().length < STATEMENT_MIN) {
+      return {
+        ok: false,
+        error: `Tell us more about what you'll post — at least ${STATEMENT_MIN} characters.`,
+      };
+    }
+    if (cleanCreatorLinks(input.creator_links).length === 0) {
+      return { ok: false, error: "Add at least one link to your work." };
+    }
+  }
+
   const { error } = await supabase
     .from("profiles")
     .update({
@@ -83,6 +103,14 @@ export async function completeOnboarding(
       ok: false,
       error: error.code === "23505" ? "That handle is taken." : error.message,
     };
+  }
+
+  // Creators file an application → creator_status becomes 'pending' for review.
+  if (input.wants_creator) {
+    await fileCreatorApplication(supabase, user.id, {
+      statement: input.creator_statement,
+      links: input.creator_links,
+    });
   }
 
   revalidatePath("/feed");
