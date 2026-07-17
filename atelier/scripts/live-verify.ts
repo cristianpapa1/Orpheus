@@ -51,6 +51,18 @@ const B = await makeUser("theo");
 const C = await makeUser("nobody");
 ok("P0 sign-up → sign-in round-trip", true, `3 users created+signed-in (${A.email} …)`);
 
+// Creator gating (0026): posts + groups inserts require creator_status='approved'.
+// Approve A via service role — this is the admin-admissions path the app runs on
+// approval. A exercises the approved-creator surfaces below; B/C stay common
+// members so their post/group attempts remain valid RLS negatives.
+{
+  const { error: approveErr } = await admin
+    .from("profiles")
+    .update({ creator_status: "approved" })
+    .eq("id", A.id);
+  ok("P0 approve A as creator (admissions path)", !approveErr, approveErr?.message ?? "creator_status=approved");
+}
+
 const { data: profA } = await A.client.from("profiles").select("id, handle").eq("id", A.id).maybeSingle();
 ok("P0 signup trigger created profile row", !!profA, `profiles row exists for A: ${!!profA}`);
 
