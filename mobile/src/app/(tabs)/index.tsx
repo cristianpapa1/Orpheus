@@ -1,6 +1,6 @@
 import { formatPostDate } from "@atelier/core/posts/types";
-import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { Window } from "../../components/Window";
 import { mediaUrl, supabase } from "../../lib/supabase";
@@ -22,25 +22,34 @@ interface Row {
 /** Read-only latest work across the platform (public select, newest first).
  *  Handles every post kind, a ♥ favorite toggle, and tap-through to authors. */
 export default function FeedScreen() {
-  const t = useT().feed;
+  const dict = useT();
+  const t = dict.feed;
   const router = useRouter();
   const [rows, setRows] = useState<Row[]>([]);
   const [error, setError] = useState<string | null>(null);
   const { favSet, toggle } = useFavorites(rows.map((r) => r.id));
 
-  useEffect(() => {
-    supabase
-      .from("posts")
-      .select(
-        "id, caption, category, media_type, image_path, body, created_at, author:profiles!posts_author_id_fkey(handle, display_name)",
-      )
-      .order("created_at", { ascending: false })
-      .limit(20)
-      .then(({ data, error }) => {
-        if (error) setError(error.message);
-        else setRows((data as unknown as Row[]) ?? []);
-      });
-  }, []);
+  // Refetch whenever the tab regains focus — so a freshly composed post shows.
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      supabase
+        .from("posts")
+        .select(
+          "id, caption, category, media_type, image_path, body, created_at, author:profiles!posts_author_id_fkey(handle, display_name)",
+        )
+        .order("created_at", { ascending: false })
+        .limit(20)
+        .then(({ data, error }) => {
+          if (cancelled) return;
+          if (error) setError(error.message);
+          else setRows((data as unknown as Row[]) ?? []);
+        });
+      return () => {
+        cancelled = true;
+      };
+    }, []),
+  );
 
   const badge = (m: Row["media_type"]) =>
     m === "video" ? t.video : m === "audio" ? t.audio : m === "text" ? t.text : null;
@@ -52,6 +61,11 @@ export default function FeedScreen() {
       contentContainerStyle={styles.list}
       data={rows}
       keyExtractor={(r) => r.id}
+      ListHeaderComponent={
+        <Pressable style={styles.newPost} onPress={() => router.push("/compose")}>
+          <Text style={styles.newPostText}>＋ {dict.compose.newPost.toUpperCase()}</Text>
+        </Pressable>
+      }
       ListEmptyComponent={
         <Window title="Feed" accent="red">
           <Text style={styles.body}>{error ?? t.empty}</Text>
@@ -125,4 +139,6 @@ const styles = StyleSheet.create({
   favRow: { marginTop: 10, alignSelf: "flex-start" },
   heart: { fontSize: 22, color: BAUHAUS.ink },
   heartOn: { color: BAUHAUS.red },
+  newPost: { backgroundColor: BAUHAUS.ink, paddingVertical: 12, alignItems: "center", marginBottom: 16 },
+  newPostText: { fontFamily: FONT, letterSpacing: 2, color: BAUHAUS.paper },
 });

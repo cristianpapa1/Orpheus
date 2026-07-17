@@ -62,6 +62,18 @@ export default function RootLayout() {
               title: "",
             }}
           />
+          <Stack.Screen
+            name="compose"
+            options={{
+              headerShown: true,
+              presentation: "modal",
+              headerStyle: { backgroundColor: BAUHAUS.paper },
+              headerTitleStyle: { fontFamily: FONT },
+              headerTintColor: BAUHAUS.ink,
+              headerShadowVisible: false,
+              title: "",
+            }}
+          />
         </Stack.Protected>
         <Stack.Protected guard={!session}>
           <Stack.Screen name="login" />
