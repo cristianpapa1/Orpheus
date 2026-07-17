@@ -8,10 +8,12 @@ import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text } from "react-native";
 import { Window } from "../../components/Window";
 import { supabase } from "../../lib/supabase";
+import { useT } from "../../lib/i18n/context";
 import { BAUHAUS, FONT, FONT_BODY } from "../../theme";
 
 /** Global upcoming events — grouped by month via @atelier/core (M0 payoff). */
 export default function EventsScreen() {
+  const t = useT().events;
   const [events, setEvents] = useState<EventItem[]>([]);
   useEffect(() => {
     supabase
@@ -32,8 +34,8 @@ export default function EventsScreen() {
       contentContainerStyle={{ padding: 16 }}
     >
       {groups.length === 0 ? (
-        <Window title="Events" accent="yellow">
-          <Text style={styles.body}>Nothing upcoming.</Text>
+        <Window title={t.title} accent="yellow">
+          <Text style={styles.body}>{t.empty}</Text>
         </Window>
       ) : (
         groups.map((g) => (

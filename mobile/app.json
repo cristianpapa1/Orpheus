@@ -41,18 +41,11 @@
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "owner": "catchyawn",
     "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "305dcd0b-820a-407c-9aba-18bcdee21424"
-      }
+      "router": {}
     },
     "runtimeVersion": {
       "policy": "appVersion"
-    },
-    "updates": {
-      "url": "https://u.expo.dev/305dcd0b-820a-407c-9aba-18bcdee21424"
     }
   }
 }

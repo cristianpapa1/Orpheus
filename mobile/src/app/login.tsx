@@ -2,10 +2,14 @@ import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { Window } from "../components/Window";
 import { supabase } from "../lib/supabase";
+import { useI18n, useT } from "../lib/i18n/context";
 import { BAUHAUS, FONT, FONT_BODY } from "../theme";
 
 /** Entry gate — the facade's front door. Sign in or create an account. */
 export default function LoginScreen() {
+  const t = useT().login;
+  const { dir } = useI18n();
+  const align = dir === "rtl" ? "right" : "left";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<string | null>(null);
@@ -18,13 +22,7 @@ export default function LoginScreen() {
       mode === "in"
         ? await supabase.auth.signInWithPassword({ email, password })
         : await supabase.auth.signUp({ email, password });
-    setStatus(
-      error
-        ? error.message
-        : mode === "up"
-          ? "Check your inbox to confirm your email, then sign in."
-          : null,
-    );
+    setStatus(error ? error.message : mode === "up" ? t.confirm : null);
     setBusy(false);
     // On successful sign-in the root layout's session gate swaps to the tabs.
   };
@@ -41,13 +39,13 @@ export default function LoginScreen() {
         <View style={[styles.square, { backgroundColor: BAUHAUS.yellow }]} />
         <Text style={styles.brand}>ATELIER</Text>
       </View>
-      <Text style={styles.tagline}>A place for makers.</Text>
+      <Text style={styles.tagline}>{t.tagline}</Text>
 
-      <Window title="Sign in" accent="red">
+      <Window title={t.signIn} accent="red">
         <TextInput
           testID="email"
-          style={styles.input}
-          placeholder="email"
+          style={[styles.input, { textAlign: align }]}
+          placeholder={t.email}
           placeholderTextColor="#8a877c"
           autoCapitalize="none"
           keyboardType="email-address"
@@ -56,24 +54,21 @@ export default function LoginScreen() {
         />
         <TextInput
           testID="password"
-          style={styles.input}
-          placeholder="password"
+          style={[styles.input, { textAlign: align }]}
+          placeholder={t.password}
           placeholderTextColor="#8a877c"
           secureTextEntry
           value={password}
           onChangeText={setPassword}
         />
         <Pressable style={styles.button} disabled={busy} onPress={() => run("in")}>
-          <Text style={styles.buttonText}>{busy ? "…" : "SIGN IN"}</Text>
+          <Text style={styles.buttonText}>{busy ? "…" : t.signInBtn.toUpperCase()}</Text>
         </Pressable>
         <Pressable style={styles.buttonAlt} disabled={busy} onPress={() => run("up")}>
-          <Text style={styles.buttonAltText}>CREATE ACCOUNT</Text>
+          <Text style={styles.buttonAltText}>{t.createAccount.toUpperCase()}</Text>
         </Pressable>
         {status ? <Text style={styles.status}>{status}</Text> : null}
-        <Text style={styles.hint}>
-          Magic-link and Google sign-in arrive with the next milestone — email +
-          password works today.
-        </Text>
+        <Text style={styles.hint}>{t.hint}</Text>
       </Window>
     </ScrollView>
   );

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { FlatList, StyleSheet, Text } from "react-native";
 import { Window } from "../../components/Window";
 import { supabase } from "../../lib/supabase";
+import { useT } from "../../lib/i18n/context";
 import { BAUHAUS, FONT_BODY } from "../../theme";
 
 interface Row {
@@ -12,6 +13,7 @@ interface Row {
 }
 
 export default function GroupsScreen() {
+  const t = useT().groups;
   const [rows, setRows] = useState<Row[]>([]);
   useEffect(() => {
     supabase
@@ -30,12 +32,12 @@ export default function GroupsScreen() {
       keyExtractor={(r) => r.id}
       ListEmptyComponent={
         <Window title="Groups" accent="blue">
-          <Text style={styles.body}>No groups yet.</Text>
+          <Text style={styles.body}>{t.empty}</Text>
         </Window>
       }
       renderItem={({ item, index }) => (
         <Window
-          title={item.is_private ? `${item.name} · private` : item.name}
+          title={item.is_private ? `${item.name} · ${t.private}` : item.name}
           accent={(["blue", "yellow", "red"] as const)[index % 3]}
         >
           <Text style={styles.body}>{item.description}</Text>

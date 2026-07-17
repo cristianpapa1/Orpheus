@@ -1,12 +1,16 @@
 import type { Session } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { Window } from "../../components/Window";
 import { supabase } from "../../lib/supabase";
+import { useI18n, useT } from "../../lib/i18n/context";
+import { LOCALES } from "../../lib/i18n/config";
 import { BAUHAUS, FONT, FONT_BODY } from "../../theme";
 
-/** Real auth against the live project (email + password grant). */
+/** Real auth against the live project (email + password grant) + language. */
 export default function AccountScreen() {
+  const t = useT().account;
+  const { locale, dir, setLocale } = useI18n();
   const [session, setSession] = useState<Session | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,8 +25,10 @@ export default function AccountScreen() {
   const signIn = async () => {
     setStatus(null);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setStatus(error ? error.message : "Signed in.");
+    setStatus(error ? error.message : t.signedInMsg);
   };
+
+  const align = dir === "rtl" ? "right" : "left";
 
   return (
     <ScrollView
@@ -31,18 +37,19 @@ export default function AccountScreen() {
       contentContainerStyle={{ padding: 16 }}
     >
       {session ? (
-        <Window title="Signed in" accent="blue">
-          <Text style={styles.body}>{session.user.email}</Text>
+        <Window title={t.signedIn} accent="blue">
+          <Text style={[styles.body, { textAlign: align }]}>{session.user.email}</Text>
           <Pressable style={styles.button} onPress={() => supabase.auth.signOut()}>
-            <Text style={styles.buttonText}>SIGN OUT</Text>
+            <Text style={styles.buttonText}>{t.signOut.toUpperCase()}</Text>
           </Pressable>
         </Window>
       ) : (
-        <Window title="Sign in" accent="red">
+        <Window title={t.signInTitle} accent="red">
           <TextInput
             testID="email"
-            style={styles.input}
-            placeholder="email"
+            style={[styles.input, { textAlign: align }]}
+            placeholder={t.email}
+            placeholderTextColor="#8a877c"
             autoCapitalize="none"
             keyboardType="email-address"
             value={email}
@@ -50,18 +57,39 @@ export default function AccountScreen() {
           />
           <TextInput
             testID="password"
-            style={styles.input}
-            placeholder="password"
+            style={[styles.input, { textAlign: align }]}
+            placeholder={t.password}
+            placeholderTextColor="#8a877c"
             secureTextEntry
             value={password}
             onChangeText={setPassword}
           />
           <Pressable style={styles.button} onPress={signIn}>
-            <Text style={styles.buttonText}>SIGN IN</Text>
+            <Text style={styles.buttonText}>{t.signIn.toUpperCase()}</Text>
           </Pressable>
-          {status ? <Text style={styles.body}>{status}</Text> : null}
+          {status ? <Text style={[styles.body, { textAlign: align }]}>{status}</Text> : null}
         </Window>
       )}
+
+      <Window title={t.language} accent="yellow">
+        <View style={styles.langWrap}>
+          {LOCALES.map((l) => {
+            const active = l.code === locale;
+            return (
+              <Pressable
+                key={l.code}
+                testID={`lang-${l.code}`}
+                onPress={() => setLocale(l.code)}
+                style={[styles.chip, active && styles.chipActive]}
+              >
+                <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                  {l.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </Window>
     </ScrollView>
   );
 }
@@ -74,8 +102,19 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 10,
     fontFamily: FONT_BODY,
+    color: BAUHAUS.ink,
     backgroundColor: BAUHAUS.paper,
   },
   button: { backgroundColor: BAUHAUS.ink, padding: 12, alignItems: "center" },
   buttonText: { color: BAUHAUS.paper, fontFamily: FONT, letterSpacing: 2 },
+  langWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  chip: {
+    borderWidth: 2,
+    borderColor: BAUHAUS.ink,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  chipActive: { backgroundColor: BAUHAUS.ink },
+  chipText: { fontFamily: FONT, fontSize: 12, letterSpacing: 1, color: BAUHAUS.ink },
+  chipTextActive: { color: BAUHAUS.paper },
 });

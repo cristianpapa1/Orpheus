@@ -8,6 +8,7 @@ import { Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { supabase } from "../lib/supabase";
+import { I18nProvider } from "../lib/i18n/context";
 import { BAUHAUS } from "../theme";
 
 /** Root gate: no session → login screen; session → the tabs. */
@@ -30,18 +31,20 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: BAUHAUS.paper },
-      }}
-    >
-      <Stack.Protected guard={!!session}>
-        <Stack.Screen name="(tabs)" />
-      </Stack.Protected>
-      <Stack.Protected guard={!session}>
-        <Stack.Screen name="login" />
-      </Stack.Protected>
-    </Stack>
+    <I18nProvider>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: BAUHAUS.paper },
+        }}
+      >
+        <Stack.Protected guard={!!session}>
+          <Stack.Screen name="(tabs)" />
+        </Stack.Protected>
+        <Stack.Protected guard={!session}>
+          <Stack.Screen name="login" />
+        </Stack.Protected>
+      </Stack>
+    </I18nProvider>
   );
 }
