@@ -1,4 +1,3 @@
-import { DEFAULT_DISPLAY } from "@atelier/core/posts/display";
 import { CATEGORY_LABEL, POST_CATEGORIES, type PostCategory } from "@atelier/core/posts/types";
 import { decode } from "base64-arraybuffer";
 import * as ImagePicker from "expo-image-picker";
@@ -76,17 +75,10 @@ export default function ComposeScreen() {
 
     setBusy(true);
     try {
-      const shared = {
-        author_id: uid,
-        caption: caption.trim().slice(0, 1000),
-        category,
-        subcategory: null as string | null,
-        display: DEFAULT_DISPLAY,
-        tags: [] as string[],
-        checkout_url: null as string | null,
-      };
-
-      let row: Record<string, unknown>;
+      // Publish goes through the moderate-post Edge Function: it runs the same
+      // Claude first-line filter as the web, then inserts as the caller (RLS
+      // still enforces the creator gate). We just upload the image first.
+      let payload: Record<string, unknown>;
       if (mediaType === "image" && image?.base64) {
         const ext = EXT[image.mimeType ?? ""] ?? "jpg";
         const path = `${uid}/originals/${rand()}.${ext}`;
@@ -98,46 +90,30 @@ export default function ComposeScreen() {
           });
         if (upErr) {
           setError(t.failed);
-          setBusy(false);
           return;
         }
-        row = {
-          ...shared,
-          images: [path],
-          image_path: path,
-          image_width: image.width ?? null,
-          image_height: image.height ?? null,
-          original_path: path,
-          variants: [],
-          blur_data: null,
-          alt_text: altText.trim().slice(0, 300) || null,
+        payload = {
           media_type: "image",
-          media_path: null,
-          duration_seconds: null,
-          body: null,
+          caption,
+          category,
+          images: [path],
+          image_width: image.width,
+          image_height: image.height,
+          alt_text: altText,
         };
       } else {
-        row = {
-          ...shared,
-          images: [],
-          image_path: null,
-          image_width: null,
-          image_height: null,
-          original_path: null,
-          variants: [],
-          blur_data: null,
-          alt_text: null,
-          media_type: "text",
-          media_path: null,
-          duration_seconds: null,
-          body: body.trim().slice(0, 5000),
-        };
+        payload = { media_type: "text", caption, category, body };
       }
 
-      const { error: insErr } = await supabase.from("posts").insert(row);
-      if (insErr) {
+      const { data, error: fnErr } = await supabase.functions.invoke("moderate-post", {
+        body: payload,
+      });
+      if (fnErr) {
         setError(t.failed);
-        setBusy(false);
+        return;
+      }
+      if (!data?.ok) {
+        setError(typeof data?.error === "string" ? data.error : t.failed);
         return;
       }
       router.back();
