@@ -27,6 +27,7 @@ import { disciplineLabel } from "@atelier/core/taxonomy/disciplines";
 import { getGroupThreads, discussionAccess } from "@/lib/groups/discussion";
 import { GroupThreadList } from "@/components/groups/GroupThreadList";
 import { updateGroupDiscussion } from "../../groups/discussion-actions";
+import { getI18n } from "@/lib/i18n/server";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -82,6 +83,8 @@ export default async function GroupPage({ params, searchParams }: Props) {
   const access = discussionAccess(group.discussion_read, group.discussion_mode, relation);
   const threads = access.canRead ? await getGroupThreads(group.id) : [];
   const configured = isSupabaseConfigured();
+  const { t: dict } = await getI18n();
+  const t = dict.groups;
 
   return (
     <div>
@@ -89,27 +92,27 @@ export default async function GroupPage({ params, searchParams }: Props) {
         <h1 className="text-h1 font-bold uppercase">{group.name}</h1>
         {group.is_private ? (
           <span data-private-badge className="border-2 border-ink bg-yellow px-2 py-1 text-caption font-bold uppercase">
-            Private
+            {t.privateBadge}
           </span>
         ) : null}
         <span className="text-caption font-bold uppercase">
-          {group.member_count} members · {group.follower_count} followers
+          {group.member_count} {t.members} · {group.follower_count} {t.followers}
         </span>
       </div>
 
       {flags.error ? (
         <p role="alert" className="mb-4 border-2 border-red px-3 py-2 text-caption font-bold uppercase text-red">
-          That didn&apos;t work ({flags.error}). Try again.
+          {t.somethingWrong}
         </p>
       ) : null}
       {flags.invited ? (
         <p role="status" className="mb-4 border-2 border-ink px-3 py-2 text-caption font-bold uppercase">
-          Invite sent.
+          {t.inviteSent}
         </p>
       ) : null}
 
       <WindowGrid className="mb-4">
-        <Window title="About" accent="blue" span="col-span-12 md:col-span-5">
+        <Window title={t.about} accent="blue" span="col-span-12 md:col-span-5">
           <p className="text-body">{group.description}</p>
           {group.interests.length > 0 ? (
             <p data-group-disciplines className="mt-3 flex flex-wrap gap-1">
@@ -132,7 +135,7 @@ export default async function GroupPage({ params, searchParams }: Props) {
                 <input type="hidden" name="group_id" value={group.id} />
                 <input type="hidden" name="slug" value={group.slug} />
                 <button className="border-2 border-ink bg-ink px-4 py-1 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue">
-                  Accept invite — join
+                  {t.acceptInvite}
                 </button>
               </form>
             ) : null}
@@ -146,7 +149,7 @@ export default async function GroupPage({ params, searchParams }: Props) {
                     disabled={!configured}
                     className="border-2 border-ink px-4 py-1 text-caption font-bold uppercase hover:bg-blue hover:border-blue hover:text-paper disabled:opacity-50"
                   >
-                    Follow group
+                    {t.followGroup}
                   </button>
                 </form>
                 <form action={requestToJoin}>
@@ -157,37 +160,30 @@ export default async function GroupPage({ params, searchParams }: Props) {
                     disabled={!configured}
                     className="border-2 border-ink px-4 py-1 text-caption font-bold uppercase hover:bg-yellow disabled:opacity-50"
                   >
-                    Request to join
+                    {t.requestJoin}
                   </button>
                 </form>
               </>
             ) : null}
             {relation === "requested" ? (
-              <p className="text-caption font-bold uppercase">Join request pending.</p>
+              <p className="text-caption font-bold uppercase">{t.joinPending}</p>
             ) : null}
             {relation === "follower" ? (
               <form action={unfollowGroup}>
                 <input type="hidden" name="group_id" value={group.id} />
                 <input type="hidden" name="slug" value={group.slug} />
                 <button className="border-2 border-ink bg-ink px-4 py-1 text-caption font-bold uppercase text-paper hover:bg-red hover:border-red">
-                  Following — unfollow
+                  {t.unfollow}
                 </button>
               </form>
             ) : null}
             {isMember ? (
-              <p className="text-caption font-bold uppercase">
-                You&apos;re a {relation} — tag your posts into this group when publishing.
-              </p>
-            ) : null}
-            {!configured ? (
-              <p className="w-full text-caption uppercase opacity-70">
-                Preview mode — joining and following need Supabase configured
-              </p>
+              <p className="text-caption font-bold uppercase">{t.memberBadge}</p>
             ) : null}
           </div>
         </Window>
 
-        <Window title="Members" accent="yellow" span="col-span-12 md:col-span-4">
+        <Window title={t.membersTitle} accent="yellow" span="col-span-12 md:col-span-4">
           <ul data-member-list className="flex flex-col gap-2">
             {members.map((m) => (
               <li key={m.profile_id} className="flex items-baseline justify-between gap-2">
@@ -200,13 +196,13 @@ export default async function GroupPage({ params, searchParams }: Props) {
           </ul>
         </Window>
 
-        <Window title="Invite a creator" accent="red" span="col-span-12 md:col-span-3">
+        <Window title={t.inviteCreator} accent="red" span="col-span-12 md:col-span-3">
           {isMember ? (
             <form action={inviteToGroup} data-invite-form className="flex flex-col gap-3">
               <input type="hidden" name="group_id" value={group.id} />
               <input type="hidden" name="slug" value={group.slug} />
               <label htmlFor="handle" className="text-caption font-bold uppercase">
-                Their handle
+                {t.theirHandle}
               </label>
               <input
                 id="handle"
@@ -216,7 +212,7 @@ export default async function GroupPage({ params, searchParams }: Props) {
                 className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
               />
               <button className="self-start border-2 border-ink bg-ink px-4 py-1 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue">
-                Invite
+                {t.invite}
               </button>
             </form>
           ) : (
@@ -227,7 +223,7 @@ export default async function GroupPage({ params, searchParams }: Props) {
         </Window>
 
         {relation === "owner" && requests.length > 0 ? (
-          <Window title="Join requests" accent="red" span="col-span-12">
+          <Window title={t.joinRequests} accent="red" span="col-span-12">
             <ul className="flex flex-col gap-2">
               {requests.map((r) => (
                 <li key={r.requester_id} className="flex items-center gap-3">
@@ -239,7 +235,7 @@ export default async function GroupPage({ params, searchParams }: Props) {
                     <input type="hidden" name="slug" value={group.slug} />
                     <input type="hidden" name="requester_id" value={r.requester_id} />
                     <button className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-yellow">
-                      Admit
+                      {t.admit}
                     </button>
                   </form>
                 </li>
@@ -250,11 +246,11 @@ export default async function GroupPage({ params, searchParams }: Props) {
       </WindowGrid>
 
       <div className="mb-4 mt-8 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-h2 font-bold uppercase">Discussion</h2>
+        <h2 className="text-h2 font-bold uppercase">{t.discussion}</h2>
         {relation === "owner" ? (
           <details className="relative">
             <summary className="cursor-pointer border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-yellow">
-              Settings
+              {t.settings}
             </summary>
             <form
               action={updateGroupDiscussion}
@@ -262,19 +258,19 @@ export default async function GroupPage({ params, searchParams }: Props) {
             >
               <input type="hidden" name="group_id" value={group.id} />
               <input type="hidden" name="slug" value={group.slug} />
-              <label className="text-caption font-bold uppercase">Who can read</label>
+              <label className="text-caption font-bold uppercase">{t.whoCanRead}</label>
               <select name="discussion_read" defaultValue={group.discussion_read} className="border-2 border-ink bg-paper px-2 py-1 text-body">
-                <option value="members">Members only</option>
-                <option value="public">Anyone</option>
+                <option value="members">{t.membersOnly}</option>
+                <option value="public">{t.anyone}</option>
               </select>
-              <label className="text-caption font-bold uppercase">Who can post</label>
+              <label className="text-caption font-bold uppercase">{t.whoCanPost}</label>
               <select name="discussion_mode" defaultValue={group.discussion_mode} className="border-2 border-ink bg-paper px-2 py-1 text-body">
-                <option value="open">Open — members post & reply</option>
-                <option value="announce">Announcements — owners post, members reply</option>
-                <option value="broadcast">Announcements — owners only</option>
+                <option value="open">{t.openMode}</option>
+                <option value="announce">{t.announceMode}</option>
+                <option value="broadcast">{t.broadcastMode}</option>
               </select>
               <button className="self-start border-2 border-ink bg-ink px-3 py-1 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue">
-                Save
+                {t.save}
               </button>
             </form>
           </details>
@@ -282,7 +278,7 @@ export default async function GroupPage({ params, searchParams }: Props) {
       </div>
       <WindowGrid>
         {access.canRead ? (
-          <Window title="Discussion" accent="blue" span="col-span-12 md:col-span-8">
+          <Window title={t.discussion} accent="blue" span="col-span-12 md:col-span-8">
             <GroupThreadList
               threads={threads}
               access={access}
@@ -291,28 +287,23 @@ export default async function GroupPage({ params, searchParams }: Props) {
             />
           </Window>
         ) : (
-          <Window title="Members only" accent="yellow" span="col-span-12 md:col-span-6">
-            <p className="text-body opacity-70">
-              This group&apos;s discussion is for members. Join to read and post.
-            </p>
+          <Window title={t.membersOnlyTitle} accent="yellow" span="col-span-12 md:col-span-6">
+            <p className="text-body opacity-70">{t.discussionMembersOnly}</p>
           </Window>
         )}
       </WindowGrid>
 
-      <h2 className="mb-4 mt-8 text-h2 font-bold uppercase">Group feed</h2>
+      <h2 className="mb-4 mt-8 text-h2 font-bold uppercase">{t.groupFeed}</h2>
       {!canSeeFeed ? (
         <WindowGrid>
-          <Window title="Private feed" accent="yellow" span="col-span-12 md:col-span-6">
-            <p data-private-notice className="text-body">
-              This group&apos;s feed is private — members share works in
-              progress here. Request to join to see it.
-            </p>
+          <Window title={t.privateGroup} accent="yellow" span="col-span-12 md:col-span-6">
+            <p data-private-notice className="text-body">{t.privateFeedBody}</p>
           </Window>
         </WindowGrid>
       ) : posts.length === 0 ? (
         <WindowGrid>
-          <Window title="Empty" accent="blue" span="col-span-12 md:col-span-6">
-            <p className="text-body">No posts tagged into this group yet.</p>
+          <Window title={t.empty} accent="blue" span="col-span-12 md:col-span-6">
+            <p className="text-body">{t.noPosts}</p>
           </Window>
         </WindowGrid>
       ) : (

@@ -14,6 +14,9 @@ import type { GroupTag } from "@/lib/groups/types";
 import { FavoritePost, type Contact } from "@/components/posts/FavoritePost";
 import { Avatar } from "@/components/profile/Avatar";
 import type { FavInfo } from "@/lib/favorites/queries";
+import type { CurationInfo } from "@/lib/curations/queries";
+import type { FeedCurator } from "@/lib/posts/queries";
+import { getI18n } from "@/lib/i18n/server";
 
 const ACCENTS: WindowAccent[] = ["red", "blue", "yellow"];
 
@@ -22,11 +25,14 @@ const ACCENTS: WindowAccent[] = ["red", "blue", "yellow"];
  * aspect — is the owner's choice, carried in post.display (Phase 3).
  * Group tags render as "also in [group]" markers (Phase 4 cross-linking).
  */
-export function PostCard({
+export async function PostCard({
   post,
   index = 0,
   groups = [],
   fav,
+  cur,
+  canCurate = false,
+  curatedBy = null,
   following = [],
   canReportQuality = false,
   viewerId = null,
@@ -35,10 +41,15 @@ export function PostCard({
   index?: number;
   groups?: GroupTag[];
   fav?: FavInfo;
+  cur?: CurationInfo;
+  canCurate?: boolean;
+  /** When set, this card is in the feed because a curator you follow reposted it. */
+  curatedBy?: FeedCurator | null;
   following?: Contact[];
   canReportQuality?: boolean;
   viewerId?: string | null;
 }) {
+  const { t } = await getI18n();
   const frame = frameClasses(post.display.frame);
 
   return (
@@ -55,6 +66,17 @@ export function PostCard({
         flush
         className="h-full"
       >
+        {curatedBy ? (
+          <Link
+            href={`/u/${curatedBy.handle || curatedBy.id}`}
+            data-curated-by={curatedBy.id}
+            className="flex items-center gap-2 border-b-2 border-ink bg-blue px-4 py-1.5 text-caption font-bold uppercase text-paper hover:bg-ink"
+          >
+            <span aria-hidden>♺</span>
+            Curated by {curatedBy.display_name}
+            {curatedBy.handle ? ` · @${curatedBy.handle}` : ""}
+          </Link>
+        ) : null}
         {post.media_type === "text" ? (
           <Link href={`/p/${post.id}`} className="block p-4">
             {post.caption ? (
@@ -134,7 +156,7 @@ export function PostCard({
                   data-also-in={g.slug}
                   className="border-2 border-ink px-2 py-0.5 text-caption font-bold uppercase hover:bg-yellow"
                 >
-                  also in {g.name}
+                  {t.post.alsoIn} {g.name}
                 </Link>
               ))}
             </p>
@@ -143,6 +165,9 @@ export function PostCard({
             postId={post.id}
             caption={post.caption}
             fav={fav}
+            cur={cur}
+            canCurate={canCurate}
+            curatedHref={`/p/${post.id}`}
             following={following}
             canReportQuality={canReportQuality}
             canDelete={!!viewerId && viewerId === post.author_id}

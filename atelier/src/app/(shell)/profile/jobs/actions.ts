@@ -20,6 +20,17 @@ export async function createJob(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  // Only approved creators post jobs. RLS re-checks; this is the humane
+  // redirect so members see a clear message instead of a silent failure.
+  const { data: prof } = await supabase
+    .from("profiles")
+    .select("creator_status")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (prof?.creator_status !== "approved") {
+    redirect("/profile/jobs?error=locked");
+  }
+
   const title = String(formData.get("title") ?? "").trim().slice(0, 80);
   const discipline = String(formData.get("discipline") ?? "");
   const description = String(formData.get("description") ?? "").trim().slice(0, 2000);

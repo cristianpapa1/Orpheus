@@ -3,97 +3,81 @@ import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
 import { Nav } from "@/components/Nav";
 import { getGateState, REQUIRED_FOLLOWS } from "@/lib/gate";
+import { getI18n } from "@/lib/i18n/server";
 
 const ATELIER_URL = "https://atelier.aunflaneur.com";
 
 export default async function AstelierHome() {
   const gate = await getGateState();
   const pct = Math.min(100, Math.round((gate.followCount / REQUIRED_FOLLOWS) * 100));
+  const { t: dict } = await getI18n();
+  const t = dict.home;
+  const n = String(REQUIRED_FOLLOWS);
 
   return (
     <>
       <Nav signedIn={gate.signedIn} />
       <main id="main" className="mx-auto w-full max-w-6xl grow px-6 py-12">
         <section className="mb-10">
-          <h1 className="text-display font-bold uppercase leading-none">
-            Sell what
-            <br />
-            you make.
-          </h1>
-          <p className="mt-6 max-w-md text-body">
-            Astelier is where Atelier makers sell — the same community, the same
-            Bauhaus rooms, a place of its own for commerce. No ads, no boosted
-            listings. The maker owns the sale.
-          </p>
+          <h1 className="text-display font-bold uppercase leading-none">{t.heroTitle}</h1>
+          <p className="mt-6 max-w-md text-body">{t.heroLead}</p>
         </section>
 
         {!gate.signedIn ? (
           <WindowGrid>
-            <Window title="Enter" accent="blue" span="col-span-12 md:col-span-7">
-              <p className="text-body">
-                Your Atelier account is your Astelier account — one sign-in.
-              </p>
+            <Window title={t.enter} accent="blue" span="col-span-12 md:col-span-7">
+              <p className="text-body">{t.enterBody}</p>
               <Link
                 href="/login"
                 className="mt-6 inline-block border-2 border-ink bg-ink px-6 py-2 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue"
               >
-                Sign in →
+                {t.signIn}
               </Link>
             </Window>
-            <Window title="How it works" accent="yellow" span="col-span-12 md:col-span-5">
-              <p className="text-body">
-                Follow at least {REQUIRED_FOLLOWS} makers on Atelier and Astelier
-                opens. You take part in the community before you transact.
-              </p>
+            <Window title={t.howItWorks} accent="yellow" span="col-span-12 md:col-span-5">
+              <p className="text-body">{t.howBody.replace("{n}", n)}</p>
             </Window>
           </WindowGrid>
         ) : gate.unlocked ? (
           <WindowGrid>
             <Window
-              title={gate.displayName ? `Welcome, ${gate.displayName}` : "Welcome"}
+              title={gate.displayName ? `${t.welcome}, ${gate.displayName}` : t.welcome}
               accent="red"
               span="col-span-12 md:col-span-7"
             >
-              <p className="text-body">
-                You&apos;re in. Astelier is opening in stages — stores and a maker
-                catalog are next.
-              </p>
+              <p className="text-body">{t.inBody}</p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link
                   href="/sell"
                   className="border-2 border-ink bg-ink px-4 py-2 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue"
                 >
-                  Open your store →
+                  {t.openStore}
                 </Link>
                 <Link
                   href="/browse"
                   className="border-2 border-ink px-4 py-2 text-caption font-bold uppercase hover:bg-yellow"
                 >
-                  Browse makers →
+                  {t.browseMakers}
                 </Link>
               </div>
             </Window>
-            <Window title="Access" accent="blue" span="col-span-12 md:col-span-5">
-              <p className="text-body font-bold uppercase">Unlocked</p>
+            <Window title={t.access} accent="blue" span="col-span-12 md:col-span-5">
+              <p className="text-body font-bold uppercase">{t.unlocked}</p>
               <p className="mt-2 text-body">
-                {gate.followCount} makers followed on Atelier.
+                {gate.followCount} {t.makersFollowed}
               </p>
             </Window>
           </WindowGrid>
         ) : (
           <WindowGrid>
-            <Window title="Almost in" accent="yellow" span="col-span-12 md:col-span-7">
-              <p className="text-body">
-                Astelier opens once you follow{" "}
-                <strong>{REQUIRED_FOLLOWS}</strong> makers on Atelier. You take
-                part in the community before you transact.
-              </p>
+            <Window title={t.almostIn} accent="yellow" span="col-span-12 md:col-span-7">
+              <p className="text-body">{t.almostBody.replace("{n}", n)}</p>
               <div className="mt-6">
                 <div className="flex justify-between text-caption font-bold uppercase">
                   <span>
                     {gate.followCount} / {REQUIRED_FOLLOWS}
                   </span>
-                  <span>{gate.remaining} to go</span>
+                  <span>{gate.remaining} {t.toGo}</span>
                 </div>
                 <div
                   className="mt-2 h-4 border-2 border-ink"
@@ -109,14 +93,11 @@ export default async function AstelierHome() {
                 href={`${ATELIER_URL}/search`}
                 className="mt-6 inline-block border-2 border-ink bg-ink px-6 py-2 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue"
               >
-                Find makers on Atelier →
+                {t.findMakers}
               </a>
             </Window>
-            <Window title="Why fifteen?" accent="blue" span="col-span-12 md:col-span-5">
-              <p className="text-body">
-                Commerce that grows out of a community, not a storefront dropped on
-                strangers. Follow the makers whose work you&apos;d want to buy.
-              </p>
+            <Window title={t.whyFifteen} accent="blue" span="col-span-12 md:col-span-5">
+              <p className="text-body">{t.whyBody}</p>
             </Window>
           </WindowGrid>
         )}
@@ -124,7 +105,10 @@ export default async function AstelierHome() {
 
       <footer className="border-t-2 border-ink px-6 py-6">
         <p className="mx-auto max-w-6xl text-caption font-bold uppercase opacity-70">
-          © À un flâneur · Astelier — the commerce sibling to Atelier
+          © À un flâneur · Astelier — {t.footerTagline} ·{" "}
+          <a href="mailto:atelier@aunflaneur.com" className="border-b-2 border-ink hover:text-ink">
+            {t.contact}
+          </a>
         </p>
       </footer>
     </>

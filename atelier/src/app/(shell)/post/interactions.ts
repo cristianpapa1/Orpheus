@@ -6,6 +6,17 @@ import { createServiceClient } from "@/lib/supabase/admin";
 import { notify } from "@/lib/notifications/notify";
 import { getOrCreateThread } from "@/lib/chat/threads";
 
+// A curator's buy link may only point at Astelier — never an arbitrary URL.
+const ASTELIER_HOST = process.env.NEXT_PUBLIC_ASTELIER_HOST ?? "astelier.aunflaneur.com";
+function cleanAstelierUrl(v: string): string | null {
+  try {
+    const u = new URL(v.trim());
+    return u.protocol === "https:" && u.hostname === ASTELIER_HOST ? u.href : null;
+  } catch {
+    return null;
+  }
+}
+
 export interface FavoriteResult {
   ok: boolean;
   favorited: boolean;
@@ -68,6 +79,170 @@ export async function toggleFavorite(postId: string): Promise<FavoriteResult> {
   revalidatePath("/feed");
   revalidatePath("/saved");
   return { ok: true, favorited: !existing, count: count ?? 0 };
+}
+
+export interface CurateResult {
+  ok: boolean;
+  curated: boolean;
+  count: number;
+  error?: string;
+}
+
+/**
+ * Toggle a curator's "repost as curated" on a post. Curator-only and non-self —
+ * both re-checked in SQL (RLS `is_curator` + author guard), so a non-curator
+ * calling this directly just gets an insert error we surface cleanly. Defensive:
+ * reports the feature off if the 0027 table isn't there yet.
+ */
+export async function curatePost(postId: string): Promise<CurateResult> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return { ok: false, curated: false, count: 0, error: "Unavailable." };
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, curated: false, count: 0, error: "Sign in to curate." };
+
+  const { data: existing, error: selErr } = await supabase
+    .from("post_curations")
+    .select("post_id")
+    .eq("post_id", postId)
+    .eq("curator_id", user.id)
+    .maybeSingle();
+  if (selErr) {
+    return { ok: false, curated: false, count: 0, error: "Curation unavailable." };
+  }
+
+  if (existing) {
+    await supabase
+      .from("post_curations")
+      .delete()
+      .eq("post_id", postId)
+      .eq("curator_id", user.id);
+  } else {
+    const { error: insErr } = await supabase
+      .from("post_curations")
+      .insert({ post_id: postId, curator_id: user.id });
+    if (insErr) {
+      // RLS rejects non-curators, self-reposts, and removed posts.
+      return {
+        ok: false,
+        curated: false,
+        count: 0,
+        error: "Only curators can repost another maker's live work.",
+      };
+    }
+    const { data: post } = await supabase
+      .from("posts")
+      .select("author_id")
+      .eq("id", postId)
+      .maybeSingle();
+    if (post) {
+      await notify(supabase, {
+        actorId: user.id,
+        recipientId: post.author_id,
+        type: "curated",
+        subjectType: "post",
+        subjectId: postId,
+      });
+    }
+  }
+
+  const { count } = await supabase
+    .from("post_curations")
+    .select("*", { count: "exact", head: true })
+    .eq("post_id", postId);
+
+  revalidatePath("/feed");
+  revalidatePath(`/p/${postId}`);
+  return { ok: true, curated: !existing, count: count ?? 0 };
+}
+
+export interface StoreLinkResult {
+  ok: boolean;
+  storeUrl: string | null;
+  error?: string;
+}
+
+/**
+ * Set (or clear, with "") the Astelier buy link on the viewer's curation of a
+ * post — "paste your product/store link so people can follow and buy". Only
+ * affects the caller's own curation row (they must have curated it first).
+ * Validates the link points at Astelier. Defensive: reports off if the 0028
+ * store_url column isn't there yet.
+ */
+export async function setCurationStoreUrl(
+  postId: string,
+  rawUrl: string,
+): Promise<StoreLinkResult> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return { ok: false, storeUrl: null, error: "Unavailable." };
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, storeUrl: null, error: "Sign in." };
+
+  const trimmed = (rawUrl ?? "").trim();
+  const url = trimmed ? cleanAstelierUrl(trimmed) : null;
+  if (trimmed && !url) {
+    return { ok: false, storeUrl: null, error: `Link must be an https://${ASTELIER_HOST} URL.` };
+  }
+
+  const { error } = await supabase
+    .from("post_curations")
+    .update({ store_url: url })
+    .eq("post_id", postId)
+    .eq("curator_id", user.id);
+  if (error) return { ok: false, storeUrl: null, error: "Store link isn't available yet." };
+
+  revalidatePath(`/p/${postId}`);
+  revalidatePath("/profile");
+  return { ok: true, storeUrl: url };
+}
+
+export interface RateResult {
+  ok: boolean;
+  stars: number; // 0 = cleared
+  error?: string;
+}
+
+/**
+ * Set (1–5) or clear (0) the signed-in user's star rating on a post. Upsert on
+ * (profile_id, post_id). Defensive: reports off if the 0027 table is missing.
+ */
+export async function setRating(postId: string, stars: number): Promise<RateResult> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return { ok: false, stars: 0, error: "Unavailable." };
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, stars: 0, error: "Sign in to rate." };
+
+  const clamped = Math.round(stars);
+  if (clamped < 0 || clamped > 5) return { ok: false, stars: 0, error: "Rating must be 0–5." };
+
+  if (clamped === 0) {
+    const { error } = await supabase
+      .from("post_ratings")
+      .delete()
+      .eq("post_id", postId)
+      .eq("profile_id", user.id);
+    if (error) return { ok: false, stars: 0, error: "Ratings unavailable." };
+  } else {
+    const { error } = await supabase.from("post_ratings").upsert(
+      {
+        profile_id: user.id,
+        post_id: postId,
+        stars: clamped,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "profile_id,post_id" },
+    );
+    if (error) return { ok: false, stars: 0, error: "Ratings unavailable." };
+  }
+
+  revalidatePath("/profile");
+  revalidatePath("/saved");
+  return { ok: true, stars: clamped };
 }
 
 export interface ShareResult {

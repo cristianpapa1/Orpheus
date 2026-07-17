@@ -9,6 +9,7 @@ import { getStoreById } from "@/lib/stores/queries";
 import { formatMoney } from "@atelier/core/commerce/money";
 import { PRODUCT_STATUS_LABEL } from "@atelier/core/commerce/products";
 import { disciplineLabel } from "@atelier/core/taxonomy/disciplines";
+import { getI18n } from "@/lib/i18n/server";
 
 export async function generateMetadata({
   params,
@@ -29,10 +30,12 @@ export default async function ProductPage({
   const product = await getProductById(id);
   if (!product) notFound();
 
-  const [gate, store] = await Promise.all([
+  const [gate, store, { t: dict }] = await Promise.all([
     getGateState(),
     getStoreById(product.store_id),
+    getI18n(),
   ]);
+  const t = dict.product;
 
   return (
     <>
@@ -45,7 +48,7 @@ export default async function ProductPage({
       >
         {product.status !== "live" ? (
           <p className="mb-4 inline-block border-2 border-ink bg-yellow px-3 py-1 text-caption font-bold uppercase">
-            {PRODUCT_STATUS_LABEL[product.status]} — only you can see this
+            {PRODUCT_STATUS_LABEL[product.status]} {t.onlyYouSee}
           </p>
         ) : null}
 
@@ -63,7 +66,7 @@ export default async function ProductPage({
               ))
             ) : (
               <div className="grid aspect-square place-items-center border-2 border-ink text-caption uppercase opacity-40">
-                No image
+                {dict.common.noImage}
               </div>
             )}
           </div>
@@ -107,20 +110,18 @@ export default async function ProductPage({
                   rel="noopener noreferrer"
                   className="inline-block border-2 border-ink bg-ink px-6 py-3 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue"
                 >
-                  Buy →
+                  {t.buy}
                 </a>
               ) : store ? (
                 <Link
                   href={`/store/${store.slug}`}
                   className="inline-block border-2 border-ink px-6 py-3 text-caption font-bold uppercase hover:bg-yellow"
                 >
-                  Visit the store
+                  {t.visitStore}
                 </Link>
               ) : null}
               <p className="mt-3 text-caption uppercase opacity-70">
-                {product.external_url
-                  ? "Buy takes you to the maker's own shop."
-                  : "This maker hasn't added a buy link yet."}
+                {product.external_url ? t.buyNote : t.noBuyLink}
               </p>
             </div>
           </div>

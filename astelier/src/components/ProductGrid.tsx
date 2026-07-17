@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { formatMoney } from "@atelier/core/commerce/money";
 import type { BrowseProduct } from "@/lib/discovery/queries";
+import { getI18n } from "@/lib/i18n/server";
 
-export function ProductGrid({ products }: { products: BrowseProduct[] }) {
+export async function ProductGrid({ products }: { products: BrowseProduct[] }) {
+  const { t } = await getI18n();
   if (!products.length) {
     return (
       <p className="border-2 border-dashed border-ink/40 px-4 py-8 text-center text-body opacity-70">
-        Nothing here yet.
+        {t.common.nothingHere}
       </p>
     );
   }
@@ -28,7 +30,7 @@ export function ProductGrid({ products }: { products: BrowseProduct[] }) {
               />
             ) : (
               <div className="grid h-full place-items-center text-caption uppercase opacity-40">
-                No image
+                {t.common.noImage}
               </div>
             )}
           </div>

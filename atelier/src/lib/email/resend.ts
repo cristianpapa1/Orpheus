@@ -1,4 +1,5 @@
 import "server-only";
+import { createServiceClient } from "@/lib/supabase/admin";
 
 /**
  * Minimal transactional email via Resend. Best-effort: returns false on any
@@ -8,6 +9,23 @@ import "server-only";
 
 const FROM = process.env.EMAIL_FROM ?? "Atelier <noreply@crktic.com>";
 
+/** True if the address has bounced/complained (0030 suppression list, fed by the
+ *  Resend webhook). Defensive: any error / missing table → not suppressed. */
+async function isSuppressed(email: string): Promise<boolean> {
+  try {
+    const admin = createServiceClient();
+    if (!admin) return false;
+    const { data } = await admin
+      .from("email_suppressions")
+      .select("email")
+      .eq("email", email.trim().toLowerCase())
+      .maybeSingle();
+    return Boolean(data);
+  } catch {
+    return false;
+  }
+}
+
 export async function sendEmail(opts: {
   to: string;
   subject: string;
@@ -16,6 +34,7 @@ export async function sendEmail(opts: {
 }): Promise<boolean> {
   const key = process.env.RESEND_API_KEY;
   if (!key || !opts.to) return false;
+  if (await isSuppressed(opts.to)) return false; // don't email bounced/complained addresses
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",

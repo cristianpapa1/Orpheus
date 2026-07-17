@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import {
   BLOCK_LABEL,
   BLOCK_TYPES,
+  MEMBER_BLOCK_TYPES,
   GRID_COLS,
   addBlock,
   moveBlock,
@@ -25,6 +26,7 @@ import { saveProfile } from "@/app/(shell)/profile/actions";
 import { createClient } from "@/lib/supabase/client";
 import { SUPABASE_URL } from "@/lib/supabase/config";
 import { Avatar } from "@/components/profile/Avatar";
+import { useT } from "@/lib/i18n/context";
 
 const CONTACT_PLACEHOLDER: Record<ContactKind, string> = {
   link: "https://…",
@@ -52,13 +54,19 @@ export function ProfileEditor({
   initialLayout,
   canPersist,
   targetId,
+  isCreator = true,
 }: {
   initialIdentity: ProfileIdentity;
   initialLayout: ProfileLayout;
   canPersist: boolean;
   /** When set, saves a profile the viewer MANAGES rather than their own. */
   targetId?: string;
+  /** Approved creators can add work/events/jobs windows; members get a Liked
+   *  shelf only. Gates which windows the palette offers. */
+  isCreator?: boolean;
 }) {
+  const dict = useT();
+  const tp = dict.profile;
   const [layout, setLayout] = useState(initialLayout);
   const [identity, setIdentity] = useState(initialIdentity);
   const [status, setStatus] = useState<string | null>(null);
@@ -167,7 +175,7 @@ export function ProfileEditor({
         avatar_url: identity.avatar_url ?? null,
         targetId,
       });
-      setStatus(result.ok ? "Saved." : (result.error ?? "Save failed."));
+      setStatus(result.ok ? tp.saved2 : (result.error ?? "Save failed."));
     });
   };
 
@@ -232,7 +240,8 @@ export function ProfileEditor({
       contacts: id.contacts.map((c, j) => (j === i ? { ...c, ...patch } : c)),
     }));
 
-  const missingTypes = BLOCK_TYPES.filter(
+  const paletteTypes = isCreator ? BLOCK_TYPES : MEMBER_BLOCK_TYPES;
+  const missingTypes = paletteTypes.filter(
     (t) => !layout.blocks.some((b) => b.type === t),
   );
   const rows = Math.max(8, ...layout.blocks.map((b) => b.y + b.h + 1));
@@ -243,10 +252,10 @@ export function ProfileEditor({
       <section className="col-span-12 border-2 border-ink bg-paper lg:col-span-4">
         <header className="flex items-center gap-3 border-b-2 border-ink px-4 py-2">
           <span aria-hidden className="size-3 bg-red" />
-          <h2 className="text-caption font-bold uppercase">Identity</h2>
+          <h2 className="text-caption font-bold uppercase">{tp.identity}</h2>
         </header>
         <div className="flex flex-col gap-3 p-4">
-          <span className="text-caption font-bold uppercase">Profile photo</span>
+          <span className="text-caption font-bold uppercase">{tp.profilePhoto}</span>
           <div className="flex items-center gap-3">
             <Avatar
               url={identity.avatar_url}
@@ -261,10 +270,10 @@ export function ProfileEditor({
                 className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-blue hover:border-blue hover:text-paper disabled:opacity-50"
               >
                 {uploading
-                  ? "Uploading…"
+                  ? tp.uploading
                   : identity.avatar_url
-                    ? "Change"
-                    : "Upload"}
+                    ? tp.change
+                    : tp.upload}
               </button>
               {identity.avatar_url ? (
                 <button
@@ -274,7 +283,7 @@ export function ProfileEditor({
                   }
                   className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-red hover:border-red hover:text-paper"
                 >
-                  Remove
+                  {tp.removePhoto}
                 </button>
               ) : null}
             </div>
@@ -287,7 +296,7 @@ export function ProfileEditor({
             />
           </div>
           <label className="text-caption font-bold uppercase" htmlFor="display_name">
-            Display name
+            {tp.displayName}
           </label>
           <input
             id="display_name"
@@ -298,7 +307,7 @@ export function ProfileEditor({
             className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
           />
           <label className="text-caption font-bold uppercase" htmlFor="handle">
-            Handle
+            {dict.onboarding.handle}
           </label>
           <input
             id="handle"
@@ -307,7 +316,7 @@ export function ProfileEditor({
             className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
           />
           <label className="text-caption font-bold uppercase" htmlFor="bio">
-            Bio
+            {tp.bio}
           </label>
           <textarea
             id="bio"
@@ -316,10 +325,8 @@ export function ProfileEditor({
             onChange={(e) => setIdentity({ ...identity, bio: e.target.value })}
             className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
           />
-          <p className="text-caption font-bold uppercase">Contact information</p>
-          <p className="text-caption uppercase opacity-70">
-            A website, an email, a phone, or an address — you choose each kind.
-          </p>
+          <p className="text-caption font-bold uppercase">{tp.contactInfo}</p>
+          <p className="text-caption uppercase opacity-70">{tp.contactHint}</p>
           {identity.contacts.map((c, i) => (
             <div key={i} data-contact-row className="flex flex-wrap gap-2">
               <select
@@ -375,7 +382,7 @@ export function ProfileEditor({
             }
             className="self-start border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-blue hover:border-blue hover:text-paper"
           >
-            + Add contact
+            {tp.addContact}
           </button>
         </div>
       </section>
@@ -383,9 +390,9 @@ export function ProfileEditor({
       {/* Canvas */}
       <section className="col-span-12 lg:col-span-8">
         <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span className="text-caption font-bold uppercase">Add window:</span>
+          <span className="text-caption font-bold uppercase">{tp.addWindow}</span>
           {missingTypes.length === 0 ? (
-            <span className="text-caption uppercase">all placed</span>
+            <span className="text-caption uppercase">{tp.allPlaced}</span>
           ) : (
             missingTypes.map((t) => (
               <button
@@ -405,7 +412,7 @@ export function ProfileEditor({
             disabled={pending}
             className="ml-auto border-2 border-ink bg-ink px-4 py-1 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue disabled:opacity-50"
           >
-            {pending ? "Saving…" : "Save"}
+            {pending ? tp.savingBtn : tp.save}
           </button>
         </div>
         {status ? (
@@ -481,10 +488,7 @@ export function ProfileEditor({
             </div>
           ))}
         </div>
-        <p className="mt-2 text-caption uppercase opacity-70">
-          Drag a window by its title bar · resize from the black corner ·
-          windows snap to the 12-column grid
-        </p>
+        <p className="mt-2 text-caption uppercase opacity-70">{tp.editorHelp}</p>
       </section>
     </div>
   );

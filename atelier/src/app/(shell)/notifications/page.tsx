@@ -19,6 +19,8 @@ function describe(n: NotificationItem): { text: string; href: string } {
       return { text: `${who} mentioned you in a post`, href: post };
     case "comment":
       return { text: `${who} commented on your work`, href: post };
+    case "curated":
+      return { text: `${who} curated your work ♺`, href: post };
     case "share":
       return { text: `${who} shared a post with you`, href: post };
     case "follow":

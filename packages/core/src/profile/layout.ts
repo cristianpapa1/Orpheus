@@ -11,6 +11,7 @@ export type ProfileBlockType =
   | "bio"
   | "links"
   | "gallery"
+  | "liked"
   | "posts"
   | "events"
   | "jobs";
@@ -33,15 +34,24 @@ export const BLOCK_TYPES: ProfileBlockType[] = [
   "bio",
   "links",
   "gallery",
+  "liked",
   "posts",
   "events",
   "jobs",
 ];
 
+/**
+ * Windows a common member (not an approved creator) may show. Members can't
+ * publish work, events, or jobs, so their space is identity + a "Liked" shelf
+ * of the work they've favorited. Creators get every window in BLOCK_TYPES.
+ */
+export const MEMBER_BLOCK_TYPES: ProfileBlockType[] = ["bio", "links", "liked"];
+
 export const BLOCK_LABEL: Record<ProfileBlockType, string> = {
   bio: "Bio",
   links: "Contact",
   gallery: "Gallery",
+  liked: "Liked",
   posts: "Posts",
   events: "Events",
   jobs: "Jobs",
@@ -52,6 +62,7 @@ export const MIN_SIZE: Record<ProfileBlockType, { w: number; h: number }> = {
   bio: { w: 3, h: 2 },
   links: { w: 2, h: 2 },
   gallery: { w: 4, h: 2 },
+  liked: { w: 4, h: 2 },
   posts: { w: 4, h: 2 },
   events: { w: 3, h: 2 },
   jobs: { w: 3, h: 2 },
@@ -62,6 +73,7 @@ const DEFAULT_SIZE: Record<ProfileBlockType, { w: number; h: number }> = {
   bio: { w: 7, h: 3 },
   links: { w: 5, h: 3 },
   gallery: { w: 12, h: 4 },
+  liked: { w: 12, h: 4 },
   posts: { w: 8, h: 3 },
   events: { w: 4, h: 3 },
   jobs: { w: 8, h: 3 },
@@ -178,6 +190,42 @@ export function removeBlock(layout: ProfileLayout, id: string): ProfileLayout {
   return {
     ...layout,
     blocks: compactVertical(layout.blocks.filter((b) => b.id !== id)),
+  };
+}
+
+/**
+ * Constrain a layout to what the owner's capabilities allow. Approved creators
+ * keep every window untouched. A common member keeps only bio/contact plus a
+ * single "Liked" shelf: any gallery/posts window they once had is folded into
+ * that shelf (keeping its place), and events/jobs windows are dropped. A Liked
+ * block is always guaranteed so a member's favorites have a home. Idempotent.
+ */
+export function coerceLayoutForCreator(
+  layout: ProfileLayout,
+  isCreator: boolean,
+): ProfileLayout {
+  if (isCreator) return layout;
+  const kept: LayoutBlock[] = [];
+  let liked: LayoutBlock | null = null;
+  for (const b of layout.blocks) {
+    if (b.type === "bio" || b.type === "links") {
+      kept.push(b);
+    } else if (
+      !liked &&
+      (b.type === "liked" || b.type === "gallery" || b.type === "posts")
+    ) {
+      // The first shelf-like window becomes the Liked shelf, keeping its spot.
+      liked = clampBlock({ ...b, id: "liked", type: "liked" });
+    }
+    // events / jobs / any extra shelf are dropped for common members.
+  }
+  if (!liked) {
+    const bottom = kept.reduce((m, b) => Math.max(m, b.y + b.h), 0);
+    liked = clampBlock({ id: "liked", type: "liked", x: 0, y: bottom, ...DEFAULT_SIZE.liked });
+  }
+  return {
+    version: 1,
+    blocks: compactVertical(resolveCollisions([...kept, liked])),
   };
 }
 

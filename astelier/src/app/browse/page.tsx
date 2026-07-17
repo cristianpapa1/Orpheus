@@ -4,17 +4,13 @@ import { ProductGrid } from "@/components/ProductGrid";
 import { getGateState } from "@/lib/gate";
 import { browseProducts, type BrowseSort } from "@/lib/discovery/queries";
 import { browseStores } from "@/lib/stores/queries";
+import { getI18n } from "@/lib/i18n/server";
 import { DISCIPLINE_OPTIONS } from "@atelier/core/taxonomy/disciplines";
-import { SCHOOLS, SCHOOL_LABEL } from "@atelier/core/design/schools";
 
 export const metadata = { title: "Browse — Astelier" };
 
 const CATEGORIES = DISCIPLINE_OPTIONS.filter((o) => o.isCategory);
-const SORTS: { value: BrowseSort; label: string }[] = [
-  { value: "new", label: "Newest" },
-  { value: "price-asc", label: "Price ↑" },
-  { value: "price-desc", label: "Price ↓" },
-];
+const SORT_VALUES: BrowseSort[] = ["new", "price-asc", "price-desc"];
 
 const chip = (active: boolean) =>
   `border-2 border-ink px-3 py-1 text-caption font-bold uppercase ${
@@ -24,22 +20,34 @@ const chip = (active: boolean) =>
 export default async function BrowsePage({
   searchParams,
 }: {
-  searchParams: Promise<{ discipline?: string; school?: string; sort?: string }>;
+  searchParams: Promise<{ discipline?: string; sort?: string; following?: string }>;
 }) {
   const sp = await searchParams;
   const discipline = sp.discipline ?? null;
-  const school = sp.school ?? null;
   const sort: BrowseSort =
     sp.sort === "price-asc" || sp.sort === "price-desc" ? sp.sort : "new";
+  const following = sp.following === "1";
 
-  const [gate, products, stores] = await Promise.all([
+  const [gate, products, stores, { t: dict }] = await Promise.all([
     getGateState(),
-    browseProducts({ discipline, school, sort }),
-    browseStores(school),
+    browseProducts({ discipline, sort }),
+    browseStores(following ? { following: true } : undefined),
+    getI18n(),
   ]);
+  const t = dict.browse;
+  const sortLabel: Record<BrowseSort, string> = {
+    new: t.newest,
+    "price-asc": t.priceUp,
+    "price-desc": t.priceDown,
+  };
 
   const hrefWith = (patch: Record<string, string | null>) => {
-    const merged: Record<string, string | null> = { discipline, school, sort, ...patch };
+    const merged: Record<string, string | null> = {
+      discipline,
+      sort,
+      following: following ? "1" : null,
+      ...patch,
+    };
     const params = new URLSearchParams();
     for (const [k, v] of Object.entries(merged)) if (v) params.set(k, v);
     const qs = params.toString();
@@ -50,13 +58,13 @@ export default async function BrowsePage({
     <>
       <Nav signedIn={gate.signedIn} />
       <main id="main" className="mx-auto w-full max-w-6xl grow px-6 py-10">
-        <h1 className="mb-6 text-h1 font-bold uppercase">Browse</h1>
+        <h1 className="mb-6 text-h1 font-bold uppercase">{t.title}</h1>
 
         {/* filters */}
         <div className="flex flex-col gap-3 border-2 border-ink p-4">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-caption font-bold uppercase opacity-60">Discipline</span>
-            <Link href={hrefWith({ discipline: null })} className={chip(!discipline)}>All</Link>
+            <span className="text-caption font-bold uppercase opacity-60">{t.discipline}</span>
+            <Link href={hrefWith({ discipline: null })} className={chip(!discipline)}>{t.all}</Link>
             {CATEGORIES.map((c) => (
               <Link key={c.value} href={hrefWith({ discipline: c.value })} className={chip(discipline === c.value)}>
                 {c.label}
@@ -64,46 +72,65 @@ export default async function BrowsePage({
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-caption font-bold uppercase opacity-60">School</span>
-            <Link href={hrefWith({ school: null })} className={chip(!school)}>All</Link>
-            {SCHOOLS.map((s) => (
-              <Link key={s} href={hrefWith({ school: s })} className={chip(school === s)}>
-                {SCHOOL_LABEL[s]}
-              </Link>
-            ))}
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-caption font-bold uppercase opacity-60">Sort</span>
-            {SORTS.map((s) => (
-              <Link key={s.value} href={hrefWith({ sort: s.value })} className={chip(sort === s.value)}>
-                {s.label}
+            <span className="text-caption font-bold uppercase opacity-60">{t.sort}</span>
+            {SORT_VALUES.map((v) => (
+              <Link key={v} href={hrefWith({ sort: v })} className={chip(sort === v)}>
+                {sortLabel[v]}
               </Link>
             ))}
           </div>
         </div>
 
         {/* stores */}
-        {stores.length ? (
+        {gate.signedIn || stores.length ? (
           <section className="mt-8">
-            <h2 className="mb-3 text-caption font-bold uppercase opacity-70">Stores</h2>
-            <div className="flex flex-wrap gap-2">
-              {stores.map((s) => (
-                <Link
-                  key={s.id}
-                  href={`/store/${s.slug}`}
-                  className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-blue hover:border-blue hover:text-paper"
-                >
-                  {s.name}
-                </Link>
-              ))}
+            <div className="mb-3 flex flex-wrap items-center gap-3">
+              <h2 className="text-caption font-bold uppercase opacity-70">{t.stores}</h2>
+              {gate.signedIn ? (
+                <div data-store-scope className="flex flex-wrap gap-2">
+                  <Link href={hrefWith({ following: "1" })} className={chip(following)}>
+                    {t.peopleYouFollow}
+                  </Link>
+                  <Link href={hrefWith({ following: null })} className={chip(!following)}>
+                    {t.allStores}
+                  </Link>
+                </div>
+              ) : null}
             </div>
+            {stores.length ? (
+              <div className="flex flex-wrap gap-2">
+                {stores.map((s) => (
+                  <Link
+                    key={s.id}
+                    href={`/store/${s.slug}`}
+                    className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-blue hover:border-blue hover:text-paper"
+                  >
+                    {s.name}
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="text-body opacity-70">
+                {following ? (
+                  <>
+                    {t.noneFollowed}{" "}
+                    <Link href={hrefWith({ following: null })} className="border-b-2 border-ink font-bold hover:text-blue">
+                      {t.seeAllStores}
+                    </Link>
+                    .
+                  </>
+                ) : (
+                  t.noStores
+                )}
+              </p>
+            )}
           </section>
         ) : null}
 
         {/* products */}
         <section className="mt-8">
           <h2 className="mb-3 text-caption font-bold uppercase opacity-70">
-            {products.length} {products.length === 1 ? "piece" : "pieces"}
+            {products.length} {products.length === 1 ? t.piece : t.pieces}
           </h2>
           <ProductGrid products={products} />
         </section>

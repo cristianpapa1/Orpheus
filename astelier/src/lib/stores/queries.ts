@@ -68,15 +68,34 @@ export async function getStoreBySlug(slug: string): Promise<Store | null> {
   return toStore(data as StoreRow);
 }
 
-/** All active stores, newest first — for discovery. Optional school filter. */
-export async function browseStores(school?: string | null): Promise<Store[]> {
+/**
+ * Active stores, newest first — for discovery. When `following` is set, scopes
+ * to stores owned by profiles the signed-in viewer follows (empty if signed out
+ * or following no one). Reads the shared `follows` table (same Supabase project).
+ */
+export async function browseStores(opts?: { following?: boolean }): Promise<Store[]> {
   const supabase = await createServerSupabase();
   if (!supabase) return [];
+
+  let ownerIds: string[] | null = null;
+  if (opts?.following) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return [];
+    const { data: fr } = await supabase
+      .from("follows")
+      .select("followee_id")
+      .eq("follower_id", user.id);
+    ownerIds = (fr ?? []).map((r) => r.followee_id);
+    if (ownerIds.length === 0) return [];
+  }
+
   let q = supabase
     .from("astelier_stores")
     .select(STORE_COLUMNS)
     .eq("is_active", true);
-  if (school) q = q.eq("school", school);
+  if (ownerIds) q = q.in("owner_id", ownerIds);
   const { data, error } = await q.order("created_at", { ascending: false }).limit(60);
   if (error || !data) return [];
   return (data as StoreRow[]).map(toStore);

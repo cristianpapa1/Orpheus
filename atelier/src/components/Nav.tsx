@@ -2,19 +2,22 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 
 const TABS = [
-  { href: "/feed", label: "Feed", accent: "bg-red" },
-  { href: "/groups", label: "Groups", accent: "bg-blue" },
-  { href: "/chat", label: "Chat", accent: "bg-yellow" },
+  { href: "/feed", key: "feed", accent: "bg-red" },
+  { href: "/groups", key: "groups", accent: "bg-blue" },
+  { href: "/chat", key: "chat", accent: "bg-yellow" },
 ] as const;
 
 export function Nav({
   email,
   unread = 0,
+  t,
 }: {
   email: string | null;
   unread?: number;
+  t: Dictionary["nav"];
 }) {
   const pathname = usePathname();
 
@@ -48,7 +51,7 @@ export function Nav({
                   aria-hidden
                   className={`size-2 ${tab.accent} ${active ? "" : "opacity-30"}`}
                 />
-                {tab.label}
+                {t[tab.key]}
               </Link>
             );
           })}
@@ -58,8 +61,8 @@ export function Nav({
           <form action="/search" className="hidden md:block">
             <input
               name="q"
-              placeholder="Search"
-              aria-label="Search"
+              placeholder={t.search}
+              aria-label={t.search}
               className="w-28 border-2 border-ink bg-paper px-2 py-1 text-caption uppercase outline-none transition-all focus:w-44 focus:border-blue"
             />
           </form>
@@ -69,13 +72,13 @@ export function Nav({
               href="/profile"
               data-profile-link
               aria-label={
-                unread > 0 ? `Profile, ${unread} unread interactions` : "Profile"
+                unread > 0 ? `${t.profile}, ${unread} ${t.interactions}` : t.profile
               }
               className={`relative border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-yellow ${
                 pathname.startsWith("/profile") ? "bg-ink text-paper" : ""
               }`}
             >
-              Profile
+              {t.profile}
               {unread > 0 ? (
                 <span
                   data-unread
@@ -90,7 +93,7 @@ export function Nav({
               href="/login"
               className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-blue hover:border-blue hover:text-paper"
             >
-              Sign in
+              {t.signIn}
             </Link>
           )}
         </div>

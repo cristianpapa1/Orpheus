@@ -13,6 +13,7 @@ import {
   completeOnboarding,
   type OnboardingInput,
 } from "@/app/onboarding/actions";
+import { useT } from "@/lib/i18n/context";
 
 interface Props {
   initial: {
@@ -25,9 +26,9 @@ interface Props {
 }
 
 const DISCIPLINES = INTEREST_OPTIONS.filter((o) => o.group === "Discipline");
-const MOVEMENTS = INTEREST_OPTIONS.filter((o) => o.group === "Movement");
 
 export function OnboardingForm({ initial }: Props) {
+  const t = useT().onboarding;
   const router = useRouter();
   const [displayName, setDisplayName] = useState(initial.display_name);
   const [handle, setHandle] = useState(initial.handle);
@@ -64,7 +65,7 @@ export function OnboardingForm({ initial }: Props) {
     startTransition(async () => {
       const result = await completeOnboarding(payload);
       if (result.ok) router.push("/feed");
-      else setError(result.error ?? "Something went wrong.");
+      else setError(result.error ?? t.somethingWrong);
     });
   };
 
@@ -78,19 +79,19 @@ export function OnboardingForm({ initial }: Props) {
       {/* Identity */}
       <section className="flex flex-col gap-3">
         <label htmlFor="display_name" className="text-caption font-bold uppercase">
-          Your public name
+          {t.publicName}
         </label>
         <input
           id="display_name"
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
           maxLength={80}
-          placeholder="How your name shows on your space"
+          placeholder={t.publicNamePlaceholder}
           className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
         />
 
         <label htmlFor="handle" className="text-caption font-bold uppercase">
-          Handle
+          {t.handle}
         </label>
         <div className="flex items-center gap-2">
           <span className="text-body font-bold">@</span>
@@ -104,21 +105,15 @@ export function OnboardingForm({ initial }: Props) {
           />
         </div>
         <p className="text-caption uppercase opacity-70">
-          3–30 chars: lowercase letters, numbers, underscore. This is your URL:
-          /u/{handle || "yourname"}
+          {t.handleHint} /u/{handle || "yourname"}
         </p>
       </section>
 
       {/* Account type */}
       <section className="flex flex-col gap-3">
-        <p className="text-caption font-bold uppercase">What is this space?</p>
+        <p className="text-caption font-bold uppercase">{t.spaceQuestion}</p>
         <div className="flex flex-wrap gap-2" data-account-type={accountType}>
-          {(
-            [
-              ["individual", "A person"],
-              ["institution", "An institution"],
-            ] as const
-          ).map(([value, label]) => (
+          {(["individual", "institution"] as const).map((value) => (
             <button
               key={value}
               type="button"
@@ -126,18 +121,15 @@ export function OnboardingForm({ initial }: Props) {
               onClick={() => setAccountType(value)}
               className={chip(accountType === value)}
             >
-              {label}
+              {value === "individual" ? t.aPerson : t.anInstitution}
             </button>
           ))}
         </div>
-        <p className="text-caption uppercase opacity-70">
-          Institutions are museums, galleries, publishers, journals, labels,
-          theaters, festivals, podcasts, schools — profiles with more reach.
-        </p>
+        <p className="text-caption uppercase opacity-70">{t.institutionHint}</p>
         {accountType === "institution" ? (
           <>
             <label htmlFor="institution_kind" className="text-caption font-bold uppercase">
-              Kind of institution
+              {t.institutionKind}
             </label>
             <select
               id="institution_kind"
@@ -148,7 +140,7 @@ export function OnboardingForm({ initial }: Props) {
               className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
             >
               <option value="" disabled>
-                Pick one…
+                {t.pickOne}
               </option>
               {INSTITUTION_KINDS.map((k) => (
                 <option key={k} value={k}>
@@ -162,26 +154,9 @@ export function OnboardingForm({ initial }: Props) {
 
       {/* Interests */}
       <section className="flex flex-col gap-3">
-        <p className="text-caption font-bold uppercase">
-          What are you into? (helps us find your groups)
-        </p>
-        <p className="text-caption uppercase opacity-70">Disciplines</p>
+        <p className="text-caption font-bold uppercase">{t.interestsQuestion}</p>
         <div className="flex flex-wrap gap-2" data-interests-disciplines>
           {DISCIPLINES.map((o) => (
-            <button
-              key={o.value}
-              type="button"
-              data-interest={o.value}
-              onClick={() => toggleInterest(o.value)}
-              className={chip(interests.includes(o.value))}
-            >
-              {o.label}
-            </button>
-          ))}
-        </div>
-        <p className="text-caption uppercase opacity-70">Movements</p>
-        <div className="flex flex-wrap gap-2" data-interests-movements>
-          {MOVEMENTS.map((o) => (
             <button
               key={o.value}
               type="button"
@@ -197,7 +172,7 @@ export function OnboardingForm({ initial }: Props) {
 
       {/* Member vs creator */}
       <section className="flex flex-col gap-3">
-        <p className="text-caption font-bold uppercase">How will you use Atelier?</p>
+        <p className="text-caption font-bold uppercase">{t.useQuestion}</p>
         <div className="flex flex-wrap gap-2" data-use-mode={wantsCreator ? "creator" : "member"}>
           <button
             type="button"
@@ -205,7 +180,7 @@ export function OnboardingForm({ initial }: Props) {
             onClick={() => setWantsCreator(false)}
             className={chip(!wantsCreator)}
           >
-            Just here to explore
+            {t.loveArt}
           </button>
           <button
             type="button"
@@ -213,18 +188,15 @@ export function OnboardingForm({ initial }: Props) {
             onClick={() => setWantsCreator(true)}
             className={chip(wantsCreator)}
           >
-            I&apos;m a creator
+            {t.imCreator}
           </button>
         </div>
-        <p className="text-caption uppercase opacity-70">
-          Anyone can browse, follow, and join groups. Posting work and starting
-          groups is for creators — a quick manual review keeps the space real.
-        </p>
+        <p className="text-caption uppercase opacity-70">{t.useHint}</p>
 
         {wantsCreator ? (
           <div className="flex flex-col gap-3 border-2 border-ink bg-ink/5 p-4">
             <label htmlFor="creator_statement" className="text-caption font-bold uppercase">
-              What will you post?
+              {t.whatPost}
             </label>
             <textarea
               id="creator_statement"
@@ -233,11 +205,11 @@ export function OnboardingForm({ initial }: Props) {
               rows={4}
               maxLength={2000}
               data-creator-statement
-              placeholder="What you make and how you'll use Atelier — the more concrete, the faster the review."
+              placeholder={t.whatPostPlaceholder}
               className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
             />
             <label htmlFor="creator_links" className="text-caption font-bold uppercase">
-              Links that prove your work (one per line)
+              {t.linksProof}
             </label>
             <textarea
               id="creator_links"
@@ -245,13 +217,10 @@ export function OnboardingForm({ initial }: Props) {
               onChange={(e) => setCreatorLinks(e.target.value)}
               rows={3}
               data-creator-links
-              placeholder={"https://your-portfolio.com\nhttps://instagram.com/you"}
+              placeholder={t.linksPlaceholder}
               className="border-2 border-ink bg-paper px-3 py-2 font-mono text-caption outline-none focus:border-blue"
             />
-            <p className="text-caption uppercase opacity-70">
-              You&apos;ll go in as a member right away; we&apos;ll email you when your
-              creator access is approved.
-            </p>
+            <p className="text-caption uppercase opacity-70">{t.creatorNote}</p>
           </div>
         ) : null}
       </section>
@@ -269,7 +238,7 @@ export function OnboardingForm({ initial }: Props) {
         data-onboarding-submit
         className="self-start border-2 border-ink bg-ink px-6 py-2 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue disabled:opacity-50"
       >
-        {pending ? "Saving…" : "Enter the atelier →"}
+        {pending ? t.saving : t.enterAtelier}
       </button>
     </div>
   );

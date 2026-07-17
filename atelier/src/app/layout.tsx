@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk } from "next/font/google";
+import { getLocale } from "@/lib/i18n/server";
+import { localeDir } from "@/lib/i18n/config";
 import "./globals.css";
 
 const grotesk = Space_Grotesk({
@@ -14,11 +16,12 @@ export const metadata: Metadata = {
     "A community-first platform for creators — art, handmade, photography, music. No ads, no pay-to-be-seen. Funded by donations.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const locale = await getLocale();
   return (
-    <html lang="en" className={`${grotesk.variable} h-full antialiased`}>
+    <html lang={locale} dir={localeDir(locale)} className={`${grotesk.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
         <a
           href="#main"

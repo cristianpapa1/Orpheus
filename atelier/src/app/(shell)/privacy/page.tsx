@@ -1,5 +1,6 @@
 import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
+import { CONTACT_EMAIL } from "@/lib/legal/config";
 
 export const metadata = { title: "Privacy — Atelier" };
 
@@ -29,8 +30,8 @@ export default function PrivacyPage() {
           <p className="mt-4 text-body">
             <strong>Deletion:</strong> deleting your account removes your
             profile, posts, media, and messages. Requests:{" "}
-            <a href="mailto:privacy@atelier.example" className="border-b-2 border-ink font-bold">
-              privacy@atelier.example
+            <a href={`mailto:${CONTACT_EMAIL}`} className="border-b-2 border-ink font-bold">
+              {CONTACT_EMAIL}
             </a>
           </p>
         </Window>

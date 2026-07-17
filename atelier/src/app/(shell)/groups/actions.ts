@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { GROUP_SLUG_RE, slugifyGroupName } from "@/lib/groups/types";
+import { conflictingInstitution } from "@/lib/groups/institutionGuard";
 import { parseDisciplines } from "@atelier/core/taxonomy/disciplines";
 
 /* Group lifecycle server actions. Form-friendly: they take FormData and
@@ -38,6 +39,16 @@ export async function createGroup(formData: FormData) {
   const slug = slugifyGroupName(name);
   if (name.length < 3 || !GROUP_SLUG_RE.test(slug)) {
     redirect("/groups?error=name");
+  }
+
+  // Institution-name protection: only an institution (or its manager) may use
+  // that institution's name in a group name. Enforced again by the 0029 trigger.
+  const { data: institutions } = await supabase
+    .from("profiles")
+    .select("id, display_name, managed_by")
+    .eq("account_type", "institution");
+  if (conflictingInstitution(name, user.id, institutions ?? [])) {
+    redirect("/groups?error=protected-name");
   }
 
   const base = { name, slug, description, is_private, created_by: user.id };

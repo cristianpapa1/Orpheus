@@ -1,15 +1,23 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { sharePost, toggleFavorite, deleteOwnPost } from "@/app/(shell)/post/interactions";
+import {
+  sharePost,
+  toggleFavorite,
+  deleteOwnPost,
+  curatePost,
+  setCurationStoreUrl,
+} from "@/app/(shell)/post/interactions";
 import { createReport } from "@/lib/moderation/actions";
 import {
-  REASON_LABEL,
   REPORT_REASONS,
   STAMPED_ONLY_REASONS,
 } from "@atelier/core/moderation/types";
+import { useT } from "@/lib/i18n/context";
 import type { FavInfo } from "@/lib/favorites/queries";
+import type { CurationInfo } from "@/lib/curations/queries";
 
 export interface Contact {
   id: string;
@@ -29,6 +37,9 @@ export function FavoritePost({
   postId,
   caption,
   fav,
+  cur,
+  canCurate = false,
+  curatedHref,
   following = [],
   backTo,
   canReportQuality = false,
@@ -39,6 +50,12 @@ export function FavoritePost({
   postId: string;
   caption?: string;
   fav?: FavInfo;
+  /** Curation count + whether the viewer curated it. Absent → hide curated UI. */
+  cur?: CurationInfo;
+  /** Viewer is a curator → show "Repost as curated" in the Act menu. */
+  canCurate?: boolean;
+  /** When set, the curated count links here (feed → post detail to inspect). */
+  curatedHref?: string;
   following?: Contact[];
   backTo?: string;
   canReportQuality?: boolean;
@@ -48,6 +65,7 @@ export function FavoritePost({
   checkoutUrl?: string | null;
   children?: React.ReactNode;
 }) {
+  const { post: tp, reportReason: tReason } = useT();
   const reasons = REPORT_REASONS.filter(
     (r) => !STAMPED_ONLY_REASONS.includes(r) || canReportQuality,
   );
@@ -56,9 +74,13 @@ export function FavoritePost({
   const reportBackTo = backTo ?? `/p/${postId}`;
   const [favorited, setFavorited] = useState(fav?.mine ?? false);
   const [count, setCount] = useState(fav?.count ?? 0);
+  const showCur = Boolean(cur);
+  const [curated, setCurated] = useState(cur?.mine ?? false);
+  const [curCount, setCurCount] = useState(cur?.count ?? 0);
   const [burst, setBurst] = useState(false);
   const [actOpen, setActOpen] = useState(false);
-  const [sub, setSub] = useState<"none" | "send" | "report" | "delete">("none");
+  const [sub, setSub] = useState<"none" | "send" | "report" | "delete" | "curate">("none");
+  const [curateUrl, setCurateUrl] = useState("");
   const [sendQuery, setSendQuery] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -135,6 +157,35 @@ export function FavoritePost({
     });
   };
 
+  // Repost (or un-repost) as curated; when reposting, optionally attach an
+  // Astelier buy link so people can follow through and buy.
+  const doRepost = () => {
+    setMsg(null);
+    startTransition(async () => {
+      const r = await curatePost(postId);
+      if (!r.ok) {
+        setMsg(r.error ?? "Couldn't curate.");
+        return;
+      }
+      setCurated(r.curated);
+      setCurCount(r.count);
+      if (r.curated && curateUrl.trim()) {
+        const s = await setCurationStoreUrl(postId, curateUrl.trim());
+        setMsg(s.ok ? "Reposted as curated." : s.error ?? "Curated, but the link didn't save.");
+      } else {
+        setMsg(r.curated ? "Reposted as curated." : "Removed from curated.");
+      }
+    });
+  };
+
+  const saveLink = () => {
+    setMsg(null);
+    startTransition(async () => {
+      const s = await setCurationStoreUrl(postId, curateUrl.trim());
+      setMsg(s.ok ? (s.storeUrl ? "Buy link saved." : "Buy link cleared.") : s.error ?? "Couldn't save link.");
+    });
+  };
+
   const doSend = (c: Contact) => {
     setMsg(null);
     startTransition(async () => {
@@ -192,6 +243,33 @@ export function FavoritePost({
           </button>
         ) : null}
 
+        {showCur ? (
+          curatedHref ? (
+            <Link
+              href={curatedHref}
+              data-curated-count
+              title="Curated — see who curated this"
+              className={`flex items-center gap-1 border-2 px-3 py-1 text-caption font-bold uppercase ${
+                curated ? "border-blue bg-blue text-paper" : "border-ink hover:bg-blue hover:border-blue hover:text-paper"
+              }`}
+            >
+              <span aria-hidden>♺</span>
+              <span>{curCount}</span>
+            </Link>
+          ) : (
+            <span
+              data-curated-count
+              title="Curated"
+              className={`flex items-center gap-1 border-2 px-3 py-1 text-caption font-bold uppercase ${
+                curated ? "border-blue bg-blue text-paper" : "border-ink"
+              }`}
+            >
+              <span aria-hidden>♺</span>
+              <span>{curCount}</span>
+            </span>
+          )
+        ) : null}
+
         <div className="relative">
           <button
             type="button"
@@ -204,7 +282,7 @@ export function FavoritePost({
             aria-expanded={actOpen}
             className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-blue hover:border-blue hover:text-paper"
           >
-            Act ▾
+            {tp.act} ▾
           </button>
 
           {actOpen ? (
@@ -219,11 +297,11 @@ export function FavoritePost({
                     data-checkout
                     className="block border-2 border-ink bg-ink px-3 py-2 text-left text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue"
                   >
-                    Checkout at Astelier →
+                    {tp.checkout} →
                   </a>
                 ) : null}
                 <button type="button" data-share onClick={nativeShare} className={menuBtn}>
-                  Share…
+                  {tp.share}
                 </button>
                 <button
                   type="button"
@@ -231,15 +309,25 @@ export function FavoritePost({
                   onClick={() => setSub(sub === "send" ? "none" : "send")}
                   className={menuBtn}
                 >
-                  Send to {sub === "send" ? "▾" : "▸"}
+                  {tp.sendTo} {sub === "send" ? "▾" : "▸"}
                 </button>
+                {canCurate ? (
+                  <button
+                    type="button"
+                    data-curate-toggle
+                    onClick={() => setSub(sub === "curate" ? "none" : "curate")}
+                    className={`${menuBtn} ${curated ? "bg-blue text-paper" : "hover:bg-blue hover:text-paper"}`}
+                  >
+                    {curated ? tp.curated : tp.repostCurated} ♺ {sub === "curate" ? "▾" : "▸"}
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   data-report-toggle
                   onClick={() => setSub(sub === "report" ? "none" : "report")}
                   className={menuBtn}
                 >
-                  Report {sub === "report" ? "▾" : "▸"}
+                  {tp.report} {sub === "report" ? "▾" : "▸"}
                 </button>
                 {canDelete ? (
                   <button
@@ -248,7 +336,7 @@ export function FavoritePost({
                     onClick={() => setSub(sub === "delete" ? "none" : "delete")}
                     className="w-full border-2 border-ink px-3 py-2 text-left text-caption font-bold uppercase text-red hover:bg-red hover:border-red hover:text-paper"
                   >
-                    Delete post {sub === "delete" ? "▾" : "▸"}
+                    {tp.deletePost} {sub === "delete" ? "▾" : "▸"}
                   </button>
                 ) : null}
               </div>
@@ -264,14 +352,14 @@ export function FavoritePost({
                 <div className="mt-3 border-t-2 border-ink pt-3">
                   {following.length === 0 ? (
                     <p className="text-caption uppercase opacity-70">
-                      Follow people to send them work.
+                      {tp.followToSend}
                     </p>
                   ) : (
                     <>
                       <input
                         value={sendQuery}
                         onChange={(e) => setSendQuery(e.target.value)}
-                        placeholder="Search contacts…"
+                        placeholder={tp.searchContacts}
                         data-send-search
                         className="mb-2 w-full border-2 border-ink bg-paper px-2 py-1 text-body outline-none focus:border-blue"
                       />
@@ -291,7 +379,7 @@ export function FavoritePost({
                           </li>
                         ))}
                         {sendList.length === 0 ? (
-                          <li className="text-caption uppercase opacity-70">No match.</li>
+                          <li className="text-caption uppercase opacity-70">{tp.noMatch}</li>
                         ) : null}
                       </ul>
                     </>
@@ -316,11 +404,11 @@ export function FavoritePost({
                     className="border-2 border-ink bg-paper px-2 py-1 text-body outline-none focus:border-blue"
                   >
                     <option value="" disabled>
-                      Reason…
+                      {tp.reasonPlaceholder}
                     </option>
                     {reasons.map((r) => (
                       <option key={r} value={r}>
-                        {REASON_LABEL[r]}
+                        {tReason[r]}
                       </option>
                     ))}
                   </select>
@@ -328,22 +416,87 @@ export function FavoritePost({
                     name="detail"
                     rows={2}
                     maxLength={600}
-                    placeholder="Anything moderators should know (optional)"
+                    placeholder={tp.reportNote}
                     className="border-2 border-ink bg-paper px-2 py-1 text-body outline-none focus:border-blue"
                   />
                   <button
                     type="submit"
                     className="self-start border-2 border-ink bg-ink px-3 py-1 text-caption font-bold uppercase text-paper hover:bg-red hover:border-red"
                   >
-                    Send report
+                    {tp.sendReport}
                   </button>
                 </form>
+              ) : null}
+
+              {sub === "curate" ? (
+                <div data-curate-panel className="mt-3 flex flex-col gap-2 border-t-2 border-ink pt-3">
+                  {curated ? (
+                    <>
+                      <p className="text-caption font-bold uppercase">You curated this ♺</p>
+                      <label className="text-caption font-bold uppercase">
+                        {tp.buyLinkOptional}
+                      </label>
+                      <input
+                        value={curateUrl}
+                        onChange={(e) => setCurateUrl(e.target.value)}
+                        data-curate-link
+                        placeholder="https://astelier.aunflaneur.com/product/…"
+                        className="w-full border-2 border-ink bg-paper px-2 py-1 text-body outline-none focus:border-blue"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={saveLink}
+                          disabled={pending}
+                          className="border-2 border-ink bg-ink px-3 py-1 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue disabled:opacity-50"
+                        >
+                          {tp.saveLink}
+                        </button>
+                        <button
+                          type="button"
+                          data-uncurate
+                          onClick={doRepost}
+                          disabled={pending}
+                          className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-red hover:border-red hover:text-paper disabled:opacity-50"
+                        >
+                          {tp.remove}
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-body">
+                        Repost to your Curated shelf and your followers&apos; feeds.
+                        Add an Astelier link so people can buy.
+                      </p>
+                      <label className="text-caption font-bold uppercase">
+                        {tp.buyLinkOptional}
+                      </label>
+                      <input
+                        value={curateUrl}
+                        onChange={(e) => setCurateUrl(e.target.value)}
+                        data-curate-link
+                        placeholder="https://astelier.aunflaneur.com/product/…"
+                        className="w-full border-2 border-ink bg-paper px-2 py-1 text-body outline-none focus:border-blue"
+                      />
+                      <button
+                        type="button"
+                        data-repost
+                        onClick={doRepost}
+                        disabled={pending}
+                        className="self-start border-2 border-ink bg-ink px-4 py-1 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue disabled:opacity-50"
+                      >
+                        {pending ? "…" : tp.repostCurated}
+                      </button>
+                    </>
+                  )}
+                </div>
               ) : null}
 
               {sub === "delete" ? (
                 <div className="mt-3 flex flex-col gap-2 border-t-2 border-ink pt-3">
                   <p className="text-caption font-bold uppercase">
-                    Delete this post? It disappears from every feed.
+                    {tp.confirmDelete}
                   </p>
                   <div className="flex gap-2">
                     <button
@@ -353,14 +506,14 @@ export function FavoritePost({
                       disabled={pending}
                       className="border-2 border-red bg-red px-3 py-1 text-caption font-bold uppercase text-paper hover:opacity-80 disabled:opacity-50"
                     >
-                      {pending ? "Deleting…" : "Delete"}
+                      {pending ? "…" : tp.delete}
                     </button>
                     <button
                       type="button"
                       onClick={() => setSub("none")}
                       className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-yellow"
                     >
-                      Cancel
+                      {tp.cancel}
                     </button>
                   </div>
                 </div>

@@ -1,9 +1,13 @@
 import Link from "next/link";
 import { signOut } from "@/app/login/actions";
+import { getI18n } from "@/lib/i18n/server";
+import { LanguagePicker } from "@/components/LanguagePicker";
 
 const ATELIER_URL = "https://atelier.aunflaneur.com";
 
-export function Nav({ signedIn }: { signedIn: boolean }) {
+export async function Nav({ signedIn }: { signedIn: boolean }) {
+  const { locale, t } = await getI18n();
+  const n = t.nav;
   return (
     <header className="border-b-2 border-ink bg-paper">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
@@ -18,29 +22,30 @@ export function Nav({ signedIn }: { signedIn: boolean }) {
 
         <nav aria-label="Discover" className="hidden items-center gap-4 md:flex">
           <Link href="/browse" className="text-caption font-bold uppercase hover:text-blue">
-            Browse
+            {n.browse}
           </Link>
           <form action="/search">
             <input
               name="q"
-              placeholder="Search"
-              aria-label="Search Astelier"
+              placeholder={n.searchPlaceholder}
+              aria-label={n.searchPlaceholder}
               className="w-28 border-2 border-ink bg-paper px-2 py-1 text-caption uppercase outline-none transition-all focus:w-44 focus:border-blue"
             />
           </form>
         </nav>
 
         <div className="flex items-center gap-3">
+          <LanguagePicker current={locale} />
           <a
             href={ATELIER_URL}
             className="text-caption font-bold uppercase hover:text-blue"
           >
-            ← Atelier
+            {n.backToAtelier}
           </a>
           {signedIn ? (
             <form action={signOut}>
               <button className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-red hover:border-red hover:text-paper">
-                Sign out
+                {n.signOut}
               </button>
             </form>
           ) : (
@@ -48,7 +53,7 @@ export function Nav({ signedIn }: { signedIn: boolean }) {
               href="/login"
               className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-blue hover:border-blue hover:text-paper"
             >
-              Sign in
+              {n.signIn}
             </Link>
           )}
         </div>

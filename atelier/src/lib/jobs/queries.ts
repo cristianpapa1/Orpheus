@@ -30,11 +30,17 @@ const byNewest = (a: JobPost, b: JobPost) =>
 export async function getOpenJobs(
   filters: JobFilters,
   limit = 50,
+  /** When provided, only jobs posted by these creators (e.g. profiles you follow). */
+  creatorIds?: string[] | null,
 ): Promise<JobPost[]> {
+  // A scoped request with an empty set (you follow nobody) has no results.
+  if (creatorIds && creatorIds.length === 0) return [];
   const supabase = await createServerSupabase();
   if (!supabase) {
     return filterJobs(
-      DEMO_JOBS.filter((j) => j.status === "open"),
+      DEMO_JOBS.filter(
+        (j) => j.status === "open" && (!creatorIds || creatorIds.includes(j.profile_id)),
+      ),
       filters,
     )
       .sort(byNewest)
@@ -49,6 +55,7 @@ export async function getOpenJobs(
     .limit(limit);
   if (filters.discipline) query = query.eq("discipline", filters.discipline);
   if (filters.mode) query = query.eq("work_mode", filters.mode);
+  if (creatorIds) query = query.in("profile_id", creatorIds);
 
   const { data } = await query;
   return ((data ?? []) as unknown as JobRow[]).map(toJob);

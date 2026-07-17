@@ -2,18 +2,10 @@ import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
 import { Nav } from "@/components/Nav";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { getI18n } from "@/lib/i18n/server";
 import { signInWithEmail, signInWithGoogle } from "./actions";
 
 export const metadata = { title: "Sign in — Astelier" };
-
-const ERRORS: Record<string, string> = {
-  unconfigured: "Sign-in is unavailable until Supabase is configured.",
-  email: "Enter your email address to receive a sign-in link.",
-  otp: "We couldn't send the link. Check the address and try again.",
-  "rate-limit": "Email limit reached — try again in an hour.",
-  oauth: "Google sign-in failed. Try again or use email.",
-  auth: "That sign-in link expired or was invalid. Request a fresh one.",
-};
 
 export default async function LoginPage({
   searchParams,
@@ -22,6 +14,16 @@ export default async function LoginPage({
 }) {
   const { sent, error } = await searchParams;
   const configured = isSupabaseConfigured();
+  const { t: dict } = await getI18n();
+  const t = dict.login;
+  const errMap: Record<string, string> = {
+    unconfigured: t.errUnconfigured,
+    email: t.errEmail,
+    otp: t.errOtp,
+    "rate-limit": t.errRateLimit,
+    oauth: t.errOauth,
+    auth: t.errAuth,
+  };
 
   return (
     <>
@@ -29,15 +31,8 @@ export default async function LoginPage({
       <main id="main" className="mx-auto w-full max-w-4xl grow px-6 py-16">
         <WindowGrid>
           <Window title="Astelier" accent="red" span="col-span-12 md:col-span-7">
-            <h1 className="text-display font-bold uppercase">
-              Sign in
-              <br />
-              to sell.
-            </h1>
-            <p className="mt-6 max-w-sm text-body">
-              Your Atelier account is your Astelier account. Use the same email —
-              one identity across both.
-            </p>
+            <h1 className="text-display font-bold uppercase">{t.heroTitle}</h1>
+            <p className="mt-6 max-w-sm text-body">{t.heroLead}</p>
             <div className="mt-8 flex gap-2" aria-hidden>
               <span className="size-6 bg-red" />
               <span className="size-6 bg-blue" />
@@ -45,21 +40,21 @@ export default async function LoginPage({
             </div>
           </Window>
 
-          <Window title="Sign in" accent="blue" span="col-span-12 md:col-span-5">
+          <Window title={t.signIn} accent="blue" span="col-span-12 md:col-span-5">
             {sent ? (
               <p role="status" className="mb-4 border-2 border-ink px-3 py-2 text-caption font-bold uppercase">
-                Check your email for a sign-in link.
+                {t.checkEmail}
               </p>
             ) : null}
             {error ? (
               <p role="alert" className="mb-4 border-2 border-red px-3 py-2 text-caption font-bold uppercase text-red">
-                {ERRORS[error] ?? "Something went wrong. Try again."}
+                {errMap[error] ?? t.errGeneric}
               </p>
             ) : null}
 
             <form action={signInWithEmail} className="flex flex-col gap-3">
               <label className="text-caption font-bold uppercase" htmlFor="email">
-                Email
+                {t.email}
               </label>
               <input
                 id="email"
@@ -75,7 +70,7 @@ export default async function LoginPage({
                 disabled={!configured}
                 className="border-2 border-ink bg-ink px-4 py-2 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue disabled:opacity-50"
               >
-                Send magic link
+                {t.sendMagicLink}
               </button>
             </form>
 
@@ -87,14 +82,12 @@ export default async function LoginPage({
                 disabled={!configured}
                 className="w-full border-2 border-ink px-4 py-2 text-caption font-bold uppercase hover:bg-yellow disabled:opacity-50"
               >
-                Continue with Google
+                {t.continueGoogle}
               </button>
             </form>
 
             {!configured ? (
-              <p className="mt-4 text-caption uppercase opacity-70">
-                Preview mode — connect Supabase to sign in.
-              </p>
+              <p className="mt-4 text-caption uppercase opacity-70">{t.previewMode}</p>
             ) : null}
           </Window>
         </WindowGrid>

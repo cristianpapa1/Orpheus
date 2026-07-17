@@ -5,6 +5,7 @@ import { getRecentPosts } from "@/lib/posts/queries";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { thumbUrl } from "@atelier/core/posts/types";
 import { Landing, type StripItem } from "@/components/landing/Landing";
+import { getI18n } from "@/lib/i18n/server";
 
 export const metadata: Metadata = {
   title: "À un flâneur — a space for people who make things",
@@ -37,5 +38,14 @@ export default async function Home() {
       author: p.author_name,
     }));
 
-  return <Landing strip={strip} configured={isSupabaseConfigured()} />;
+  const { t } = await getI18n();
+  return (
+    <Landing
+      strip={strip}
+      configured={isSupabaseConfigured()}
+      L={t.landing}
+      footer={t.footer}
+      signIn={t.nav.signIn}
+    />
+  );
 }

@@ -1,34 +1,27 @@
 import Link from "next/link";
+import { getI18n } from "@/lib/i18n/server";
 import type { CreatorStatus } from "@/lib/profile/queries";
 
 /**
  * Shown where a common member hits a creator-only surface (the composer, group
- * creation). Speaks to their actual status: pending → "under review", otherwise
- * → an invitation to apply. The database (0026 RLS) is the real gate; this is
- * the humane version of the same rule.
+ * creation). Speaks to their status: pending → "under review", otherwise → an
+ * invitation to apply. The database (0026 RLS) is the real gate; this is the
+ * humane version of the same rule.
  */
-export function CreatorGate({
-  status,
-  action,
-}: {
-  status: CreatorStatus;
-  /** What they'd be doing, e.g. "publish work" or "start a group". */
-  action: string;
-}) {
+export async function CreatorGate({ status }: { status: CreatorStatus }) {
+  const { t } = await getI18n();
+  const g = t.creatorGate;
+
   if (status === "pending") {
     return (
       <div data-creator-gate="pending" className="flex flex-col gap-3">
-        <p className="text-h2 font-bold uppercase">Under review</p>
-        <p className="text-body">
-          Your creator application is with us. We&apos;ll email you the moment
-          you&apos;re approved — then you can {action}. Until then, browse, follow,
-          and join groups.
-        </p>
+        <p className="text-h2 font-bold uppercase">{g.underReview}</p>
+        <p className="text-body">{g.underReviewBody}</p>
         <Link
           href="/creator/apply"
           className="self-start border-2 border-ink px-4 py-2 text-caption font-bold uppercase hover:bg-yellow"
         >
-          Check your status →
+          {g.checkStatus}
         </Link>
       </div>
     );
@@ -36,17 +29,13 @@ export function CreatorGate({
 
   return (
     <div data-creator-gate="locked" className="flex flex-col gap-3">
-      <p className="text-h2 font-bold uppercase">Creators only</p>
-      <p className="text-body">
-        To {action} you need creator access. Tell us what you make and share a
-        couple of links — a quick manual review keeps the space real, and
-        we&apos;ll email you when you&apos;re in.
-      </p>
+      <p className="text-h2 font-bold uppercase">{g.creatorsOnly}</p>
+      <p className="text-body">{g.creatorsOnlyBody}</p>
       <Link
         href="/creator/apply"
         className="self-start border-2 border-ink bg-ink px-5 py-2 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue"
       >
-        Become a creator →
+        {g.becomeCreator}
       </Link>
     </div>
   );

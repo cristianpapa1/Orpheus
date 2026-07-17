@@ -6,6 +6,8 @@ import { getActiveAppeal, getRaisedForAppeal } from "@/lib/donations/queries";
 import { getUnreadCount } from "@/lib/notifications/queries";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { getI18n } from "@/lib/i18n/server";
+import { I18nProvider } from "@/lib/i18n/context";
 
 export default async function ShellLayout({
   children,
@@ -21,10 +23,11 @@ export default async function ShellLayout({
   const appeal =
     activeAppeal && activeAppeal.id !== dismissedId ? activeAppeal : null;
   const raised = appeal ? await getRaisedForAppeal(appeal.id) : 0;
+  const { t } = await getI18n();
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <Nav email={user?.email ?? null} unread={unread} />
+      <Nav email={user?.email ?? null} unread={unread} t={t.nav} />
       {appeal ? <AppealBanner appeal={appeal} raisedCents={raised} /> : null}
       {!isSupabaseConfigured() ? (
         <p
@@ -35,30 +38,38 @@ export default async function ShellLayout({
         </p>
       ) : null}
       <main id="main" className="mx-auto w-full max-w-6xl grow px-6 py-10">
-        {children}
+        <I18nProvider dict={t}>{children}</I18nProvider>
       </main>
-      <BottomNav />
+      <BottomNav t={t.nav} />
       <footer className="border-t-2 border-ink px-6 py-4 pb-20 text-center text-caption uppercase md:pb-4">
         Atelier —{" "}
         <Link href="/donate" data-footer-donate className="border-b-2 border-ink font-bold hover:text-red">
-          funded by donations
+          {t.footer.fundedByDonations}
         </Link>
-        , never by ads ·{" "}
+        , {t.footer.neverByAds} ·{" "}
         <Link href="/jobs" data-footer-jobs className="border-b-2 border-ink font-bold hover:text-blue">
-          jobs for makers
+          {t.footer.jobsForMakers}
         </Link>{" "}
         ·{" "}
         <Link href="/events" data-footer-events className="border-b-2 border-ink font-bold hover:text-blue">
-          events
+          {t.footer.events}
         </Link>{" "}
         ·{" "}
         <Link href="/terms" data-footer-terms className="border-b-2 border-ink hover:text-blue">
-          terms
+          {t.footer.terms}
         </Link>{" "}
         ·{" "}
         <Link href="/privacy" data-footer-privacy className="border-b-2 border-ink hover:text-blue">
-          privacy
+          {t.footer.privacy}
         </Link>{" "}
+        ·{" "}
+        <Link href="/copyright" data-footer-copyright className="border-b-2 border-ink hover:text-blue">
+          {t.footer.copyright}
+        </Link>{" "}
+        ·{" "}
+        <a href="mailto:atelier@aunflaneur.com" data-footer-contact className="border-b-2 border-ink hover:text-blue">
+          {t.footer.contact}
+        </a>{" "}
         · <span className="opacity-70">© À un flâneur</span>
       </footer>
     </div>

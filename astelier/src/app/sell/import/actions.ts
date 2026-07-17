@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { getMyStore } from "@/lib/stores/queries";
+import { isCrawlerAuthorized } from "@/lib/validation";
 import {
   cleanExternalUrl,
   MAX_PRODUCT_TITLE,
@@ -71,6 +72,14 @@ export async function scrapeCatalog(
   const store = await getMyStore();
   if (!store) return { ok: false, error: "Open a store first." };
 
+  if (!(await isCrawlerAuthorized())) {
+    return {
+      ok: false,
+      error:
+        "The catalog crawler is reserved for validated institutions. Claim your institution on Atelier to unlock it.",
+    };
+  }
+
   const key = process.env.FIRECRAWL_API_KEY;
   if (!key) return { ok: false, error: "Import isn't configured (no Firecrawl key)." };
 
@@ -131,6 +140,14 @@ export async function importCatalog(candidates: ImportCandidate[]): Promise<Impo
   if (!user) return { ok: false, error: "Sign in to import." };
   const store = await getMyStore();
   if (!store) return { ok: false, error: "Open a store first." };
+
+  if (!(await isCrawlerAuthorized())) {
+    return {
+      ok: false,
+      error:
+        "The catalog crawler is reserved for validated institutions. Claim your institution on Atelier to unlock it.",
+    };
+  }
 
   const list = (candidates ?? []).slice(0, 40).filter((c) => c && c.title?.trim());
   if (!list.length) return { ok: false, error: "Nothing selected to import." };

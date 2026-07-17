@@ -44,7 +44,11 @@ export async function getUpcomingEvents(
   now: string,
   mode?: string,
   limit = 100,
+  /** When provided, only events by these creators (e.g. profiles you follow). */
+  creatorIds?: string[] | null,
 ): Promise<GlobalEvent[]> {
+  // A scoped request with an empty set (you follow nobody) has no results.
+  if (creatorIds && creatorIds.length === 0) return [];
   const supabase = await createServerSupabase();
   if (!supabase) {
     const profiles = Object.values(DEMO_PROFILES);
@@ -52,6 +56,7 @@ export async function getUpcomingEvents(
       .flat()
       .filter((e) => e.starts_at >= now)
       .filter((e) => !mode || e.location_type === mode)
+      .filter((e) => !creatorIds || creatorIds.includes(e.profile_id))
       .sort((a, b) => a.starts_at.localeCompare(b.starts_at))
       .slice(0, limit)
       .map((e) => {
@@ -75,6 +80,7 @@ export async function getUpcomingEvents(
   if (mode === "venue" || mode === "online") {
     query = query.eq("location_type", mode);
   }
+  if (creatorIds) query = query.in("profile_id", creatorIds);
   const { data } = await query;
   return ((data ?? []) as unknown as (EventRow & {
     creator: { handle: string | null; display_name: string | null } | null;

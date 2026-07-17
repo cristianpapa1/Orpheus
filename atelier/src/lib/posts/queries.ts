@@ -49,7 +49,14 @@ type PostRow = {
   } | null;
 };
 
+// When set, media is served through the Cloudflare-fronted CDN domain
+// (e.g. https://cdn.aunflaneur.com) instead of directly from Supabase — edge
+// caching + hotlink control, with Supabase as the cache-miss origin. Unset →
+// direct Supabase public URLs (identical to before). Flip/rollback via env only.
+const MEDIA_CDN = (process.env.NEXT_PUBLIC_MEDIA_CDN_URL ?? "").replace(/\/+$/, "");
+
 export function publicMediaUrl(path: string): string {
+  if (MEDIA_CDN) return `${MEDIA_CDN}/${path}`;
   return `${SUPABASE_URL}/storage/v1/object/public/media/${path}`;
 }
 
@@ -129,6 +136,117 @@ export async function getFeedPosts(limit = 30): Promise<Post[]> {
   return ((data ?? []) as unknown as PostRow[])
     .map(toPost)
     .filter((p): p is Post => p !== null);
+}
+
+export interface FeedCurator {
+  id: string;
+  handle: string;
+  display_name: string;
+  avatar_url: string | null;
+}
+
+export interface FeedItem {
+  post: Post;
+  /** Present when this post is in the feed because a curator you follow reposted it. */
+  curatedBy: FeedCurator | null;
+  /** Sort key: the post's own time, or the curation time when curated. */
+  ts: string;
+}
+
+/**
+ * The feed as items: your + your follows' posts, PLUS posts a curator you follow
+ * reposted ("Curated by X", retweet-style). Chronological by event time (post
+ * created / curated) — no ranking. Defensive: if the 0027 curations table isn't
+ * applied yet, this degrades cleanly to posts-only.
+ */
+export async function getFeedItems(limit = 30): Promise<FeedItem[]> {
+  const supabase = await createServerSupabase();
+  if (!supabase) {
+    return [...DEMO_POSTS]
+      .sort(byNewest)
+      .slice(0, limit)
+      .map((post) => ({ post, curatedBy: null, ts: post.created_at }));
+  }
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const [{ data: followRows }, { data: blockRows }] = await Promise.all([
+    supabase.from("follows").select("followee_id").eq("follower_id", user.id),
+    supabase.from("blocks").select("blocked_id").eq("blocker_id", user.id),
+  ]);
+  const blocked = new Set((blockRows ?? []).map((b) => b.blocked_id));
+  const followeeIds = (followRows ?? []).map((r) => r.followee_id);
+  const authorIds = [user.id, ...followeeIds].filter((id) => !blocked.has(id));
+
+  // 1) Authored posts (you + your follows).
+  const { data: postRows } = await supabase
+    .from("posts")
+    .select(POST_SELECT)
+    .in("author_id", authorIds)
+    .is("removed_at", null)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  const items = new Map<string, FeedItem>();
+  for (const row of (postRows ?? []) as unknown as PostRow[]) {
+    const post = toPost(row);
+    if (post) items.set(post.id, { post, curatedBy: null, ts: post.created_at });
+  }
+
+  // 2) Curations by curators you follow. Defensive: table may not exist yet.
+  if (followeeIds.length) {
+    const { data: curRows, error: curErr } = await supabase
+      .from("post_curations")
+      .select("curator_id, post_id, created_at")
+      .in("curator_id", followeeIds)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    const cur = curErr ? [] : (curRows ?? []);
+    if (cur.length) {
+      const postIds = [...new Set(cur.map((c) => c.post_id))];
+      const curatorIds = [...new Set(cur.map((c) => c.curator_id))];
+      const [{ data: cPosts }, { data: cProfs }] = await Promise.all([
+        supabase.from("posts").select(POST_SELECT).in("id", postIds).is("removed_at", null),
+        supabase
+          .from("profiles")
+          .select("id, handle, display_name, avatar_url")
+          .in("id", curatorIds),
+      ]);
+      const postById = new Map<string, Post>();
+      for (const row of (cPosts ?? []) as unknown as PostRow[]) {
+        const p = toPost(row);
+        if (p && !blocked.has(p.author_id)) postById.set(p.id, p);
+      }
+      const curatorById = new Map(
+        (cProfs ?? []).map((p) => [
+          p.id,
+          {
+            id: p.id,
+            handle: p.handle ?? "",
+            display_name: p.display_name ?? p.handle ?? "Unnamed",
+            avatar_url: p.avatar_url ?? null,
+          } as FeedCurator,
+        ]),
+      );
+      for (const c of cur) {
+        const post = postById.get(c.post_id);
+        const curator = curatorById.get(c.curator_id);
+        if (!post || !curator) continue;
+        const existing = items.get(post.id);
+        // Keep the more-recent event; a fresh curation can bump a post up.
+        if (!existing || c.created_at > existing.ts) {
+          items.set(post.id, { post, curatedBy: curator, ts: c.created_at });
+        }
+      }
+    }
+  }
+
+  return [...items.values()]
+    .sort((a, b) => b.ts.localeCompare(a.ts))
+    .slice(0, limit);
 }
 
 /** All recent posts across every author, newest first (admin console). */

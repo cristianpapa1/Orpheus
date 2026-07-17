@@ -11,6 +11,7 @@ import {
 } from "@atelier/core/commerce/stores";
 import { toSchool } from "@atelier/core/design/schools";
 import { REQUIRED_FOLLOWS } from "@/lib/gate";
+import { isViewerCreator } from "@/lib/validation";
 
 export interface SaveStoreInput {
   name: string;
@@ -45,6 +46,17 @@ export async function saveStore(input: SaveStoreInput): Promise<SaveStoreResult>
     return {
       ok: false,
       error: `Follow ${REQUIRED_FOLLOWS} makers on Atelier before opening a store.`,
+    };
+  }
+
+  // A store requires an approved creator. Curator status no longer blocks it:
+  // a curator who is ALSO a creator can sell; a curator who isn't a creator is
+  // blocked here (not a creator), same as any member.
+  if (!(await isViewerCreator())) {
+    return {
+      ok: false,
+      error:
+        "Only approved makers can open an Astelier shop. Become a creator on Atelier first.",
     };
   }
 

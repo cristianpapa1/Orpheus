@@ -2,17 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useT } from "@/lib/i18n/context";
 
 const TABS = [
-  { href: "/", label: "Home", accent: "bg-red" },
-  { href: "/browse", label: "Browse", accent: "bg-blue" },
-  { href: "/search", label: "Search", accent: "bg-yellow" },
-  { href: "/sell", label: "Sell", accent: "bg-ink" },
+  { href: "/", key: "home", accent: "bg-red" },
+  { href: "/browse", key: "browse", accent: "bg-blue" },
+  { href: "/search", key: "search", accent: "bg-yellow" },
+  { href: "/sell", key: "sell", accent: "bg-ink" },
 ] as const;
 
 /** Mobile thumb-reach nav. Hidden on md+, where the top nav takes over. */
 export function BottomNav() {
   const pathname = usePathname();
+  const t = useT().bottomNav;
   return (
     <nav
       data-bottom-nav
@@ -33,7 +35,7 @@ export function BottomNav() {
               }`}
             >
               <span aria-hidden className={`size-2 ${tab.accent}`} />
-              {tab.label}
+              {t[tab.key]}
             </Link>
           );
         })}

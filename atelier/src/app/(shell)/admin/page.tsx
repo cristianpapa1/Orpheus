@@ -20,6 +20,12 @@ const TOOLS: { href: string; title: string; accent: WindowAccent; body: string }
     body: "The moderation queue — community reports and AI-flagged posts. Review, dismiss, take down.",
   },
   {
+    href: "/admin/admissions",
+    title: "Creator admissions",
+    accent: "yellow",
+    body: "Review who asked to become a creator — approve or reject the ability to publish work and start groups.",
+  },
+  {
     href: "/admin/claims",
     title: "Profile claims",
     accent: "yellow",

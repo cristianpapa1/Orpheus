@@ -8,10 +8,20 @@ import {
   getProfileByHandleOrId,
   getProfileClaimState,
   getViewerId,
+  isCreatorProfile,
   isFollowing,
   isViewerQualityStamped,
 } from "@/lib/profile/queries";
+import { coerceLayoutForCreator } from "@atelier/core/profile/layout";
+import { getI18n } from "@/lib/i18n/server";
 import { getPostsByAuthor } from "@/lib/posts/queries";
+import { getFavoritesByProfile } from "@/lib/favorites/queries";
+import { getRatingsForPosts } from "@/lib/ratings/queries";
+import { getCuratedByProfile } from "@/lib/curations/queries";
+import { isCurator } from "@/lib/curator/eligibility";
+import { FavoritesGallery } from "@/components/profile/FavoritesGallery";
+import { CuratedGallery } from "@/components/profile/CuratedGallery";
+import { Window } from "@/components/ui/Window";
 import { getStoreLinkForOwner } from "@/lib/commerce/stores";
 import { getEventsByProfile } from "@/lib/events/queries";
 import { getJobsByProfile } from "@/lib/jobs/queries";
@@ -51,10 +61,27 @@ export default async function PublicProfilePage({ params, searchParams }: Props)
   const blocked = await isBlocked(profile.id);
   const claim = await getProfileClaimState(profile.id);
   const storeLink = await getStoreLinkForOwner(profile.id);
+  const [curator, favorites, curated, creatorProfile] = await Promise.all([
+    isCurator(profile.id),
+    getFavoritesByProfile(profile.id, 12),
+    getCuratedByProfile(profile.id, 12),
+    isCreatorProfile(profile.id),
+  ]);
+  const favRatings = await getRatingsForPosts(
+    profile.id,
+    favorites.map((p) => p.id),
+  );
+
+  // A common member (not an approved creator) can't publish work/events/jobs,
+  // so their canvas shows identity + a Liked shelf instead of empty windows.
+  const layout = coerceLayoutForCreator(profile.layout, creatorProfile);
+  const hasLikedBlock = layout.blocks.some((b) => b.type === "liked");
 
   const configured = isSupabaseConfigured();
   const viewerId = configured ? await getViewerId() : null;
   const viewerStamped = configured ? await isViewerQualityStamped() : false;
+  const { t: dict } = await getI18n();
+  const t = dict.profile;
 
   let state: FollowState;
   if (!configured) state = "preview";
@@ -82,7 +109,7 @@ export default async function PublicProfilePage({ params, searchParams }: Props)
             title="Claimed by its owner"
             className="border-2 border-ink bg-ink px-2 py-1 text-caption font-bold uppercase text-paper"
           >
-            ✓ Verified
+            {t.verified}
           </span>
         ) : null}
         {claim.quality_stamped ? (
@@ -91,12 +118,21 @@ export default async function PublicProfilePage({ params, searchParams }: Props)
             title="Quality member — a trusted reviewer"
             className="border-2 border-ink bg-yellow px-2 py-1 text-caption font-bold uppercase"
           >
-            ✦ Quality
+            {t.quality}
+          </span>
+        ) : null}
+        {curator ? (
+          <span
+            data-curator
+            title="Curator — a tastemaker who reposts work as curated"
+            className="border-2 border-ink bg-blue px-2 py-1 text-caption font-bold uppercase text-paper"
+          >
+            {t.curatorBadge}
           </span>
         ) : null}
         <span data-follower-count className="text-caption font-bold uppercase">
           {profile.follower_count}{" "}
-          {profile.follower_count === 1 ? "follower" : "followers"}
+          {profile.follower_count === 1 ? t.follower : t.followers}
         </span>
         <FollowButton targetId={profile.id} handle={slug} initialState={state} />
         {canEdit ? (
@@ -105,7 +141,7 @@ export default async function PublicProfilePage({ params, searchParams }: Props)
             data-edit-profile
             className="border-2 border-ink bg-ink px-3 py-1 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue"
           >
-            {isManager ? "Edit this profile" : "Edit your space"}
+            {isManager ? t.editThisProfile : t.editYourSpace}
           </Link>
         ) : null}
         {state !== "self" && state !== "preview" && state !== "signed-out" ? (
@@ -124,7 +160,7 @@ export default async function PublicProfilePage({ params, searchParams }: Props)
                 data-block-button
                 className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-red hover:border-red hover:text-paper"
               >
-                {blocked ? "Unblock" : "Block"}
+                {blocked ? t.unblock : t.block}
               </button>
             </form>
           </>
@@ -137,42 +173,39 @@ export default async function PublicProfilePage({ params, searchParams }: Props)
           data-astelier-store
           className="mb-6 inline-flex items-center gap-2 border-2 border-ink bg-yellow px-4 py-2 text-caption font-bold uppercase hover:bg-ink hover:text-paper"
         >
-          Shop at Astelier → {storeLink.name}
+          {t.shopAt} {storeLink.name}
         </a>
       ) : null}
 
       {isManager ? (
         <p data-manages className="mb-6 border-2 border-ink bg-yellow px-3 py-2 text-caption font-bold uppercase">
-          You manage this profile.
+          {t.youManage}
         </p>
       ) : null}
 
       {claim.is_seed && !claim.claimed ? (
         <div data-claimable className="mb-6 border-2 border-ink p-4">
-          <p className="text-caption font-bold uppercase">Community profile</p>
-          <p className="mt-2 text-body">
-            This is an unofficial, community-run profile. If you represent{" "}
-            {profile.display_name}, you can claim it.
-          </p>
+          <p className="text-caption font-bold uppercase">{t.communityProfile}</p>
+          <p className="mt-2 text-body">{t.communityBody}</p>
           {claimFlag === "sent" ? (
             <p role="status" className="mt-3 border-2 border-ink px-3 py-2 text-caption font-bold uppercase">
-              Claim submitted — an admin will review it.
+              {t.claimSubmitted}
             </p>
           ) : claimFlag === "error" ? (
             <p role="alert" className="mt-3 border-2 border-red px-3 py-2 text-caption font-bold uppercase text-red">
-              That didn&apos;t work. Try again.
+              {t.claimError}
             </p>
           ) : null}
           {canClaim ? (
             <details className="mt-3">
               <summary className="cursor-pointer border-2 border-ink bg-ink px-3 py-1 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue inline-block">
-                Claim this profile
+                {t.claimThis}
               </summary>
               <form action={requestClaim} className="mt-3 flex flex-col gap-2">
                 <input type="hidden" name="handle" value={slug} />
                 <input type="hidden" name="profile_id" value={profile.id} />
                 <label htmlFor="claim-message" className="text-caption font-bold uppercase">
-                  How can we verify you? (official email, socials…)
+                  {t.howVerify}
                 </label>
                 <textarea
                   id="claim-message"
@@ -182,29 +215,56 @@ export default async function PublicProfilePage({ params, searchParams }: Props)
                   className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
                 />
                 <button className="self-start border-2 border-ink bg-ink px-4 py-1 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue">
-                  Submit claim
+                  {t.submitClaim}
                 </button>
               </form>
             </details>
           ) : !viewerId ? (
             <p className="mt-3 text-caption font-bold uppercase">
               <Link href="/login" className="border-b-2 border-ink hover:text-blue">
-                Sign in
-              </Link>{" "}
-              to claim this profile.
+                {t.signInToClaim}
+              </Link>
             </p>
           ) : null}
         </div>
       ) : null}
 
       <ProfileCanvas
-        profile={profile}
+        profile={{ ...profile, layout }}
         posts={posts}
         events={events}
         jobs={jobs}
+        liked={favorites}
+        likedRatings={favRatings}
         now={new Date().toISOString()}
         ownerView={viewerId === profile.id}
       />
+
+      {curator ? (
+        <section data-curated-section className="mt-8">
+          <Window title={t.curatedTitle} accent="blue">
+            <p className="mb-4 text-body opacity-70">
+              Work {profile.display_name} has reposted as curated.
+            </p>
+            <CuratedGallery picks={curated} />
+          </Window>
+        </section>
+      ) : null}
+
+      {favorites.length > 0 && !hasLikedBlock ? (
+        <section data-favorites-section className="mt-8">
+          <Window title={t.favoritesTitle} accent="yellow">
+            <p className="mb-4 text-body opacity-70">
+              Work {profile.display_name} favorited{viewerId === profile.id ? " — tap the stars to rate" : ""}.
+            </p>
+            <FavoritesGallery
+              posts={favorites}
+              ratings={favRatings}
+              editable={viewerId === profile.id}
+            />
+          </Window>
+        </section>
+      ) : null}
     </div>
   );
 }

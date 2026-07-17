@@ -1,0 +1,14 @@
+# ai.txt — AI usage policy for atelier.aunflaneur.com
+#
+# All work published on Atelier is protected by copyright and remains the
+# property of the artists who made it. It is NOT made available for:
+#   - training or fine-tuning AI / machine-learning models
+#   - text-and-data mining (TDM)
+#   - generative AI input, retrieval, or output
+#
+# All rights are expressly reserved, including the reservation permitted under
+# Article 4 of the EU DSM Directive (2019/790). See /terms and /copyright.
+# Machine-readable reservation: /.well-known/tdmrep.json
+
+User-Agent: *
+Disallow: /

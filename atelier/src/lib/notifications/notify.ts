@@ -12,7 +12,8 @@ export type NotificationType =
   | "follow"
   | "quality_stamp"
   | "creator_approved"
-  | "creator_rejected";
+  | "creator_rejected"
+  | "curated";
 
 /**
  * Best-effort notification insert. No-op when notifying yourself, and silently

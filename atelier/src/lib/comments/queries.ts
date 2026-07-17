@@ -35,3 +35,41 @@ export async function getComments(postId: string): Promise<CommentItem[]> {
     author_name: c.author?.display_name ?? c.author?.handle ?? "Unnamed",
   }));
 }
+
+export interface SupportInfo {
+  count: number;
+  mine: boolean;
+}
+
+/**
+ * Support (like) counts per comment + whether the viewer supported each.
+ * Returns null when unavailable (preview / 0028 not applied) so callers hide
+ * the support UI. Mirrors the favorites pattern.
+ */
+export async function getCommentSupports(
+  commentIds: string[],
+): Promise<Map<string, SupportInfo> | null> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return null;
+  if (commentIds.length === 0) return new Map();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { data, error } = await supabase
+    .from("comment_supports")
+    .select("comment_id, profile_id")
+    .in("comment_id", commentIds);
+  if (error) return null; // table missing → feature off
+
+  const map = new Map<string, SupportInfo>();
+  for (const id of commentIds) map.set(id, { count: 0, mine: false });
+  for (const r of data ?? []) {
+    const e = map.get(r.comment_id);
+    if (!e) continue;
+    e.count += 1;
+    if (user && r.profile_id === user.id) e.mine = true;
+  }
+  return map;
+}

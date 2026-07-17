@@ -1,0 +1,20 @@
+name = "media-cdn"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# Bind the Worker to the CDN hostname. Prefer adding a **Custom Domain** in the
+# Worker's dashboard settings (auto-creates the proxied DNS record + TLS cert) —
+# see README. This route entry is the alternative if you manage DNS yourself.
+routes = [
+  { pattern = "media.aunflaneur.com", custom_domain = true }
+]
+
+[vars]
+# VERIFY this equals your NEXT_PUBLIC_SUPABASE_URL + /storage/v1/object/public/media
+# (the value below is the known project ref; confirm before deploying).
+SUPABASE_STORAGE_BASE = "https://bwjrbjvjhoemmhkuhhsw.supabase.co/storage/v1/object/public/media"
+
+# Hotlink protection: comma-separated referer hosts allowed to embed media.
+# Empty = OFF (recommended at first). Example once ready:
+#   "aunflaneur.com"
+ALLOWED_REFERER_HOSTS = ""

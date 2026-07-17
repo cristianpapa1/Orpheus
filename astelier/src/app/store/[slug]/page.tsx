@@ -7,6 +7,7 @@ import { getGateState } from "@/lib/gate";
 import { getStoreBySlug } from "@/lib/stores/queries";
 import { getLiveProductsByStore } from "@/lib/products/queries";
 import { formatMoney } from "@atelier/core/commerce/money";
+import { getI18n } from "@/lib/i18n/server";
 
 export async function generateMetadata({
   params,
@@ -33,10 +34,12 @@ export default async function StorePage({
   const store = await getStoreBySlug(slug);
   if (!store) notFound();
 
-  const [gate, products] = await Promise.all([
+  const [gate, products, { t: dict }] = await Promise.all([
     getGateState(),
     getLiveProductsByStore(store.id),
+    getI18n(),
   ]);
+  const t = dict.store;
 
   return (
     <>
@@ -70,7 +73,7 @@ export default async function StorePage({
 
         {/* catalog */}
         <section className="mt-8">
-          <h2 className="mb-4 text-caption font-bold uppercase opacity-70">Catalog</h2>
+          <h2 className="mb-4 text-caption font-bold uppercase opacity-70">{t.catalog}</h2>
           {products.length ? (
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
               {products.map((p) => (
@@ -89,7 +92,7 @@ export default async function StorePage({
                       />
                     ) : (
                       <div className="grid h-full place-items-center text-caption uppercase opacity-40">
-                        No image
+                        {dict.common.noImage}
                       </div>
                     )}
                   </div>
@@ -104,7 +107,7 @@ export default async function StorePage({
             </div>
           ) : (
             <p className="border-2 border-dashed border-ink/40 px-4 py-8 text-center text-body opacity-70">
-              No products yet — this maker is setting up.
+              {t.noProducts}
             </p>
           )}
         </section>

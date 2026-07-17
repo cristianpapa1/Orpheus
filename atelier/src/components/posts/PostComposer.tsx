@@ -32,6 +32,7 @@ import {
 } from "@atelier/core/posts/types";
 import type { MutualFollow } from "@/lib/profile/queries";
 import type { TaggableGroup } from "@/lib/groups/queries";
+import { useT } from "@/lib/i18n/context";
 
 type Stage = "idle" | "uploading" | "recording";
 
@@ -80,6 +81,7 @@ export function PostComposer({
   const [stage, setStage] = useState<Stage>("idle");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const tc = useT().composer;
 
   const onAvFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
@@ -360,7 +362,7 @@ export function PostComposer({
         </p>
       ) : null}
 
-      <p className="text-caption font-bold uppercase">What are you sharing?</p>
+      <p className="text-caption font-bold uppercase">{tc.whatSharing}</p>
       <div className="flex flex-wrap gap-2" data-media-picker>
         {(["image", "video", "audio", "text"] as const).map((m) => (
           <button
@@ -380,12 +382,12 @@ export function PostComposer({
             }`}
           >
             {m === "image"
-              ? "Image"
+              ? tc.mediaImage
               : m === "video"
-                ? "Short video"
+                ? tc.mediaVideo
                 : m === "audio"
-                  ? "Short audio"
-                  : "Text"}
+                  ? tc.mediaAudio
+                  : tc.mediaText}
           </button>
         ))}
       </div>
@@ -393,7 +395,7 @@ export function PostComposer({
       {mediaType === "text" ? (
         <>
           <label htmlFor="body" className="text-caption font-bold uppercase">
-            Your words (poem, paragraph…)
+            {tc.words}
           </label>
           <textarea
             id="body"
@@ -438,7 +440,7 @@ export function PostComposer({
       {mediaType === "video" || mediaType === "audio" ? (
         <>
           <label htmlFor="av_file" className="text-caption font-bold uppercase">
-            {mediaType === "video" ? "Video (max 2 min)" : "Audio (max 5 min)"}
+            {mediaType === "video" ? tc.video : tc.audio}
           </label>
           <input
             id="av_file"
@@ -458,7 +460,7 @@ export function PostComposer({
       {mediaType === "image" || mediaType === "audio" ? (
         <>
           <label htmlFor="image" className="text-caption font-bold uppercase">
-            {mediaType === "audio" ? "Cover image (required)" : "Work — up to 10 images"}
+            {mediaType === "audio" ? tc.cover : tc.workImages}
           </label>
           <input
             id="image"
@@ -512,7 +514,7 @@ export function PostComposer({
       {mediaType !== "text" ? (
         <>
       <label htmlFor="alt_text" className="text-caption font-bold uppercase">
-        Alt text (describe the work for screen readers)
+        {tc.altText}
       </label>
       <input
         id="alt_text"
@@ -526,7 +528,7 @@ export function PostComposer({
       ) : null}
 
       <label htmlFor="caption" className="text-caption font-bold uppercase">
-        {mediaType === "text" ? "Title (optional)" : "Caption"}
+        {mediaType === "text" ? tc.title : tc.caption}
       </label>
       <textarea
         id="caption"
@@ -539,7 +541,7 @@ export function PostComposer({
       />
 
       <label htmlFor="category" className="text-caption font-bold uppercase">
-        Category
+        {tc.categoryLabel}
       </label>
       <select
         id="category"
@@ -552,7 +554,7 @@ export function PostComposer({
         className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
       >
         <option value="" disabled>
-          Pick one…
+          {tc.pickOne}
         </option>
         {POST_CATEGORIES.map((c) => (
           <option key={c} value={c}>
@@ -584,7 +586,7 @@ export function PostComposer({
       ) : null}
 
       <label htmlFor="tags" className="text-caption font-bold uppercase">
-        Tags (optional)
+        {tc.tags}
       </label>
       <input
         id="tags"
@@ -599,7 +601,7 @@ export function PostComposer({
       </p>
 
       <label htmlFor="checkout_url" className="text-caption font-bold uppercase">
-        Astelier link (optional)
+        {tc.astelierLink}
       </label>
       <input
         id="checkout_url"
@@ -623,10 +625,10 @@ export function PostComposer({
       {mediaType !== "text" ? (
       <fieldset data-display-controls className="flex flex-col gap-3 border-t-2 border-ink pt-4">
         <legend className="pr-3 text-caption font-bold uppercase">
-          How it displays — your call
+          {tc.displayLegend}
         </legend>
 
-        <p className="text-caption font-bold uppercase">Frame</p>
+        <p className="text-caption font-bold uppercase">{tc.frame}</p>
         <div className="flex flex-wrap gap-2">
           {FRAMES.map((f) => (
             <button
@@ -641,7 +643,7 @@ export function PostComposer({
           ))}
         </div>
 
-        <p className="text-caption font-bold uppercase">Window size</p>
+        <p className="text-caption font-bold uppercase">{tc.windowSize}</p>
         <div className="flex flex-wrap gap-2">
           {SPANS.map((s) => (
             <button
@@ -656,7 +658,7 @@ export function PostComposer({
           ))}
         </div>
 
-        <p className="text-caption font-bold uppercase">Aspect</p>
+        <p className="text-caption font-bold uppercase">{tc.aspect}</p>
         <div className="flex flex-wrap gap-2">
           {ASPECTS.map((a) => (
             <button
@@ -676,7 +678,7 @@ export function PostComposer({
       {mutuals.length > 0 ? (
         <fieldset data-people-tagging className="flex flex-col gap-2 border-t-2 border-ink pt-4">
           <legend className="pr-3 text-caption font-bold uppercase">
-            Tag people you follow
+            {tc.tagPeople}
           </legend>
           <div className="flex flex-wrap gap-2">
             {mutuals.map((m) => {
@@ -711,7 +713,7 @@ export function PostComposer({
       {memberGroups.length > 0 ? (
         <fieldset data-group-tagging className="flex flex-col gap-2 border-t-2 border-ink pt-4">
           <legend className="pr-3 text-caption font-bold uppercase">
-            Also share into your groups
+            {tc.shareGroups}
           </legend>
           {memberGroups.map((g) => (
             <label key={g.id} className="flex items-center gap-2 text-body">
@@ -750,10 +752,10 @@ export function PostComposer({
         className="self-start border-2 border-ink bg-ink px-6 py-2 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue disabled:opacity-50"
       >
         {stage === "uploading"
-          ? "Uploading original + variants…"
+          ? tc.uploading
           : stage === "recording"
-            ? "Publishing…"
-            : "Publish"}
+            ? tc.publishing
+            : tc.publish}
       </button>
     </div>
   );

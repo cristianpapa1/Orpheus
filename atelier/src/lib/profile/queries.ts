@@ -426,6 +426,23 @@ export async function getViewerCreatorStatus(): Promise<CreatorStatus> {
   return s === "pending" || s === "approved" || s === "rejected" ? s : "none";
 }
 
+/**
+ * Whether a given profile is an approved creator — the capability that unlocks
+ * publishing work, events, and jobs (and, on the canvas, the Gallery/Posts
+ * windows). Common members get identity + a Liked shelf instead. Preview mode →
+ * true so demo spaces stay fully explorable; defensive → false pre-migration.
+ */
+export async function isCreatorProfile(profileId: string): Promise<boolean> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return true;
+  const { data } = await supabase
+    .from("profiles")
+    .select("creator_status")
+    .eq("id", profileId)
+    .maybeSingle();
+  return data?.creator_status === "approved";
+}
+
 export interface CreatorApplication {
   id: string;
   profile_id: string;

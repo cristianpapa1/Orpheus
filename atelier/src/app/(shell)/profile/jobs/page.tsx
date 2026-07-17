@@ -10,12 +10,15 @@ import {
   WORK_MODE_LABEL,
 } from "@atelier/core/jobs/types";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { CreatorGate } from "@/components/creator/CreatorGate";
+import { getViewerCreatorStatus } from "@/lib/profile/queries";
 import { createJob, setJobStatus } from "./actions";
 
 export const metadata = { title: "Your job posts — Atelier" };
 
 const ERRORS: Record<string, string> = {
   unavailable: "Preview mode — managing job posts needs Supabase configured.",
+  locked: "Posting jobs is for approved creators.",
   title: "Titles are 3–80 characters.",
   discipline: "Pick a discipline.",
   url: "Apply links must start with http(s)://",
@@ -30,6 +33,8 @@ export default async function ProfileJobsPage({
 }) {
   const { error, created } = await searchParams;
   const configured = isSupabaseConfigured();
+  const creatorStatus = await getViewerCreatorStatus();
+  const canPost = creatorStatus === "approved";
   const jobs = await getOwnJobs();
 
   return (
@@ -55,6 +60,9 @@ export default async function ProfileJobsPage({
               Preview mode — demo postings shown
             </p>
           ) : null}
+          {configured && !canPost ? (
+            <CreatorGate status={creatorStatus} />
+          ) : (
           <form action={createJob} data-create-job className="flex flex-col gap-3">
             <label htmlFor="title" className="text-caption font-bold uppercase">Title</label>
             <input id="title" name="title" required minLength={3} maxLength={80} disabled={!configured}
@@ -101,6 +109,7 @@ export default async function ProfileJobsPage({
               Post job
             </button>
           </form>
+          )}
         </Window>
 
         <Window title="Your postings" accent="blue" span="col-span-12 md:col-span-7">

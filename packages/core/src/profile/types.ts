@@ -1,6 +1,5 @@
 import type { ProfileLayout } from "./layout";
 import type { School } from "../design/schools";
-import { SCHOOLS, SCHOOL_LABEL } from "../design/schools";
 import { POST_CATEGORIES, CATEGORY_LABEL } from "../posts/types";
 
 /* ── Contact information (was "Links") ───────────────────────────────
@@ -186,7 +185,7 @@ export function contactHref(entry: ContactEntry): string {
 export interface InterestOption {
   value: string;
   label: string;
-  group: "Discipline" | "Movement";
+  group: "Discipline";
 }
 
 export const INTEREST_OPTIONS: InterestOption[] = [
@@ -194,11 +193,6 @@ export const INTEREST_OPTIONS: InterestOption[] = [
     value: `cat:${c}`,
     label: CATEGORY_LABEL[c],
     group: "Discipline" as const,
-  })),
-  ...SCHOOLS.map((s) => ({
-    value: `school:${s}`,
-    label: SCHOOL_LABEL[s],
-    group: "Movement" as const,
   })),
 ];
 

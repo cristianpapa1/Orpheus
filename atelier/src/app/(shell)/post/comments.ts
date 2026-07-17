@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { notify } from "@/lib/notifications/notify";
+import { isViewerCurator } from "@/lib/curator/eligibility";
 
 export async function addComment(formData: FormData) {
   const postId = String(formData.get("post_id") ?? "");
@@ -15,6 +16,8 @@ export async function addComment(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
   if (!body) redirect(`/p/${postId}`);
+  // Comments are curator-only (RLS enforces this too; this is the humane guard).
+  if (!(await isViewerCurator())) redirect(`/p/${postId}?error=not-curator`);
 
   const { error } = await supabase
     .from("post_comments")
@@ -37,6 +40,51 @@ export async function addComment(formData: FormData) {
   }
   revalidatePath(`/p/${postId}`);
   redirect(`/p/${postId}`);
+}
+
+export interface SupportResult {
+  ok: boolean;
+  supported: boolean;
+  count: number;
+  error?: string;
+}
+
+/**
+ * Toggle the viewer's "support" (like) on a comment — the support signal any
+ * signed-in member can give a curator's comment. Defensive: reports off if the
+ * 0028 comment_supports table isn't there yet.
+ */
+export async function toggleCommentSupport(commentId: string): Promise<SupportResult> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return { ok: false, supported: false, count: 0, error: "Unavailable." };
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, supported: false, count: 0, error: "Sign in to support." };
+
+  const { data: existing, error: selErr } = await supabase
+    .from("comment_supports")
+    .select("comment_id")
+    .eq("comment_id", commentId)
+    .eq("profile_id", user.id)
+    .maybeSingle();
+  if (selErr) return { ok: false, supported: false, count: 0, error: "Supports unavailable." };
+
+  if (existing) {
+    await supabase
+      .from("comment_supports")
+      .delete()
+      .eq("comment_id", commentId)
+      .eq("profile_id", user.id);
+  } else {
+    await supabase.from("comment_supports").insert({ comment_id: commentId, profile_id: user.id });
+  }
+
+  const { count } = await supabase
+    .from("comment_supports")
+    .select("*", { count: "exact", head: true })
+    .eq("comment_id", commentId);
+  return { ok: true, supported: !existing, count: count ?? 0 };
 }
 
 export async function deleteComment(formData: FormData) {

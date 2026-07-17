@@ -12,14 +12,8 @@ import {
   disciplinesMatch,
 } from "@atelier/core/taxonomy/disciplines";
 import { DisciplineDropdown } from "@/components/groups/DisciplineDropdown";
+import { getI18n } from "@/lib/i18n/server";
 import { createGroup, followGroup } from "./actions";
-
-const ERRORS: Record<string, string> = {
-  unavailable: "Preview mode — creating groups needs Supabase configured.",
-  name: "Group names are 3–60 characters.",
-  taken: "That group name is taken.",
-  create: "Couldn't create the group. Try again.",
-};
 
 const CATEGORY_TAGS = DISCIPLINE_OPTIONS.filter((o) => o.isCategory);
 
@@ -38,6 +32,15 @@ export default async function GroupsPage({
   const followedSet = new Set(followed);
   const memberSet = new Set(member);
   const configured = isSupabaseConfigured();
+  const { t: dict } = await getI18n();
+  const t = dict.groups;
+  const errMap: Record<string, string> = {
+    unavailable: t.errUnavailable,
+    name: t.errName,
+    taken: t.errTaken,
+    create: t.errCreate,
+    "protected-name": t.errProtected,
+  };
 
   // Filter by discipline tag and/or a name/description query.
   let list = groups;
@@ -66,7 +69,7 @@ export default async function GroupsPage({
 
   return (
     <div>
-      <h1 className="mb-4 text-h1 font-bold uppercase">Groups</h1>
+      <h1 className="mb-4 text-h1 font-bold uppercase">{t.title}</h1>
 
       {/* Discipline filter + name search */}
       <div className="mb-6 flex flex-col gap-3">
@@ -74,17 +77,17 @@ export default async function GroupsPage({
           <input
             name="q"
             defaultValue={q ?? ""}
-            placeholder="Search groups…"
+            placeholder={t.searchPlaceholder}
             className="border-2 border-ink bg-paper px-3 py-1 text-body outline-none focus:border-blue"
           />
           {tag ? <input type="hidden" name="tag" value={tag} /> : null}
           <button className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-yellow">
-            Search
+            {t.search}
           </button>
         </form>
         <div className="flex flex-wrap gap-2" data-discipline-filter>
           <Link href="/groups" data-tag="all" className={chipCls(!tag)}>
-            All
+            {t.all}
           </Link>
           {CATEGORY_TAGS.map((o) => (
             <Link
@@ -101,12 +104,12 @@ export default async function GroupsPage({
 
       {suggested.length > 0 ? (
         <section data-suggested-groups className="mb-8">
-          <h2 className="mb-4 text-h2 font-bold uppercase">Suggested for you</h2>
+          <h2 className="mb-4 text-h2 font-bold uppercase">{t.suggestedForYou}</h2>
           <WindowGrid>
             {suggested.map((group, i) => (
               <div key={group.id} className="col-span-12 flex flex-col md:col-span-4">
                 <Window
-                  title="Because of your interests"
+                  title={t.becauseInterests}
                   accent={(["red", "blue", "yellow"] as const)[i % 3]}
                   className="h-full"
                 >
@@ -119,14 +122,14 @@ export default async function GroupsPage({
                       <input type="hidden" name="group_id" value={group.id} />
                       <input type="hidden" name="slug" value={group.slug} />
                       <button className="border-2 border-ink bg-ink px-3 py-1 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue">
-                        Follow
+                        {t.follow}
                       </button>
                     </form>
                     <Link
                       href={`/g/${group.slug}`}
                       className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-yellow"
                     >
-                      Open group →
+                      {t.openGroup}
                     </Link>
                   </div>
                 </Window>
@@ -137,19 +140,19 @@ export default async function GroupsPage({
       ) : null}
 
       <WindowGrid>
-        <Window title="Start a group" accent="red" span="col-span-12 md:col-span-4">
+        <Window title={t.startGroup} accent="red" span="col-span-12 md:col-span-4">
           {creatorStatus !== "approved" ? (
-            <CreatorGate status={creatorStatus} action="start a group" />
+            <CreatorGate status={creatorStatus} />
           ) : (
           <>
           {error ? (
             <p role="alert" className="mb-3 border-2 border-red px-3 py-2 text-caption font-bold uppercase text-red">
-              {ERRORS[error] ?? "Something went wrong."}
+              {errMap[error] ?? t.somethingWrong}
             </p>
           ) : null}
           <form action={createGroup} data-create-group className="flex flex-col gap-3">
             <label htmlFor="name" className="text-caption font-bold uppercase">
-              Name
+              {t.name}
             </label>
             <input
               id="name"
@@ -161,7 +164,7 @@ export default async function GroupsPage({
               className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue disabled:opacity-50"
             />
             <label htmlFor="description" className="text-caption font-bold uppercase">
-              Description
+              {t.description}
             </label>
             <textarea
               id="description"
@@ -172,54 +175,49 @@ export default async function GroupsPage({
               className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue disabled:opacity-50"
             />
 
-            <p className="text-caption font-bold uppercase">
-              What&apos;s this group for?
-            </p>
-            <p className="text-caption uppercase opacity-70">
-              Pick the disciplines — painters, journalists, woodworkers… — so the
-              right people can find it.
-            </p>
+            <p className="text-caption font-bold uppercase">{t.whatFor}</p>
+            <p className="text-caption uppercase opacity-70">{t.disciplinesHint}</p>
             <DisciplineDropdown disabled={!configured} />
 
-            <p className="text-caption font-bold uppercase">Discussion</p>
+            <p className="text-caption font-bold uppercase">{t.discussion}</p>
             <div className="flex flex-wrap gap-3">
               <label className="flex flex-col gap-1 text-caption font-bold uppercase">
-                Who can read
+                {t.whoCanRead}
                 <select
                   name="discussion_read"
                   defaultValue="members"
                   disabled={!configured}
                   className="border-2 border-ink bg-paper px-2 py-1 text-body normal-case disabled:opacity-50"
                 >
-                  <option value="members">Members only</option>
-                  <option value="public">Anyone</option>
+                  <option value="members">{t.membersOnly}</option>
+                  <option value="public">{t.anyone}</option>
                 </select>
               </label>
               <label className="flex flex-col gap-1 text-caption font-bold uppercase">
-                Who can post
+                {t.whoCanPost}
                 <select
                   name="discussion_mode"
                   defaultValue="open"
                   disabled={!configured}
                   className="border-2 border-ink bg-paper px-2 py-1 text-body normal-case disabled:opacity-50"
                 >
-                  <option value="open">Open — members post & reply</option>
-                  <option value="announce">Announcements + replies</option>
-                  <option value="broadcast">Announcements only</option>
+                  <option value="open">{t.openMode}</option>
+                  <option value="announce">{t.announceMode}</option>
+                  <option value="broadcast">{t.broadcastMode}</option>
                 </select>
               </label>
             </div>
 
             <label className="flex items-center gap-2 text-caption font-bold uppercase">
               <input type="checkbox" name="is_private" disabled={!configured} className="size-4 accent-ink" />
-              Private feed (members share; others must be admitted)
+              {t.privateFeed}
             </label>
             <button
               type="submit"
               disabled={!configured}
               className="self-start border-2 border-ink bg-ink px-4 py-2 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue disabled:opacity-50"
             >
-              Create group
+              {t.createGroup}
             </button>
             {!configured ? (
               <p className="text-caption uppercase opacity-70">
@@ -232,11 +230,11 @@ export default async function GroupsPage({
         </Window>
 
         {list.length === 0 ? (
-          <Window title="No groups" accent="blue" span="col-span-12 md:col-span-8">
+          <Window title={t.noGroups} accent="blue" span="col-span-12 md:col-span-8">
             <p className="text-body">
-              Nothing matches that filter.{" "}
+              {t.nothingMatches}{" "}
               <Link href="/groups" className="border-b-2 border-ink font-bold hover:text-blue">
-                Clear it
+                {t.clearIt}
               </Link>
               .
             </p>
@@ -245,7 +243,7 @@ export default async function GroupsPage({
           list.map((group, i) => (
             <div key={group.id} data-group={group.slug} className="col-span-12 flex flex-col md:col-span-4">
               <Window
-                title={group.is_private ? "Private group" : "Group"}
+                title={group.is_private ? t.privateGroup : t.group}
                 accent={(["blue", "yellow", "red"] as const)[i % 3]}
                 className="h-full"
               >
@@ -267,7 +265,7 @@ export default async function GroupsPage({
                   </p>
                 ) : null}
                 <p className="mt-3 text-caption font-bold uppercase">
-                  {group.member_count} members · {group.follower_count} followers
+                  {group.member_count} {t.members} · {group.follower_count} {t.followers}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {configured && !memberSet.has(group.id) && !followedSet.has(group.id) ? (
@@ -278,24 +276,24 @@ export default async function GroupsPage({
                         data-follow-group={group.slug}
                         className="border-2 border-ink bg-ink px-3 py-1 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue"
                       >
-                        Follow
+                        {t.follow}
                       </button>
                     </form>
                   ) : null}
                   {memberSet.has(group.id) ? (
                     <span className="border-2 border-ink bg-yellow px-3 py-1 text-caption font-bold uppercase">
-                      Member
+                      {t.memberBadge}
                     </span>
                   ) : followedSet.has(group.id) ? (
                     <span className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase opacity-70">
-                      Following
+                      {t.following}
                     </span>
                   ) : null}
                   <Link
                     href={`/g/${group.slug}`}
                     className="border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-yellow"
                   >
-                    Open group →
+                    {t.openGroup}
                   </Link>
                 </div>
               </Window>

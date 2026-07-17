@@ -12,6 +12,7 @@ import {
   type Product,
 } from "@atelier/core/commerce/products";
 import { saveProduct } from "@/app/sell/products/actions";
+import { useT } from "@/lib/i18n/context";
 
 const CATEGORIES = DISCIPLINE_OPTIONS.filter((o) => o.isCategory);
 const PREFIX = `${SUPABASE_URL}/storage/v1/object/public/media/`;
@@ -29,6 +30,8 @@ export function ProductEditor({
   prefillTitle?: string;
 }) {
   const router = useRouter();
+  const dict = useT();
+  const t = dict.productEditor;
   const [title, setTitle] = useState(initial?.title ?? prefillTitle ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [price, setPrice] = useState(
@@ -64,7 +67,7 @@ export function ProductEditor({
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        setMsg("Sign in to upload.");
+        setMsg(t.signInUpload);
         return;
       }
       const room = MAX_PRODUCT_IMAGES - images.length;
@@ -102,29 +105,29 @@ export function ProductEditor({
       // New products land on their own edit page (which offers "Post on Atelier");
       // edits return to the store.
       if (r.ok) router.push(initial ? "/sell" : `/sell/products/${r.id}`);
-      else setMsg(r.error ?? "Save failed.");
+      else setMsg(r.error ?? dict.common.saveFailed);
     });
   };
 
   return (
     <div className="flex flex-col gap-5 border-2 border-ink bg-paper p-5">
       <div className="flex flex-col gap-2">
-        <label className={LABEL} htmlFor="p-title">Title</label>
+        <label className={LABEL} htmlFor="p-title">{t.title}</label>
         <input id="p-title" value={title} maxLength={120} onChange={(e) => setTitle(e.target.value)} className={FIELD} />
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className={LABEL} htmlFor="p-price">Price (USD)</label>
+        <label className={LABEL} htmlFor="p-price">{t.priceUsd}</label>
         <input id="p-price" value={price} inputMode="decimal" placeholder="24.99" onChange={(e) => setPrice(e.target.value)} className={FIELD} />
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className={LABEL} htmlFor="p-desc">Description</label>
+        <label className={LABEL} htmlFor="p-desc">{t.description}</label>
         <textarea id="p-desc" rows={4} value={description} maxLength={2000} onChange={(e) => setDescription(e.target.value)} className={FIELD} />
       </div>
 
       <div className="flex flex-col gap-2">
-        <span className={LABEL}>Images ({images.length}/{MAX_PRODUCT_IMAGES})</span>
+        <span className={LABEL}>{t.images} ({images.length}/{MAX_PRODUCT_IMAGES})</span>
         {images.length ? (
           <div className="flex flex-wrap gap-2">
             {images.map((path) => (
@@ -150,14 +153,14 @@ export function ProductEditor({
             disabled={uploading}
             className="self-start border-2 border-ink px-3 py-1 text-caption font-bold uppercase hover:bg-blue hover:border-blue hover:text-paper disabled:opacity-50"
           >
-            {uploading ? "Uploading…" : "Add images"}
+            {uploading ? dict.common.uploading : t.addImages}
           </button>
         ) : null}
         <input ref={fileRef} type="file" accept="image/*" multiple onChange={onPickImages} className="hidden" />
       </div>
 
       <div className="flex flex-col gap-2">
-        <span className={LABEL}>Disciplines</span>
+        <span className={LABEL}>{t.disciplines}</span>
         <div className="flex flex-wrap gap-2">
           {CATEGORIES.map((c) => (
             <label
@@ -174,21 +177,19 @@ export function ProductEditor({
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className={LABEL} htmlFor="p-url">Buy link (your shop)</label>
+        <label className={LABEL} htmlFor="p-url">{t.buyLink}</label>
         <input id="p-url" value={externalUrl} placeholder="https://your-shop.com/item" onChange={(e) => setExternalUrl(e.target.value)} className={FIELD} />
-        <p className="text-caption uppercase opacity-70">
-          Where “Buy” sends the shopper. Astelier is the catalog; the sale happens on your shop (for now).
-        </p>
+        <p className="text-caption uppercase opacity-70">{t.buyLinkNote}</p>
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className={LABEL} htmlFor="p-status">Status</label>
+        <label className={LABEL} htmlFor="p-status">{t.status}</label>
         <select id="p-status" value={status} onChange={(e) => setStatus(e.target.value)} className={FIELD}>
           {PRODUCT_STATUSES.map((s) => (
             <option key={s} value={s}>{PRODUCT_STATUS_LABEL[s]}</option>
           ))}
         </select>
-        <p className="text-caption uppercase opacity-70">Only “Live” products show in your public catalog.</p>
+        <p className="text-caption uppercase opacity-70">{t.statusNote}</p>
       </div>
 
       <div className="flex items-center gap-4">
@@ -198,14 +199,14 @@ export function ProductEditor({
           disabled={pending || uploading || !title.trim()}
           className="border-2 border-ink bg-ink px-6 py-2 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue disabled:opacity-50"
         >
-          {pending ? "Saving…" : initial ? "Save product" : "Add product"}
+          {pending ? dict.common.saving : initial ? t.saveProduct : t.addProduct}
         </button>
         <button
           type="button"
           onClick={() => router.push("/sell")}
           className="border-2 border-ink px-6 py-2 text-caption font-bold uppercase hover:bg-yellow"
         >
-          Cancel
+          {dict.common.cancel}
         </button>
       </div>
 

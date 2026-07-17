@@ -1,6 +1,8 @@
 import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
+import { CreatorGate } from "@/components/creator/CreatorGate";
 import { getOwnEvents } from "@/lib/events/queries";
+import { getViewerCreatorStatus } from "@/lib/profile/queries";
 import { formatEventDate, splitEvents } from "@atelier/core/events/types";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createEvent, deleteEvent } from "./actions";
@@ -9,6 +11,7 @@ export const metadata = { title: "Your events — Atelier" };
 
 const ERRORS: Record<string, string> = {
   unavailable: "Preview mode — managing events needs Supabase configured.",
+  locked: "Announcing events is for approved creators.",
   title: "Titles are 3–80 characters.",
   date: "Pick a valid date and time.",
   url: "Ticket links must start with http(s)://",
@@ -22,6 +25,8 @@ export default async function ProfileEventsPage({
 }) {
   const { error, created } = await searchParams;
   const configured = isSupabaseConfigured();
+  const creatorStatus = await getViewerCreatorStatus();
+  const canPost = creatorStatus === "approved";
   const events = await getOwnEvents();
   const { upcoming, past } = splitEvents(events, new Date().toISOString());
 
@@ -45,6 +50,10 @@ export default async function ProfileEventsPage({
               Preview mode — the demo events below show how it works
             </p>
           ) : null}
+          {configured && !canPost ? (
+            <CreatorGate status={creatorStatus} />
+          ) : (
+          <>
           <form action={createEvent} data-create-event className="flex flex-col gap-3">
             <label htmlFor="title" className="text-caption font-bold uppercase">Title</label>
             <input id="title" name="title" required minLength={3} maxLength={80} disabled={!configured}
@@ -79,6 +88,8 @@ export default async function ProfileEventsPage({
           <p className="mt-4 text-caption uppercase opacity-70">
             Tickets are sold wherever you sell them — Atelier only links out
           </p>
+          </>
+          )}
         </Window>
 
         <Window title="Upcoming" accent="blue" span="col-span-12 md:col-span-7">

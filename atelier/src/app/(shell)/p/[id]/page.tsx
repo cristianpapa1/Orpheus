@@ -9,12 +9,15 @@ import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
 import { getPostById, getPostMentions } from "@/lib/posts/queries";
 import { getFavoritesForPosts } from "@/lib/favorites/queries";
+import { getCurationsForPosts, getCuratorsForPost } from "@/lib/curations/queries";
+import { isViewerCurator } from "@/lib/curator/eligibility";
 import {
   getFollowingRanked,
   getViewerId,
   isViewerQualityStamped,
 } from "@/lib/profile/queries";
-import { getComments } from "@/lib/comments/queries";
+import { getComments, getCommentSupports } from "@/lib/comments/queries";
+import { CommentSupport } from "@/components/posts/CommentSupport";
 import { isViewerAdmin } from "@/lib/donations/queries";
 import { addComment, deleteComment } from "../../post/comments";
 import {
@@ -34,6 +37,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!post) return { title: "Not found — Atelier" };
   return {
     title: `${post.author_name}: ${post.caption.slice(0, 60) || CATEGORY_LABEL[post.category]} — Atelier`,
+    // Provenance in metadata: attribute the work to its author.
+    authors: [{ name: post.author_name }],
   };
 }
 
@@ -41,23 +46,27 @@ export default async function PostDetailPage({ params }: Props) {
   const { id } = await params;
   const post = await getPostById(id);
   if (!post) notFound();
-  const [mentions, favs, following, comments, viewerId, isAdmin, stamped] =
+  const [mentions, favs, curs, curators, canCurate, following, comments, viewerId, isAdmin, stamped] =
     await Promise.all([
       getPostMentions(post.id),
       getFavoritesForPosts([post.id]),
+      getCurationsForPosts([post.id]),
+      getCuratorsForPost(post.id),
+      isViewerCurator(),
       getFollowingRanked(),
       getComments(post.id),
       getViewerId(),
       isViewerAdmin(),
       isViewerQualityStamped(),
     ]);
+  const commentSupports = await getCommentSupports(comments.map((c) => c.id));
   const configured = isSupabaseConfigured();
 
   return (
     <WindowGrid>
       <div data-post={post.id} className="col-span-12 flex flex-col md:col-span-8">
         <Window title={CATEGORY_LABEL[post.category]} accent="red" className="h-full">
-          <FavoritePost postId={post.id} caption={post.caption} fav={favs?.get(post.id)} following={following} canReportQuality={stamped} canDelete={!!viewerId && viewerId === post.author_id} checkoutUrl={post.checkout_url}>
+          <FavoritePost postId={post.id} caption={post.caption} fav={favs?.get(post.id)} cur={curs?.get(post.id)} canCurate={canCurate} following={following} canReportQuality={stamped} canDelete={!!viewerId && viewerId === post.author_id} checkoutUrl={post.checkout_url}>
           {post.media_type === "text" ? (
             <>
               {post.caption ? (
@@ -162,8 +171,62 @@ export default async function PostDetailPage({ params }: Props) {
               </dd>
             </div>
           </dl>
+          <div data-licence className="mt-6 border-t-2 border-ink pt-3">
+            <p className="text-caption font-bold uppercase">
+              © {post.author_name}
+            </p>
+            <p className="mt-1 text-caption uppercase opacity-70">
+              All rights reserved · not licensed for AI training
+            </p>
+            <Link
+              href="/copyright"
+              className="mt-2 inline-block border-b-2 border-ink text-caption font-bold uppercase hover:text-blue"
+            >
+              Report copyright infringement
+            </Link>
+          </div>
         </Window>
       </div>
+
+      {curators.length > 0 ? (
+        <div className="col-span-12 flex flex-col md:col-span-4">
+          <Window title={`Curated by (${curators.length})`} accent="yellow" className="h-full">
+            <p className="mb-3 text-caption uppercase opacity-70">
+              Curators who reposted this work. Visit a profile to follow them.
+            </p>
+            <ul data-curators className="flex flex-col gap-2">
+              {curators.map((c) => (
+                <li key={c.id} data-curator={c.id} className="border-2 border-ink">
+                  <Link
+                    href={`/u/${c.handle || c.id}`}
+                    className="flex items-center gap-3 px-3 py-2 hover:bg-yellow"
+                  >
+                    <Avatar url={c.avatar_url} name={c.display_name} size="sm" />
+                    <span className="min-w-0">
+                      <span className="block truncate text-body font-bold">{c.display_name}</span>
+                      {c.handle ? (
+                        <span className="text-caption uppercase opacity-70">@{c.handle}</span>
+                      ) : null}
+                    </span>
+                    <span aria-hidden className="ml-auto text-blue">♺</span>
+                  </Link>
+                  {c.store_url ? (
+                    <a
+                      href={c.store_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-buy={c.id}
+                      className="block border-t-2 border-ink bg-ink px-3 py-1.5 text-center text-caption font-bold uppercase text-paper hover:bg-blue"
+                    >
+                      Buy at Astelier →
+                    </a>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          </Window>
+        </div>
+      ) : null}
 
       <div className="col-span-12 flex flex-col">
         <Window title={`Conversation (${comments.length})`} accent="blue" className="h-full">
@@ -188,25 +251,37 @@ export default async function PostDetailPage({ params }: Props) {
                   <p className="mt-2 whitespace-pre-wrap break-words text-body">
                     {c.body}
                   </p>
-                  {viewerId === c.author_id || isAdmin ? (
-                    <form action={deleteComment} className="mt-2">
-                      <input type="hidden" name="id" value={c.id} />
-                      <input type="hidden" name="post_id" value={post.id} />
-                      <button
-                        data-delete-comment
-                        className="border-2 border-ink px-2 py-0.5 text-caption font-bold uppercase hover:bg-red hover:border-red hover:text-paper"
-                      >
-                        Delete
-                      </button>
-                    </form>
-                  ) : null}
+                  <div className="mt-2 flex items-center gap-2">
+                    {commentSupports ? (
+                      <CommentSupport commentId={c.id} support={commentSupports.get(c.id)} />
+                    ) : null}
+                    {viewerId === c.author_id || isAdmin ? (
+                      <form action={deleteComment}>
+                        <input type="hidden" name="id" value={c.id} />
+                        <input type="hidden" name="post_id" value={post.id} />
+                        <button
+                          data-delete-comment
+                          className="border-2 border-ink px-2 py-0.5 text-caption font-bold uppercase hover:bg-red hover:border-red hover:text-paper"
+                        >
+                          Delete
+                        </button>
+                      </form>
+                    ) : null}
+                  </div>
                 </li>
               ))}
             </ul>
           )}
 
           {configured ? (
-            viewerId ? (
+            !viewerId ? (
+              <p className="mt-4 text-caption font-bold uppercase">
+                <Link href="/login" className="border-b-2 border-ink hover:text-blue">
+                  Sign in
+                </Link>{" "}
+                to support the conversation.
+              </p>
+            ) : canCurate ? (
               <form action={addComment} className="mt-4 flex flex-col gap-2">
                 <input type="hidden" name="post_id" value={post.id} />
                 <label htmlFor="comment-body" className="text-caption font-bold uppercase">
@@ -226,11 +301,8 @@ export default async function PostDetailPage({ params }: Props) {
                 </button>
               </form>
             ) : (
-              <p className="mt-4 text-caption font-bold uppercase">
-                <Link href="/login" className="border-b-2 border-ink hover:text-blue">
-                  Sign in
-                </Link>{" "}
-                to join the conversation.
+              <p className="mt-4 border-2 border-ink bg-yellow px-3 py-2 text-caption font-bold uppercase">
+                Comments are written by curators. You can support any comment with ▲.
               </p>
             )
           ) : null}

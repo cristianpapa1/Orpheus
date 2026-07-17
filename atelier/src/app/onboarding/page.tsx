@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { OnboardingForm } from "@/components/profile/OnboardingForm";
 import { getOnboardingState } from "@/lib/profile/queries";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { getI18n } from "@/lib/i18n/server";
 
 export const metadata = { title: "Set up your space — Atelier" };
 
@@ -14,6 +15,8 @@ export default async function OnboardingPage() {
   // Never hard-loop: once onboarded, this page sends you home.
   if (state.onboarded) redirect("/feed");
 
+  const { t } = await getI18n();
+
   return (
     <main className="mx-auto w-full max-w-3xl grow px-6 py-12">
       <div className="mb-8">
@@ -22,11 +25,8 @@ export default async function OnboardingPage() {
           <span className="size-6 bg-blue" />
           <span className="size-6 bg-yellow" />
         </div>
-        <h1 className="text-display font-bold uppercase">Set up your space</h1>
-        <p className="mt-4 max-w-xl text-body">
-          A few things before you go in — your public name, your handle, and
-          what you make. You can change all of this later in the editor.
-        </p>
+        <h1 className="text-display font-bold uppercase">{t.onboarding.setupTitle}</h1>
+        <p className="mt-4 max-w-xl text-body">{t.onboarding.setupIntro}</p>
       </div>
       <div className="border-2 border-ink bg-paper p-6">
         <OnboardingForm

@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Space_Grotesk } from "next/font/google";
 import { BottomNav } from "@/components/BottomNav";
+import { getI18n } from "@/lib/i18n/server";
+import { localeDir } from "@/lib/i18n/config";
+import { I18nProvider } from "@/lib/i18n/context";
 import "./globals.css";
 
 const grotesk = Space_Grotesk({
@@ -15,11 +18,16 @@ export const metadata: Metadata = {
     "Where Atelier makers sell — a commerce sibling to Atelier. Sell what you make, not pay to be seen. No ads, no boosted listings.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const { locale, t } = await getI18n();
   return (
-    <html lang="en" className={`${grotesk.variable} h-full antialiased`}>
+    <html
+      lang={locale}
+      dir={localeDir(locale)}
+      className={`${grotesk.variable} h-full antialiased`}
+    >
       <body className="flex min-h-full flex-col font-sans pb-14 md:pb-0">
         <a
           href="#main"
@@ -27,8 +35,10 @@ export default function RootLayout({
         >
           Skip to content
         </a>
-        {children}
-        <BottomNav />
+        <I18nProvider dict={t}>
+          {children}
+          <BottomNav />
+        </I18nProvider>
       </body>
     </html>
   );

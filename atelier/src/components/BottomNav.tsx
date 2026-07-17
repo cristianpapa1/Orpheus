@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 
 // Profile is NOT here — it lives in the top-right button (with the unread
 // interactions badge), same as desktop. These are the three primary feeds.
 const TABS = [
-  { href: "/feed", label: "Feed", accent: "bg-red" },
-  { href: "/groups", label: "Groups", accent: "bg-blue" },
-  { href: "/chat", label: "Chat", accent: "bg-yellow" },
+  { href: "/feed", key: "feed", accent: "bg-red" },
+  { href: "/groups", key: "groups", accent: "bg-blue" },
+  { href: "/chat", key: "chat", accent: "bg-yellow" },
 ] as const;
 
 /**
@@ -16,7 +17,7 @@ const TABS = [
  * mirroring the future native app's tabs. Hidden on md+ where the top
  * nav takes over. Safe-area padded for iOS home indicators.
  */
-export function BottomNav() {
+export function BottomNav({ t }: { t: Dictionary["nav"] }) {
   const pathname = usePathname();
 
   return (
@@ -38,7 +39,7 @@ export function BottomNav() {
               }`}
             >
               <span aria-hidden className={`size-2 ${tab.accent}`} />
-              {tab.label}
+              {t[tab.key]}
             </Link>
           );
         })}

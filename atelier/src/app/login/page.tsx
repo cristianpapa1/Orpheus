@@ -2,17 +2,8 @@ import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
 import { BauhausReveal } from "@/components/BauhausReveal";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { getI18n } from "@/lib/i18n/server";
 import { signInWithEmail, signInWithGoogle } from "./actions";
-
-const ERRORS: Record<string, string> = {
-  unconfigured: "Sign-in is unavailable until Supabase is configured.",
-  email: "Enter your email address to receive a sign-in link.",
-  otp: "We couldn't send the link. Check the address and try again.",
-  "rate-limit":
-    "Email limit reached — the built-in mailer allows only a few per hour. Try again in an hour (custom SMTP removes this cap).",
-  oauth: "Google sign-in failed. Try again or use email.",
-  auth: "That sign-in link expired or was invalid. Request a fresh one.",
-};
 
 export default async function LoginPage({
   searchParams,
@@ -21,21 +12,24 @@ export default async function LoginPage({
 }) {
   const { sent, error } = await searchParams;
   const configured = isSupabaseConfigured();
+  const { t: dict } = await getI18n();
+  const t = dict.login;
+  const errMap: Record<string, string> = {
+    unconfigured: t.errUnconfigured,
+    email: t.errEmail,
+    otp: t.errOtp,
+    "rate-limit": t.errRateLimit,
+    oauth: t.errOauth,
+    auth: t.errAuth,
+  };
 
   return (
     <main className="mx-auto w-full max-w-4xl grow px-6 py-16">
       <BauhausReveal />
       <WindowGrid>
         <Window title="Atelier" accent="red" span="col-span-12 md:col-span-7">
-          <h1 className="text-display font-bold uppercase">
-            A place
-            <br />
-            for makers.
-          </h1>
-          <p className="mt-6 max-w-sm text-body">
-            Art, handmade, photography, music. No ads, no pay-to-be-seen, no
-            sellers — a community funded by the people in it.
-          </p>
+          <h1 className="text-display font-bold uppercase">{t.heroTitle}</h1>
+          <p className="mt-6 max-w-sm text-body">{t.heroLead}</p>
           <div className="mt-8 flex gap-2" aria-hidden>
             <span className="size-6 bg-red" />
             <span className="size-6 bg-blue" />
@@ -43,7 +37,7 @@ export default async function LoginPage({
           </div>
         </Window>
 
-        <Window title="Sign in" accent="blue" span="col-span-12 md:col-span-5">
+        <Window title={t.signIn} accent="blue" span="col-span-12 md:col-span-5">
           {!configured ? (
             <div data-setup-notice>
               <p className="text-body font-bold">Setup required</p>
@@ -61,13 +55,13 @@ export default async function LoginPage({
             </div>
           ) : sent ? (
             <p className="text-body">
-              <strong>Check your inbox.</strong> We sent you a sign-in link.
+              <strong>{t.checkInbox}</strong> {t.linkSent}
             </p>
           ) : (
             <>
               {error ? (
                 <p className="mb-4 border-2 border-red p-3 text-caption font-bold uppercase text-red">
-                  {ERRORS[error] ?? "Something went wrong. Try again."}
+                  {errMap[error] ?? t.errGeneric}
                 </p>
               ) : null}
               <form action={signInWithEmail} className="flex flex-col gap-3">
@@ -75,7 +69,7 @@ export default async function LoginPage({
                   htmlFor="email"
                   className="text-caption font-bold uppercase"
                 >
-                  Email
+                  {t.email}
                 </label>
                 <input
                   id="email"
@@ -89,7 +83,7 @@ export default async function LoginPage({
                   type="submit"
                   className="mt-2 border-2 border-ink bg-ink px-4 py-2 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue"
                 >
-                  Send magic link
+                  {t.sendMagicLink}
                 </button>
               </form>
               <div className="my-5 border-t-2 border-ink" />
@@ -98,7 +92,7 @@ export default async function LoginPage({
                   type="submit"
                   className="w-full border-2 border-ink px-4 py-2 text-caption font-bold uppercase hover:bg-yellow"
                 >
-                  Continue with Google
+                  {t.continueGoogle}
                 </button>
               </form>
             </>

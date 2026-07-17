@@ -4,6 +4,7 @@ import { ProductEditor } from "@/components/ProductEditor";
 import { getGateState } from "@/lib/gate";
 import { getMyStore } from "@/lib/stores/queries";
 import { getProductById } from "@/lib/products/queries";
+import { getI18n } from "@/lib/i18n/server";
 
 export const metadata = { title: "Edit product — Astelier" };
 
@@ -30,22 +31,21 @@ export default async function EditProductPage({
   const postOnAtelier = `${ATELIER_URL}/post/new?caption=${encodeURIComponent(
     product.title,
   )}&checkout_url=${encodeURIComponent(productUrl)}`;
+  const { t } = await getI18n();
 
   return (
     <>
       <Nav signedIn />
       <main id="main" className="mx-auto w-full max-w-3xl grow px-6 py-12">
-        <h1 className="mb-6 text-h1 font-bold uppercase">Edit product</h1>
+        <h1 className="mb-6 text-h1 font-bold uppercase">{t.productEditor.editProduct}</h1>
 
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-2 border-ink bg-yellow px-4 py-3">
-          <p className="text-caption font-bold uppercase">
-            Share this on Atelier — a post with a Checkout button.
-          </p>
+          <p className="text-caption font-bold uppercase">{t.productEditor.shareBanner}</p>
           <a
             href={postOnAtelier}
             className="border-2 border-ink bg-ink px-4 py-2 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue"
           >
-            Post on Atelier →
+            {t.productEditor.postOnAtelier}
           </a>
         </div>
 

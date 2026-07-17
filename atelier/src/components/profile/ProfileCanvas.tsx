@@ -2,6 +2,8 @@ import Link from "next/link";
 import { Window } from "@/components/ui/Window";
 import { Avatar } from "@/components/profile/Avatar";
 import { GalleryPostDelete } from "@/components/profile/GalleryPostDelete";
+import { FavoritesGallery } from "@/components/profile/FavoritesGallery";
+import { getI18n } from "@/lib/i18n/server";
 import { GRID_COLS, type LayoutBlock } from "@atelier/core/profile/layout";
 import {
   CONTACT_KIND_LABEL,
@@ -25,11 +27,13 @@ const ACCENTS = ["red", "blue", "yellow"] as const;
  * The same Window primitive as the rest of the facade — the profile IS
  * the facade, arranged by its owner.
  */
-export function ProfileCanvas({
+export async function ProfileCanvas({
   profile,
   posts = [],
   events = [],
   jobs = [],
+  liked = [],
+  likedRatings = new Map<string, number>(),
   now = "1970-01-01T00:00:00Z",
   ownerView = false,
 }: {
@@ -37,6 +41,10 @@ export function ProfileCanvas({
   posts?: Post[];
   events?: EventItem[];
   jobs?: JobPost[];
+  /** Posts the owner has favorited — shown in the "Liked" window. */
+  liked?: Post[];
+  /** The owner's star ratings for their liked posts, keyed by post id. */
+  likedRatings?: Map<string, number>;
   now?: string;
   /** The viewer is the profile's owner — surface author-only controls (delete). */
   ownerView?: boolean;
@@ -48,6 +56,7 @@ export function ProfileCanvas({
   const ordered = [...profile.layout.blocks].sort(
     (a, b) => a.y - b.y || a.x - b.x,
   );
+  const { t } = await getI18n();
 
   return (
     <div
@@ -83,8 +92,12 @@ export function ProfileCanvas({
               posts={posts}
               events={events}
               jobs={jobs}
+              liked={liked}
+              likedRatings={likedRatings}
               now={now}
               ownerView={ownerView}
+              likedEmptyOwner={t.profile.likedEmptyOwner}
+              likedEmptyOther={t.profile.likedEmptyOther}
             />
           </Window>
         </div>
@@ -101,6 +114,8 @@ function blockTitle(block: LayoutBlock): string {
       return "Contact";
     case "gallery":
       return "Gallery";
+    case "liked":
+      return "Liked";
     case "posts":
       return "Posts";
     case "events":
@@ -116,16 +131,24 @@ function BlockBody({
   posts,
   events,
   jobs,
+  liked,
+  likedRatings,
   now,
   ownerView,
+  likedEmptyOwner,
+  likedEmptyOther,
 }: {
   block: LayoutBlock;
   profile: PublicProfile;
   posts: Post[];
   events: EventItem[];
   jobs: JobPost[];
+  liked: Post[];
+  likedRatings: Map<string, number>;
   now: string;
   ownerView: boolean;
+  likedEmptyOwner: string;
+  likedEmptyOther: string;
 }) {
   switch (block.type) {
     case "bio":
@@ -243,6 +266,14 @@ function BlockBody({
             No work published yet
           </p>
         </div>
+      );
+    case "liked":
+      return liked.length ? (
+        <FavoritesGallery posts={liked} ratings={likedRatings} editable={ownerView} />
+      ) : (
+        <p className="text-body opacity-70">
+          {ownerView ? likedEmptyOwner : likedEmptyOther}
+        </p>
       );
     case "posts":
       return posts.length ? (

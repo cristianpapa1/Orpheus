@@ -4,7 +4,11 @@ import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { SUPABASE_URL } from "@/lib/supabase/config";
 import { toSchool } from "@atelier/core/design/schools";
-import { parseLayout, serializeLayout } from "@atelier/core/profile/layout";
+import {
+  coerceLayoutForCreator,
+  parseLayout,
+  serializeLayout,
+} from "@atelier/core/profile/layout";
 import { HANDLE_RE, parseContacts } from "@atelier/core/profile/types";
 
 /** Photos live in our own public media bucket. Only accept a cleared value
@@ -77,7 +81,17 @@ export async function saveProfile(
   const display_name = input.display_name.trim().slice(0, 80);
   const bio = input.bio.trim().slice(0, 600);
   const contacts = parseContacts(input.contacts);
-  const layout = parseLayout(input.layout);
+  // Members (not approved creators) can only persist identity + a Liked shelf —
+  // strip any work/events/jobs windows a crafted request might smuggle in.
+  const { data: capRow } = await supabase
+    .from("profiles")
+    .select("creator_status")
+    .eq("id", targetId)
+    .maybeSingle();
+  const layout = coerceLayoutForCreator(
+    parseLayout(input.layout),
+    capRow?.creator_status === "approved",
+  );
   const accent = ["red", "blue", "yellow"].includes(input.accent ?? "")
     ? input.accent
     : "red";

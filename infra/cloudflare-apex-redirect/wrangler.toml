@@ -1,0 +1,8 @@
+name = "apex-redirect"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# Route attached separately via the API so the existing apex DNS record (CNAME
+# to the cloudflared tunnel) is left untouched — the Worker just intercepts at
+# the edge. To manage in wrangler instead, use:
+#   routes = [ { pattern = "aunflaneur.com/*", zone_name = "aunflaneur.com" } ]

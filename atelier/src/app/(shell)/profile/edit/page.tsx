@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import type { PublicProfile } from "@atelier/core/profile/types";
+import { coerceLayoutForCreator } from "@atelier/core/profile/layout";
 import { ProfileEditor } from "@/components/profile/ProfileEditor";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import {
@@ -7,6 +8,7 @@ import {
   getProfileByHandle,
   getProfileClaimState,
   getViewerId,
+  isCreatorProfile,
 } from "@/lib/profile/queries";
 
 export const metadata = { title: "Edit your space — Atelier" };
@@ -41,10 +43,15 @@ export default async function ProfileEditPage({
   }
   if (!profile) redirect("/login");
 
+  // Common members (not approved creators) build a simpler space: identity +
+  // a Liked shelf, no work/events/jobs windows.
+  const isCreator = configured ? await isCreatorProfile(profile.id) : true;
+
   return (
     <div>
       <h1 className="mb-6 text-h1 font-bold uppercase">{title}</h1>
       <ProfileEditor
+        isCreator={isCreator}
         initialIdentity={{
           display_name: profile.display_name,
           handle: profile.handle,
@@ -57,7 +64,7 @@ export default async function ProfileEditPage({
           institution_kind: profile.institution_kind,
           interests: profile.interests,
         }}
-        initialLayout={profile.layout}
+        initialLayout={coerceLayoutForCreator(profile.layout, isCreator)}
         canPersist={configured}
         targetId={targetId}
       />

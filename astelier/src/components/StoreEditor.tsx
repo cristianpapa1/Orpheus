@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { slugify, type Store } from "@atelier/core/commerce/stores";
 import { saveStore } from "@/app/sell/actions";
+import { useT } from "@/lib/i18n/context";
 
 const ACCENTS = [
   { value: "red", cls: "bg-red" },
@@ -16,6 +17,8 @@ const FIELD =
 const LABEL = "text-caption font-bold uppercase";
 
 export function StoreEditor({ initial }: { initial: Store | null }) {
+  const dict = useT();
+  const t = dict.storeEditor;
   const [name, setName] = useState(initial?.name ?? "");
   const [slug, setSlug] = useState(initial?.slug ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
@@ -33,11 +36,11 @@ export function StoreEditor({ initial }: { initial: Store | null }) {
     start(async () => {
       const r = await saveStore({ name, slug, description, accent, school });
       if (r.ok) {
-        setStatus("Saved.");
+        setStatus(dict.common.saved);
         setSavedSlug(r.slug ?? null);
         if (r.slug) setSlug(r.slug);
       } else {
-        setStatus(r.error ?? "Save failed.");
+        setStatus(r.error ?? dict.common.saveFailed);
       }
     });
   };
@@ -45,7 +48,7 @@ export function StoreEditor({ initial }: { initial: Store | null }) {
   return (
     <div className="flex flex-col gap-5 border-2 border-ink bg-paper p-5">
       <div className="flex flex-col gap-2">
-        <label className={LABEL} htmlFor="store-name">Store name</label>
+        <label className={LABEL} htmlFor="store-name">{t.storeName}</label>
         <input
           id="store-name"
           value={name}
@@ -56,7 +59,7 @@ export function StoreEditor({ initial }: { initial: Store | null }) {
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className={LABEL} htmlFor="store-slug">Handle</label>
+        <label className={LABEL} htmlFor="store-slug">{t.handle}</label>
         <input
           id="store-slug"
           value={slug}
@@ -70,7 +73,7 @@ export function StoreEditor({ initial }: { initial: Store | null }) {
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className={LABEL} htmlFor="store-desc">Description</label>
+        <label className={LABEL} htmlFor="store-desc">{t.description}</label>
         <textarea
           id="store-desc"
           rows={4}
@@ -82,7 +85,7 @@ export function StoreEditor({ initial }: { initial: Store | null }) {
       </div>
 
       <div className="flex flex-col gap-2">
-        <span className={LABEL}>Accent</span>
+        <span className={LABEL}>{t.accent}</span>
         <div className="flex gap-3">
           {ACCENTS.map((a) => (
             <button
@@ -106,14 +109,14 @@ export function StoreEditor({ initial }: { initial: Store | null }) {
           disabled={pending || !name.trim()}
           className="border-2 border-ink bg-ink px-6 py-2 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue disabled:opacity-50"
         >
-          {pending ? "Saving…" : initial ? "Save store" : "Open store"}
+          {pending ? dict.common.saving : initial ? t.saveStore : t.openStore}
         </button>
         {savedSlug ? (
           <Link
             href={`/store/${savedSlug}`}
             className="border-b-2 border-ink text-caption font-bold uppercase hover:text-blue"
           >
-            View your store → /store/{savedSlug}
+            {t.viewYourStore} /store/{savedSlug}
           </Link>
         ) : null}
       </div>

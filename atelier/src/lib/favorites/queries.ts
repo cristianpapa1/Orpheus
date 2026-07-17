@@ -47,11 +47,19 @@ export async function getSavedPosts(limit = 50): Promise<Post[]> {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return [];
+  return getFavoritesByProfile(user.id, limit);
+}
+
+/** A profile's favorited posts, newest-favorited first (public — shown on the
+ *  profile). Favorites are public per 0016 RLS. Defensive → []. */
+export async function getFavoritesByProfile(profileId: string, limit = 50): Promise<Post[]> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return [];
 
   const { data, error } = await supabase
     .from("post_favorites")
     .select("post_id")
-    .eq("profile_id", user.id)
+    .eq("profile_id", profileId)
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error || !data || data.length === 0) return [];
