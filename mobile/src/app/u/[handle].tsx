@@ -1,12 +1,14 @@
 import { formatPostDate } from "@atelier/core/posts/types";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Dimensions, Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Window } from "../../components/Window";
 import { mediaUrl, supabase } from "../../lib/supabase";
 import { useFavorites } from "../../lib/favorites";
 import { useT } from "../../lib/i18n/context";
 import { BAUHAUS, FONT, FONT_BODY } from "../../theme";
+
+const CARD_W = Dimensions.get("window").width - 64;
 
 interface Profile {
   id: string;
@@ -23,9 +25,12 @@ interface Post {
   category: string;
   media_type: "image" | "video" | "audio" | "text";
   image_path: string | null;
+  images: string[] | null;
   body: string | null;
   created_at: string;
 }
+const imgsOf = (p: Post): string[] =>
+  p.images?.length ? p.images : p.image_path ? [p.image_path] : [];
 
 /** Public profile — identity, badges, follower count, Follow, and their work. */
 export default function ProfileScreen() {
@@ -67,7 +72,7 @@ export default function ProfileScreen() {
           : Promise.resolve({ data: null }),
         supabase
           .from("posts")
-          .select("id, caption, category, media_type, image_path, body, created_at")
+          .select("id, caption, category, media_type, image_path, images, body, created_at")
           .eq("author_id", prof.id)
           .order("created_at", { ascending: false })
           .limit(20),
@@ -152,8 +157,19 @@ export default function ProfileScreen() {
       ) : (
         posts.map((p, i) => (
           <Window key={p.id} title={p.category} accent={(["red", "blue", "yellow"] as const)[i % 3]}>
-            {p.media_type !== "text" && p.image_path ? (
-              <Image source={{ uri: mediaUrl(p.image_path) }} style={styles.image} resizeMode="cover" />
+            {p.media_type !== "text" && imgsOf(p).length ? (
+              <View>
+                <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} style={{ width: CARD_W }}>
+                  {imgsOf(p).map((path, k) => (
+                    <Image key={k} source={{ uri: mediaUrl(path) }} style={[styles.image, { width: CARD_W }]} resizeMode="cover" />
+                  ))}
+                </ScrollView>
+                {imgsOf(p).length > 1 ? (
+                  <View style={styles.countBadge}>
+                    <Text style={styles.badgeText}>⊞ {imgsOf(p).length}</Text>
+                  </View>
+                ) : null}
+              </View>
             ) : null}
             <Text style={styles.meta}>{formatPostDate(p.created_at)}</Text>
             {p.caption ? <Text style={styles.body}>{p.caption}</Text> : null}
@@ -215,4 +231,15 @@ const styles = StyleSheet.create({
   favRow: { marginTop: 10, alignSelf: "flex-start" },
   heart: { fontSize: 22, color: BAUHAUS.ink },
   heartOn: { color: BAUHAUS.red },
+  countBadge: {
+    position: "absolute",
+    right: 6,
+    top: 6,
+    backgroundColor: BAUHAUS.paper,
+    borderWidth: 2,
+    borderColor: BAUHAUS.ink,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+  },
+  badgeText: { fontFamily: FONT, fontSize: 10, letterSpacing: 1, color: BAUHAUS.ink },
 });

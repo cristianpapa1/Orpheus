@@ -35,7 +35,7 @@ export default function ComposeScreen() {
   const [category, setCategory] = useState<PostCategory | "">("");
   const [altText, setAltText] = useState("");
   const [body, setBody] = useState("");
-  const [image, setImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
+  const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,45 +60,56 @@ export default function ComposeScreen() {
   const pick = async () => {
     const res = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
+      allowsMultipleSelection: true,
+      selectionLimit: 10,
       base64: true,
       quality: 0.85,
     });
-    if (!res.canceled && res.assets[0]) setImage(res.assets[0]);
+    if (!res.canceled && res.assets.length) setImages(res.assets.slice(0, 10));
   };
 
   const publish = async () => {
     setError(null);
     if (!category) return setError(t.needCategory);
     if (mediaType === "text" && !body.trim()) return setError(t.needBody);
-    if (mediaType === "image" && (!image || !image.base64)) return setError(t.needImage);
+    if (mediaType === "image" && images.length === 0) return setError(t.needImage);
     if (!uid) return;
 
     setBusy(true);
     try {
       // Publish goes through the moderate-post Edge Function: it runs the same
       // Claude first-line filter as the web, then inserts as the caller (RLS
-      // still enforces the creator gate). We just upload the image first.
+      // still enforces the creator gate). We upload each image first.
       let payload: Record<string, unknown>;
-      if (mediaType === "image" && image?.base64) {
-        const ext = EXT[image.mimeType ?? ""] ?? "jpg";
-        const path = `${uid}/originals/${rand()}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from("media")
-          .upload(path, decode(image.base64), {
-            contentType: image.mimeType ?? "image/jpeg",
-            upsert: true,
-          });
-        if (upErr) {
-          setError(t.failed);
+      if (mediaType === "image") {
+        const paths: string[] = [];
+        for (const asset of images) {
+          if (!asset.base64) continue;
+          const ext = EXT[asset.mimeType ?? ""] ?? "jpg";
+          const path = `${uid}/originals/${rand()}.${ext}`;
+          const { error: upErr } = await supabase.storage
+            .from("media")
+            .upload(path, decode(asset.base64), {
+              contentType: asset.mimeType ?? "image/jpeg",
+              upsert: true,
+            });
+          if (upErr) {
+            setError(t.failed);
+            return;
+          }
+          paths.push(path);
+        }
+        if (paths.length === 0) {
+          setError(t.needImage);
           return;
         }
         payload = {
           media_type: "image",
           caption,
           category,
-          images: [path],
-          image_width: image.width,
-          image_height: image.height,
+          images: paths,
+          image_width: images[0].width,
+          image_height: images[0].height,
           alt_text: altText,
         };
       } else {
@@ -163,10 +174,16 @@ export default function ComposeScreen() {
 
         {mediaType === "image" ? (
           <View style={styles.section}>
-            {image ? <Image source={{ uri: image.uri }} style={styles.preview} resizeMode="cover" /> : null}
+            {images.length ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.strip}>
+                {images.map((a, i) => (
+                  <Image key={i} source={{ uri: a.uri }} style={styles.thumb} resizeMode="cover" />
+                ))}
+              </ScrollView>
+            ) : null}
             <Pressable style={styles.btnAlt} onPress={pick}>
               <Text style={styles.btnAltText}>
-                {(image ? t.changeImage : t.pickImage).toUpperCase()}
+                {(images.length ? t.changeImage : t.pickImage).toUpperCase()}
               </Text>
             </Pressable>
           </View>
@@ -246,7 +263,8 @@ const styles = StyleSheet.create({
     backgroundColor: BAUHAUS.paper,
   },
   multiline: { minHeight: 120, textAlignVertical: "top" },
-  preview: { width: "100%", aspectRatio: 4 / 3, borderWidth: 2, borderColor: BAUHAUS.ink, marginBottom: 8 },
+  strip: { marginBottom: 8 },
+  thumb: { width: 100, height: 100, borderWidth: 2, borderColor: BAUHAUS.ink, marginRight: 8 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 4 },
   chip: { borderWidth: 2, borderColor: BAUHAUS.ink, paddingHorizontal: 12, paddingVertical: 6 },
   chipOn: { backgroundColor: BAUHAUS.ink },

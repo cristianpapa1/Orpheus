@@ -1,12 +1,14 @@
 import { formatPostDate } from "@atelier/core/posts/types";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Dimensions, FlatList, Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Window } from "../../components/Window";
 import { mediaUrl, supabase } from "../../lib/supabase";
 import { useFavorites } from "../../lib/favorites";
 import { useT } from "../../lib/i18n/context";
 import { BAUHAUS, FONT, FONT_BODY } from "../../theme";
+
+const CARD_W = Dimensions.get("window").width - 64;
 
 interface Row {
   id: string;
@@ -14,10 +16,14 @@ interface Row {
   category: string;
   media_type: "image" | "video" | "audio" | "text";
   image_path: string | null;
+  images: string[] | null;
   body: string | null;
   created_at: string;
   author: { handle: string | null; display_name: string | null } | null;
 }
+
+const imgsOf = (r: Row): string[] =>
+  r.images?.length ? r.images : r.image_path ? [r.image_path] : [];
 
 /** Read-only latest work across the platform (public select, newest first).
  *  Handles every post kind, a ♥ favorite toggle, and tap-through to authors. */
@@ -36,7 +42,7 @@ export default function FeedScreen() {
       supabase
         .from("posts")
         .select(
-          "id, caption, category, media_type, image_path, body, created_at, author:profiles!posts_author_id_fkey(handle, display_name)",
+          "id, caption, category, media_type, image_path, images, body, created_at, author:profiles!posts_author_id_fkey(handle, display_name)",
         )
         .order("created_at", { ascending: false })
         .limit(20)
@@ -73,21 +79,37 @@ export default function FeedScreen() {
       }
       renderItem={({ item, index }) => {
         const label = badge(item.media_type);
+        const pics = imgsOf(item);
         return (
           <Window
             title={item.category}
             accent={(["red", "blue", "yellow"] as const)[index % 3]}
           >
-            {item.media_type !== "text" && item.image_path ? (
+            {item.media_type !== "text" && pics.length ? (
               <View>
-                <Image
-                  source={{ uri: mediaUrl(item.image_path) }}
-                  style={styles.image}
-                  resizeMode="cover"
-                />
+                <ScrollView
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  style={{ width: CARD_W }}
+                >
+                  {pics.map((p, i) => (
+                    <Image
+                      key={i}
+                      source={{ uri: mediaUrl(p) }}
+                      style={[styles.image, { width: CARD_W }]}
+                      resizeMode="cover"
+                    />
+                  ))}
+                </ScrollView>
                 {label ? (
                   <View style={styles.badge}>
                     <Text style={styles.badgeText}>{label.toUpperCase()}</Text>
+                  </View>
+                ) : null}
+                {pics.length > 1 ? (
+                  <View style={styles.countBadge}>
+                    <Text style={styles.badgeText}>⊞ {pics.length}</Text>
                   </View>
                 ) : null}
               </View>
@@ -126,6 +148,16 @@ const styles = StyleSheet.create({
   badge: {
     position: "absolute",
     left: 6,
+    top: 6,
+    backgroundColor: BAUHAUS.paper,
+    borderWidth: 2,
+    borderColor: BAUHAUS.ink,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+  },
+  countBadge: {
+    position: "absolute",
+    right: 6,
     top: 6,
     backgroundColor: BAUHAUS.paper,
     borderWidth: 2,
