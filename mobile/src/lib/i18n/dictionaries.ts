@@ -28,6 +28,32 @@ export interface Dictionary {
     signedInMsg: string;
     language: string;
   };
+  profile: {
+    follow: string;
+    following: string;
+    followers: string;
+    follower: string;
+    posts: string;
+    noPosts: string;
+    verified: string;
+    quality: string;
+    curator: string;
+    notFound: string;
+  };
+  group: {
+    about: string;
+    members: string;
+    followers: string;
+    private: string;
+    follow: string;
+    following: string;
+    requestJoin: string;
+    requested: string;
+    member: string;
+    feed: string;
+    noPosts: string;
+    notFound: string;
+  };
 }
 
 const en: Dictionary = {
@@ -38,6 +64,8 @@ const en: Dictionary = {
   events: { title: "Events", empty: "Nothing upcoming." },
   jobs: { title: "Jobs", empty: "No open positions." },
   account: { signedIn: "Signed in", signInTitle: "Sign in", signIn: "Sign in", signOut: "Sign out", email: "email", password: "password", signedInMsg: "Signed in.", language: "Language" },
+  profile: { follow: "Follow", following: "Following", followers: "followers", follower: "follower", posts: "Posts", noPosts: "No posts yet.", verified: "Verified", quality: "Quality", curator: "Curator", notFound: "Profile not found." },
+  group: { about: "About", members: "members", followers: "followers", private: "Private", follow: "Follow", following: "Following", requestJoin: "Request to join", requested: "Requested", member: "Member", feed: "Group feed", noPosts: "No posts in this group yet.", notFound: "Group not found." },
 };
 
 const fr: Dictionary = {
@@ -48,6 +76,8 @@ const fr: Dictionary = {
   events: { title: "Événements", empty: "Rien à venir." },
   jobs: { title: "Emplois", empty: "Aucun poste ouvert." },
   account: { signedIn: "Connecté", signInTitle: "Connexion", signIn: "Connexion", signOut: "Se déconnecter", email: "e-mail", password: "mot de passe", signedInMsg: "Connecté.", language: "Langue" },
+  profile: { follow: "Suivre", following: "Abonné", followers: "abonnés", follower: "abonné", posts: "Publications", noPosts: "Aucune publication.", verified: "Vérifié", quality: "Qualité", curator: "Curateur", notFound: "Profil introuvable." },
+  group: { about: "À propos", members: "membres", followers: "abonnés", private: "Privé", follow: "Suivre", following: "Abonné", requestJoin: "Demander à rejoindre", requested: "Demandé", member: "Membre", feed: "Fil du groupe", noPosts: "Aucune publication dans ce groupe.", notFound: "Groupe introuvable." },
 };
 
 const pt: Dictionary = {
@@ -58,6 +88,8 @@ const pt: Dictionary = {
   events: { title: "Eventos", empty: "Nada por vir." },
   jobs: { title: "Vagas", empty: "Nenhuma vaga aberta." },
   account: { signedIn: "Conectado", signInTitle: "Entrar", signIn: "Entrar", signOut: "Sair", email: "e-mail", password: "senha", signedInMsg: "Conectado.", language: "Idioma" },
+  profile: { follow: "Seguir", following: "Seguindo", followers: "seguidores", follower: "seguidor", posts: "Publicações", noPosts: "Nenhuma publicação.", verified: "Verificado", quality: "Qualidade", curator: "Curador", notFound: "Perfil não encontrado." },
+  group: { about: "Sobre", members: "membros", followers: "seguidores", private: "Privado", follow: "Seguir", following: "Seguindo", requestJoin: "Pedir para entrar", requested: "Solicitado", member: "Membro", feed: "Feed do grupo", noPosts: "Nenhuma publicação neste grupo.", notFound: "Grupo não encontrado." },
 };
 
 const de: Dictionary = {
@@ -68,6 +100,8 @@ const de: Dictionary = {
   events: { title: "Events", empty: "Nichts Anstehendes." },
   jobs: { title: "Jobs", empty: "Keine offenen Stellen." },
   account: { signedIn: "Angemeldet", signInTitle: "Anmelden", signIn: "Anmelden", signOut: "Abmelden", email: "E-Mail", password: "Passwort", signedInMsg: "Angemeldet.", language: "Sprache" },
+  profile: { follow: "Folgen", following: "Folge ich", followers: "Follower", follower: "Follower", posts: "Beiträge", noPosts: "Noch keine Beiträge.", verified: "Verifiziert", quality: "Qualität", curator: "Kurator:in", notFound: "Profil nicht gefunden." },
+  group: { about: "Über", members: "Mitglieder", followers: "Follower", private: "Privat", follow: "Folgen", following: "Folge ich", requestJoin: "Beitritt anfragen", requested: "Angefragt", member: "Mitglied", feed: "Gruppen-Feed", noPosts: "Noch keine Beiträge in dieser Gruppe.", notFound: "Gruppe nicht gefunden." },
 };
 
 const ja: Dictionary = {
@@ -78,6 +112,8 @@ const ja: Dictionary = {
   events: { title: "イベント", empty: "予定はありません。" },
   jobs: { title: "求人", empty: "募集中の求人はありません。" },
   account: { signedIn: "ログイン中", signInTitle: "ログイン", signIn: "ログイン", signOut: "ログアウト", email: "メール", password: "パスワード", signedInMsg: "ログインしました。", language: "言語" },
+  profile: { follow: "フォロー", following: "フォロー中", followers: "フォロワー", follower: "フォロワー", posts: "投稿", noPosts: "まだ投稿がありません。", verified: "認証済み", quality: "品質", curator: "キュレーター", notFound: "プロフィールが見つかりません。" },
+  group: { about: "概要", members: "メンバー", followers: "フォロワー", private: "非公開", follow: "フォロー", following: "フォロー中", requestJoin: "参加をリクエスト", requested: "リクエスト済み", member: "メンバー", feed: "グループフィード", noPosts: "このグループにはまだ投稿がありません。", notFound: "グループが見つかりません。" },
 };
 
 const zh: Dictionary = {
@@ -88,6 +124,8 @@ const zh: Dictionary = {
   events: { title: "活动", empty: "暂无即将活动。" },
   jobs: { title: "招聘", empty: "暂无开放职位。" },
   account: { signedIn: "已登录", signInTitle: "登录", signIn: "登录", signOut: "退出登录", email: "邮箱", password: "密码", signedInMsg: "已登录。", language: "语言" },
+  profile: { follow: "关注", following: "关注中", followers: "关注者", follower: "关注者", posts: "帖子", noPosts: "还没有帖子。", verified: "已验证", quality: "优质", curator: "策展人", notFound: "未找到主页。" },
+  group: { about: "关于", members: "成员", followers: "关注者", private: "私密", follow: "关注", following: "关注中", requestJoin: "申请加入", requested: "已申请", member: "成员", feed: "群组动态", noPosts: "该群组还没有帖子。", notFound: "未找到群组。" },
 };
 
 const ar: Dictionary = {
@@ -98,6 +136,8 @@ const ar: Dictionary = {
   events: { title: "الفعاليات", empty: "لا شيء قادم." },
   jobs: { title: "الوظائف", empty: "لا وظائف مفتوحة." },
   account: { signedIn: "مُسجَّل الدخول", signInTitle: "تسجيل الدخول", signIn: "تسجيل الدخول", signOut: "تسجيل الخروج", email: "البريد الإلكتروني", password: "كلمة المرور", signedInMsg: "تم تسجيل الدخول.", language: "اللغة" },
+  profile: { follow: "متابعة", following: "متابَع", followers: "متابعون", follower: "متابِع", posts: "المنشورات", noPosts: "لا منشورات بعد.", verified: "موثّق", quality: "جودة", curator: "منسّق", notFound: "الملف غير موجود." },
+  group: { about: "نبذة", members: "أعضاء", followers: "متابعون", private: "خاص", follow: "متابعة", following: "متابَع", requestJoin: "طلب الانضمام", requested: "تم الطلب", member: "عضو", feed: "موجز المجموعة", noPosts: "لا منشورات في هذه المجموعة بعد.", notFound: "المجموعة غير موجودة." },
 };
 
 const ru: Dictionary = {
@@ -108,6 +148,8 @@ const ru: Dictionary = {
   events: { title: "События", empty: "Ничего предстоящего." },
   jobs: { title: "Вакансии", empty: "Нет открытых вакансий." },
   account: { signedIn: "Вы вошли", signInTitle: "Войти", signIn: "Войти", signOut: "Выйти", email: "e-mail", password: "пароль", signedInMsg: "Вы вошли.", language: "Язык" },
+  profile: { follow: "Подписаться", following: "Вы подписаны", followers: "подписчиков", follower: "подписчик", posts: "Публикации", noPosts: "Пока нет публикаций.", verified: "Подтверждён", quality: "Качество", curator: "Куратор", notFound: "Профиль не найден." },
+  group: { about: "Об этом", members: "участников", followers: "подписчиков", private: "Приватная", follow: "Подписаться", following: "Вы подписаны", requestJoin: "Подать заявку", requested: "Заявка отправлена", member: "Участник", feed: "Лента группы", noPosts: "В этой группе пока нет публикаций.", notFound: "Группа не найдена." },
 };
 
 const it: Dictionary = {
@@ -118,6 +160,8 @@ const it: Dictionary = {
   events: { title: "Eventi", empty: "Niente in arrivo." },
   jobs: { title: "Lavoro", empty: "Nessuna posizione aperta." },
   account: { signedIn: "Connesso", signInTitle: "Accedi", signIn: "Accedi", signOut: "Esci", email: "email", password: "password", signedInMsg: "Connesso.", language: "Lingua" },
+  profile: { follow: "Segui", following: "Seguito", followers: "follower", follower: "follower", posts: "Post", noPosts: "Ancora nessun post.", verified: "Verificato", quality: "Qualità", curator: "Curatore", notFound: "Profilo non trovato." },
+  group: { about: "Info", members: "membri", followers: "follower", private: "Privato", follow: "Segui", following: "Seguito", requestJoin: "Richiedi di unirti", requested: "Richiesto", member: "Membro", feed: "Feed del gruppo", noPosts: "Ancora nessun post in questo gruppo.", notFound: "Gruppo non trovato." },
 };
 
 const DICTIONARIES: Record<Locale, Dictionary> = { en, fr, pt, de, ja, zh, ar, ru, it };

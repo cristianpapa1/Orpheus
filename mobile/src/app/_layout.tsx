@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { supabase } from "../lib/supabase";
 import { I18nProvider } from "../lib/i18n/context";
-import { BAUHAUS } from "../theme";
+import { BAUHAUS, FONT } from "../theme";
 
 /** Root gate: no session → login screen; session → the tabs. */
 export default function RootLayout() {
@@ -40,6 +40,28 @@ export default function RootLayout() {
       >
         <Stack.Protected guard={!!session}>
           <Stack.Screen name="(tabs)" />
+          <Stack.Screen
+            name="u/[handle]"
+            options={{
+              headerShown: true,
+              headerStyle: { backgroundColor: BAUHAUS.paper },
+              headerTitleStyle: { fontFamily: FONT },
+              headerTintColor: BAUHAUS.ink,
+              headerShadowVisible: false,
+              title: "",
+            }}
+          />
+          <Stack.Screen
+            name="g/[slug]"
+            options={{
+              headerShown: true,
+              headerStyle: { backgroundColor: BAUHAUS.paper },
+              headerTitleStyle: { fontFamily: FONT },
+              headerTintColor: BAUHAUS.ink,
+              headerShadowVisible: false,
+              title: "",
+            }}
+          />
         </Stack.Protected>
         <Stack.Protected guard={!session}>
           <Stack.Screen name="login" />

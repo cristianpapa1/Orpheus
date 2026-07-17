@@ -1,8 +1,10 @@
 import { formatPostDate } from "@atelier/core/posts/types";
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { FlatList, Image, StyleSheet, Text, View } from "react-native";
+import { FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { Window } from "../../components/Window";
 import { mediaUrl, supabase } from "../../lib/supabase";
+import { useFavorites } from "../../lib/favorites";
 import { useT } from "../../lib/i18n/context";
 import { BAUHAUS, FONT, FONT_BODY } from "../../theme";
 
@@ -18,11 +20,13 @@ interface Row {
 }
 
 /** Read-only latest work across the platform (public select, newest first).
- *  Handles every post kind: image/video/audio show the cover, text shows body. */
+ *  Handles every post kind, a ♥ favorite toggle, and tap-through to authors. */
 export default function FeedScreen() {
   const t = useT().feed;
+  const router = useRouter();
   const [rows, setRows] = useState<Row[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const { favSet, toggle } = useFavorites(rows.map((r) => r.id));
 
   useEffect(() => {
     supabase
@@ -74,14 +78,27 @@ export default function FeedScreen() {
                 ) : null}
               </View>
             ) : null}
-            <Text style={styles.meta}>
-              {(item.author?.display_name ?? "Unnamed").toUpperCase()} · @
-              {item.author?.handle ?? "?"} · {formatPostDate(item.created_at)}
-            </Text>
+            <Pressable
+              disabled={!item.author?.handle}
+              onPress={() =>
+                item.author?.handle &&
+                router.push({ pathname: "/u/[handle]", params: { handle: item.author.handle } })
+              }
+            >
+              <Text style={styles.meta}>
+                {(item.author?.display_name ?? "Unnamed").toUpperCase()} · @
+                {item.author?.handle ?? "?"} · {formatPostDate(item.created_at)}
+              </Text>
+            </Pressable>
             {item.caption ? <Text style={styles.body}>{item.caption}</Text> : null}
             {item.media_type === "text" && item.body ? (
               <Text style={styles.body}>{item.body}</Text>
             ) : null}
+            <Pressable onPress={() => toggle(item.id)} hitSlop={8} style={styles.favRow}>
+              <Text style={[styles.heart, favSet.has(item.id) && styles.heartOn]}>
+                {favSet.has(item.id) ? "♥" : "♡"}
+              </Text>
+            </Pressable>
           </Window>
         );
       }}
@@ -105,4 +122,7 @@ const styles = StyleSheet.create({
   badgeText: { fontFamily: FONT, fontSize: 10, letterSpacing: 1, color: BAUHAUS.ink },
   meta: { fontFamily: FONT, fontSize: 11, letterSpacing: 1, marginTop: 8, color: BAUHAUS.ink },
   body: { fontFamily: FONT_BODY, fontSize: 15, marginTop: 6, color: BAUHAUS.ink },
+  favRow: { marginTop: 10, alignSelf: "flex-start" },
+  heart: { fontSize: 22, color: BAUHAUS.ink },
+  heartOn: { color: BAUHAUS.red },
 });

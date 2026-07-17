@@ -1,5 +1,6 @@
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { FlatList, StyleSheet, Text } from "react-native";
+import { FlatList, Pressable, StyleSheet, Text } from "react-native";
 import { Window } from "../../components/Window";
 import { supabase } from "../../lib/supabase";
 import { useT } from "../../lib/i18n/context";
@@ -7,6 +8,7 @@ import { BAUHAUS, FONT_BODY } from "../../theme";
 
 interface Row {
   id: string;
+  slug: string;
   name: string;
   description: string;
   is_private: boolean;
@@ -14,11 +16,12 @@ interface Row {
 
 export default function GroupsScreen() {
   const t = useT().groups;
+  const router = useRouter();
   const [rows, setRows] = useState<Row[]>([]);
   useEffect(() => {
     supabase
       .from("groups")
-      .select("id, name, description, is_private")
+      .select("id, slug, name, description, is_private")
       .order("name")
       .then(({ data }) => setRows((data as Row[]) ?? []));
   }, []);
@@ -36,12 +39,16 @@ export default function GroupsScreen() {
         </Window>
       }
       renderItem={({ item, index }) => (
-        <Window
-          title={item.is_private ? `${item.name} · ${t.private}` : item.name}
-          accent={(["blue", "yellow", "red"] as const)[index % 3]}
+        <Pressable
+          onPress={() => router.push({ pathname: "/g/[slug]", params: { slug: item.slug } })}
         >
-          <Text style={styles.body}>{item.description}</Text>
-        </Window>
+          <Window
+            title={item.is_private ? `${item.name} · ${t.private}` : item.name}
+            accent={(["blue", "yellow", "red"] as const)[index % 3]}
+          >
+            <Text style={styles.body}>{item.description}</Text>
+          </Window>
+        </Pressable>
       )}
     />
   );
