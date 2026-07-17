@@ -17,9 +17,13 @@ export default async function CreatorApplyPage() {
     <div>
       <h1 className="mb-2 text-h1 font-bold uppercase">Become a creator</h1>
       <p className="mb-6 max-w-2xl text-body">
-        Atelier is a space for people who make things. Anyone can browse, follow,
-        and join groups — but posting work and starting groups is for creators.
-        Tell us what you make and we&apos;ll review it by hand.
+        Atelier is a space for people who make things — and for those who think
+        and write about them. Anyone can browse, follow, and join groups;
+        publishing work and starting groups is for creators. That means artists
+        across the seven arts, but also writers, journalists, and scholars
+        sharing articles and ideas tied to art and culture — often the people who
+        go on to become curators. Tell us what you make or write, and
+        we&apos;ll review it by hand.
       </p>
 
       <WindowGrid>
