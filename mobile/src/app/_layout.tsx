@@ -63,6 +63,17 @@ export default function RootLayout() {
             }}
           />
           <Stack.Screen
+            name="p/[id]"
+            options={{
+              headerShown: true,
+              headerStyle: { backgroundColor: BAUHAUS.paper },
+              headerTitleStyle: { fontFamily: FONT },
+              headerTintColor: BAUHAUS.ink,
+              headerShadowVisible: false,
+              title: "",
+            }}
+          />
+          <Stack.Screen
             name="compose"
             options={{
               headerShown: true,

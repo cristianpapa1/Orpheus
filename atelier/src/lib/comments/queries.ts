@@ -15,7 +15,10 @@ export async function getComments(postId: string): Promise<CommentItem[]> {
   if (!supabase) return [];
   const { data, error } = await supabase
     .from("post_comments")
-    .select("id, body, created_at, author_id, author:profiles(handle, display_name)")
+    // Explicit FK: since 0028's comment_supports also links post_comments↔profiles,
+    // a bare `profiles` embed is ambiguous (PGRST201) and silently returned []. Pin
+    // the author relationship so comments actually load.
+    .select("id, body, created_at, author_id, author:profiles!post_comments_author_id_fkey(handle, display_name)")
     .eq("post_id", postId)
     .order("created_at", { ascending: true })
     .limit(200);

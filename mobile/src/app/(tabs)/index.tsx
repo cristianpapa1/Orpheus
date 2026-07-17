@@ -130,11 +130,19 @@ export default function FeedScreen() {
             {item.media_type === "text" && item.body ? (
               <Text style={styles.body}>{item.body}</Text>
             ) : null}
-            <Pressable onPress={() => toggle(item.id)} hitSlop={8} style={styles.favRow}>
-              <Text style={[styles.heart, favSet.has(item.id) && styles.heartOn]}>
-                {favSet.has(item.id) ? "♥" : "♡"}
-              </Text>
-            </Pressable>
+            <View style={styles.actions}>
+              <Pressable onPress={() => toggle(item.id)} hitSlop={8}>
+                <Text style={[styles.heart, favSet.has(item.id) && styles.heartOn]}>
+                  {favSet.has(item.id) ? "♥" : "♡"}
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => router.push({ pathname: "/p/[id]", params: { id: item.id } })}
+                hitSlop={8}
+              >
+                <Text style={styles.openIcon}>💬</Text>
+              </Pressable>
+            </View>
           </Window>
         );
       }}
@@ -168,9 +176,10 @@ const styles = StyleSheet.create({
   badgeText: { fontFamily: FONT, fontSize: 10, letterSpacing: 1, color: BAUHAUS.ink },
   meta: { fontFamily: FONT, fontSize: 11, letterSpacing: 1, marginTop: 8, color: BAUHAUS.ink },
   body: { fontFamily: FONT_BODY, fontSize: 15, marginTop: 6, color: BAUHAUS.ink },
-  favRow: { marginTop: 10, alignSelf: "flex-start" },
+  actions: { flexDirection: "row", alignItems: "center", gap: 18, marginTop: 10 },
   heart: { fontSize: 22, color: BAUHAUS.ink },
   heartOn: { color: BAUHAUS.red },
+  openIcon: { fontSize: 18 },
   newPost: { backgroundColor: BAUHAUS.ink, paddingVertical: 12, alignItems: "center", marginBottom: 16 },
   newPostText: { fontFamily: FONT, letterSpacing: 2, color: BAUHAUS.paper },
 });

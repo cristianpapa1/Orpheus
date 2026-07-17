@@ -1,5 +1,5 @@
 import { formatPostDate } from "@atelier/core/posts/types";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Dimensions, Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Window } from "../../components/Window";
@@ -35,6 +35,7 @@ const imgsOf = (p: Post): string[] =>
 /** Public profile — identity, badges, follower count, Follow, and their work. */
 export default function ProfileScreen() {
   const t = useT().profile;
+  const router = useRouter();
   const { handle } = useLocalSearchParams<{ handle: string }>();
   const [profile, setProfile] = useState<Profile | null | undefined>(undefined);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -174,11 +175,19 @@ export default function ProfileScreen() {
             <Text style={styles.meta}>{formatPostDate(p.created_at)}</Text>
             {p.caption ? <Text style={styles.body}>{p.caption}</Text> : null}
             {p.media_type === "text" && p.body ? <Text style={styles.body}>{p.body}</Text> : null}
-            <Pressable onPress={() => toggle(p.id)} hitSlop={8} style={styles.favRow}>
-              <Text style={[styles.heart, favSet.has(p.id) && styles.heartOn]}>
-                {favSet.has(p.id) ? "♥" : "♡"}
-              </Text>
-            </Pressable>
+            <View style={styles.actions}>
+              <Pressable onPress={() => toggle(p.id)} hitSlop={8}>
+                <Text style={[styles.heart, favSet.has(p.id) && styles.heartOn]}>
+                  {favSet.has(p.id) ? "♥" : "♡"}
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => router.push({ pathname: "/p/[id]", params: { id: p.id } })}
+                hitSlop={8}
+              >
+                <Text style={styles.openIcon}>💬</Text>
+              </Pressable>
+            </View>
           </Window>
         ))
       )}
@@ -228,9 +237,10 @@ const styles = StyleSheet.create({
   image: { width: "100%", aspectRatio: 4 / 3, borderWidth: 2, borderColor: BAUHAUS.ink },
   meta: { fontFamily: FONT, fontSize: 11, letterSpacing: 1, marginTop: 8, color: BAUHAUS.ink },
   body: { fontFamily: FONT_BODY, fontSize: 15, marginTop: 6, color: BAUHAUS.ink },
-  favRow: { marginTop: 10, alignSelf: "flex-start" },
+  actions: { flexDirection: "row", alignItems: "center", gap: 18, marginTop: 10 },
   heart: { fontSize: 22, color: BAUHAUS.ink },
   heartOn: { color: BAUHAUS.red },
+  openIcon: { fontSize: 18 },
   countBadge: {
     position: "absolute",
     right: 6,

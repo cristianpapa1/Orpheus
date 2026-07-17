@@ -75,6 +75,27 @@ export interface Dictionary {
     needBody: string;
     failed: string;
   };
+  post: {
+    conversation: string;
+    noComments: string;
+    addComment: string;
+    placeholder: string;
+    send: string;
+    sending: string;
+    curatorNote: string;
+    signInNote: string;
+    delete: string;
+    deleteTitle: string;
+    deleteMsg: string;
+    cancel: string;
+    about: string;
+    category: string;
+    style: string;
+    published: string;
+    notFound: string;
+    viewFull: string;
+    failed: string;
+  };
 }
 
 const en: Dictionary = {
@@ -88,6 +109,7 @@ const en: Dictionary = {
   profile: { follow: "Follow", following: "Following", followers: "followers", follower: "follower", posts: "Posts", noPosts: "No posts yet.", verified: "Verified", quality: "Quality", curator: "Curator", notFound: "Profile not found." },
   group: { about: "About", members: "members", followers: "followers", private: "Private", follow: "Follow", following: "Following", requestJoin: "Request to join", requested: "Requested", member: "Member", feed: "Group feed", noPosts: "No posts in this group yet.", notFound: "Group not found." },
   compose: { title: "New post", newPost: "New post", image: "Image", text: "Text", pickImage: "Pick image", changeImage: "Change image", caption: "Caption", category: "Category", altText: "Alt text (describe the work)", body: "Your words", publish: "Publish", publishing: "Publishing…", creatorsOnly: "Creators only", creatorsOnlyBody: "Publishing is for approved creators. Become a creator on Atelier, then post here.", becomeCreator: "Become a creator →", needImage: "Pick an image first.", needCategory: "Pick a category.", needBody: "Write something to publish.", failed: "Couldn't publish. Try again." },
+  post: { conversation: "Conversation", noComments: "No comments yet.", addComment: "Add a comment", placeholder: "Say something…", send: "Post", sending: "Posting…", curatorNote: "Comments are written by curators. You can support any comment with ▲.", signInNote: "Sign in to support the conversation.", delete: "Delete", deleteTitle: "Delete comment?", deleteMsg: "This can't be undone.", cancel: "Cancel", about: "About this work", category: "Category", style: "Style", published: "Published", notFound: "Post not found.", viewFull: "View full resolution ↗", failed: "Couldn't post. Try again." },
 };
 
 const fr: Dictionary = {
@@ -101,6 +123,7 @@ const fr: Dictionary = {
   profile: { follow: "Suivre", following: "Abonné", followers: "abonnés", follower: "abonné", posts: "Publications", noPosts: "Aucune publication.", verified: "Vérifié", quality: "Qualité", curator: "Curateur", notFound: "Profil introuvable." },
   group: { about: "À propos", members: "membres", followers: "abonnés", private: "Privé", follow: "Suivre", following: "Abonné", requestJoin: "Demander à rejoindre", requested: "Demandé", member: "Membre", feed: "Fil du groupe", noPosts: "Aucune publication dans ce groupe.", notFound: "Groupe introuvable." },
   compose: { title: "Nouvelle publication", newPost: "Nouvelle publication", image: "Image", text: "Texte", pickImage: "Choisir une image", changeImage: "Changer l’image", caption: "Légende", category: "Catégorie", altText: "Texte alternatif (décrivez l’œuvre)", body: "Vos mots", publish: "Publier", publishing: "Publication…", creatorsOnly: "Réservé aux créateurs", creatorsOnlyBody: "Publier est réservé aux créateurs approuvés. Devenez créateur sur Atelier, puis publiez ici.", becomeCreator: "Devenir créateur →", needImage: "Choisissez d’abord une image.", needCategory: "Choisissez une catégorie.", needBody: "Écrivez quelque chose à publier.", failed: "Échec de la publication. Réessayez." },
+  post: { conversation: "Conversation", noComments: "Aucun commentaire pour l’instant.", addComment: "Ajouter un commentaire", placeholder: "Dites quelque chose…", send: "Publier", sending: "Publication…", curatorNote: "Les commentaires sont écrits par les curateurs. Vous pouvez soutenir un commentaire avec ▲.", signInNote: "Connectez-vous pour soutenir la conversation.", delete: "Supprimer", deleteTitle: "Supprimer le commentaire ?", deleteMsg: "Cette action est irréversible.", cancel: "Annuler", about: "À propos de l’œuvre", category: "Catégorie", style: "Style", published: "Publié", notFound: "Publication introuvable.", viewFull: "Voir en pleine résolution ↗", failed: "Échec de la publication. Réessayez." },
 };
 
 const pt: Dictionary = {
@@ -114,6 +137,7 @@ const pt: Dictionary = {
   profile: { follow: "Seguir", following: "Seguindo", followers: "seguidores", follower: "seguidor", posts: "Publicações", noPosts: "Nenhuma publicação.", verified: "Verificado", quality: "Qualidade", curator: "Curador", notFound: "Perfil não encontrado." },
   group: { about: "Sobre", members: "membros", followers: "seguidores", private: "Privado", follow: "Seguir", following: "Seguindo", requestJoin: "Pedir para entrar", requested: "Solicitado", member: "Membro", feed: "Feed do grupo", noPosts: "Nenhuma publicação neste grupo.", notFound: "Grupo não encontrado." },
   compose: { title: "Nova publicação", newPost: "Nova publicação", image: "Imagem", text: "Texto", pickImage: "Escolher imagem", changeImage: "Trocar imagem", caption: "Legenda", category: "Categoria", altText: "Texto alternativo (descreva o trabalho)", body: "Suas palavras", publish: "Publicar", publishing: "Publicando…", creatorsOnly: "Apenas criadores", creatorsOnlyBody: "Publicar é para criadores aprovados. Torne-se criador no Atelier e publique aqui.", becomeCreator: "Tornar-se criador →", needImage: "Escolha uma imagem primeiro.", needCategory: "Escolha uma categoria.", needBody: "Escreva algo para publicar.", failed: "Não foi possível publicar. Tente de novo." },
+  post: { conversation: "Conversa", noComments: "Nenhum comentário ainda.", addComment: "Adicionar um comentário", placeholder: "Diga algo…", send: "Publicar", sending: "Publicando…", curatorNote: "Os comentários são escritos por curadores. Você pode apoiar qualquer comentário com ▲.", signInNote: "Entre para apoiar a conversa.", delete: "Excluir", deleteTitle: "Excluir comentário?", deleteMsg: "Isso não pode ser desfeito.", cancel: "Cancelar", about: "Sobre a obra", category: "Categoria", style: "Estilo", published: "Publicado", notFound: "Publicação não encontrada.", viewFull: "Ver em resolução total ↗", failed: "Não foi possível publicar. Tente de novo." },
 };
 
 const de: Dictionary = {
@@ -127,6 +151,7 @@ const de: Dictionary = {
   profile: { follow: "Folgen", following: "Folge ich", followers: "Follower", follower: "Follower", posts: "Beiträge", noPosts: "Noch keine Beiträge.", verified: "Verifiziert", quality: "Qualität", curator: "Kurator:in", notFound: "Profil nicht gefunden." },
   group: { about: "Über", members: "Mitglieder", followers: "Follower", private: "Privat", follow: "Folgen", following: "Folge ich", requestJoin: "Beitritt anfragen", requested: "Angefragt", member: "Mitglied", feed: "Gruppen-Feed", noPosts: "Noch keine Beiträge in dieser Gruppe.", notFound: "Gruppe nicht gefunden." },
   compose: { title: "Neuer Beitrag", newPost: "Neuer Beitrag", image: "Bild", text: "Text", pickImage: "Bild auswählen", changeImage: "Bild ändern", caption: "Bildunterschrift", category: "Kategorie", altText: "Alternativtext (Werk beschreiben)", body: "Ihre Worte", publish: "Veröffentlichen", publishing: "Wird veröffentlicht…", creatorsOnly: "Nur für Kreative", creatorsOnlyBody: "Veröffentlichen ist für freigeschaltete Kreative. Werden Sie auf Atelier Kreative:r und posten Sie dann hier.", becomeCreator: "Kreativer werden →", needImage: "Wählen Sie zuerst ein Bild.", needCategory: "Wählen Sie eine Kategorie.", needBody: "Schreiben Sie etwas zum Veröffentlichen.", failed: "Veröffentlichen fehlgeschlagen. Versuchen Sie es erneut." },
+  post: { conversation: "Gespräch", noComments: "Noch keine Kommentare.", addComment: "Kommentar hinzufügen", placeholder: "Sag etwas…", send: "Posten", sending: "Wird gepostet…", curatorNote: "Kommentare werden von Kurator:innen geschrieben. Du kannst jeden Kommentar mit ▲ unterstützen.", signInNote: "Melde dich an, um das Gespräch zu unterstützen.", delete: "Löschen", deleteTitle: "Kommentar löschen?", deleteMsg: "Das kann nicht rückgängig gemacht werden.", cancel: "Abbrechen", about: "Über dieses Werk", category: "Kategorie", style: "Stil", published: "Veröffentlicht", notFound: "Beitrag nicht gefunden.", viewFull: "In voller Auflösung ansehen ↗", failed: "Posten fehlgeschlagen. Versuch es erneut." },
 };
 
 const ja: Dictionary = {
@@ -140,6 +165,7 @@ const ja: Dictionary = {
   profile: { follow: "フォロー", following: "フォロー中", followers: "フォロワー", follower: "フォロワー", posts: "投稿", noPosts: "まだ投稿がありません。", verified: "認証済み", quality: "品質", curator: "キュレーター", notFound: "プロフィールが見つかりません。" },
   group: { about: "概要", members: "メンバー", followers: "フォロワー", private: "非公開", follow: "フォロー", following: "フォロー中", requestJoin: "参加をリクエスト", requested: "リクエスト済み", member: "メンバー", feed: "グループフィード", noPosts: "このグループにはまだ投稿がありません。", notFound: "グループが見つかりません。" },
   compose: { title: "新規投稿", newPost: "新規投稿", image: "画像", text: "テキスト", pickImage: "画像を選択", changeImage: "画像を変更", caption: "キャプション", category: "カテゴリー", altText: "代替テキスト（作品の説明）", body: "あなたの言葉", publish: "公開", publishing: "公開中…", creatorsOnly: "クリエイター限定", creatorsOnlyBody: "投稿は承認済みクリエイター向けです。Atelier でクリエイターになってから、ここで投稿できます。", becomeCreator: "クリエイターになる →", needImage: "先に画像を選んでください。", needCategory: "カテゴリーを選んでください。", needBody: "公開する内容を書いてください。", failed: "公開できませんでした。もう一度お試しください。" },
+  post: { conversation: "会話", noComments: "まだコメントはありません。", addComment: "コメントを追加", placeholder: "何か書いてください…", send: "投稿", sending: "投稿中…", curatorNote: "コメントはキュレーターが書きます。どのコメントも ▲ で応援できます。", signInNote: "会話を応援するにはログインしてください。", delete: "削除", deleteTitle: "コメントを削除しますか？", deleteMsg: "この操作は取り消せません。", cancel: "キャンセル", about: "この作品について", category: "カテゴリー", style: "スタイル", published: "公開日", notFound: "投稿が見つかりません。", viewFull: "フル解像度で見る ↗", failed: "投稿できませんでした。もう一度お試しください。" },
 };
 
 const zh: Dictionary = {
@@ -153,6 +179,7 @@ const zh: Dictionary = {
   profile: { follow: "关注", following: "关注中", followers: "关注者", follower: "关注者", posts: "帖子", noPosts: "还没有帖子。", verified: "已验证", quality: "优质", curator: "策展人", notFound: "未找到主页。" },
   group: { about: "关于", members: "成员", followers: "关注者", private: "私密", follow: "关注", following: "关注中", requestJoin: "申请加入", requested: "已申请", member: "成员", feed: "群组动态", noPosts: "该群组还没有帖子。", notFound: "未找到群组。" },
   compose: { title: "新帖子", newPost: "新帖子", image: "图片", text: "文字", pickImage: "选择图片", changeImage: "更换图片", caption: "说明", category: "分类", altText: "替代文本（描述作品）", body: "你的文字", publish: "发布", publishing: "发布中…", creatorsOnly: "仅限创作者", creatorsOnlyBody: "发布面向获批创作者。先在 Atelier 成为创作者，再在这里发布。", becomeCreator: "成为创作者 →", needImage: "请先选择图片。", needCategory: "请选择分类。", needBody: "请写点内容再发布。", failed: "无法发布。请重试。" },
+  post: { conversation: "对话", noComments: "还没有评论。", addComment: "添加评论", placeholder: "说点什么…", send: "发布", sending: "发布中…", curatorNote: "评论由策展人撰写。你可以用 ▲ 支持任意评论。", signInNote: "登录以支持对话。", delete: "删除", deleteTitle: "删除评论？", deleteMsg: "此操作无法撤销。", cancel: "取消", about: "关于这件作品", category: "分类", style: "风格", published: "发布于", notFound: "未找到帖子。", viewFull: "查看全分辨率 ↗", failed: "无法发布。请重试。" },
 };
 
 const ar: Dictionary = {
@@ -166,6 +193,7 @@ const ar: Dictionary = {
   profile: { follow: "متابعة", following: "متابَع", followers: "متابعون", follower: "متابِع", posts: "المنشورات", noPosts: "لا منشورات بعد.", verified: "موثّق", quality: "جودة", curator: "منسّق", notFound: "الملف غير موجود." },
   group: { about: "نبذة", members: "أعضاء", followers: "متابعون", private: "خاص", follow: "متابعة", following: "متابَع", requestJoin: "طلب الانضمام", requested: "تم الطلب", member: "عضو", feed: "موجز المجموعة", noPosts: "لا منشورات في هذه المجموعة بعد.", notFound: "المجموعة غير موجودة." },
   compose: { title: "منشور جديد", newPost: "منشور جديد", image: "صورة", text: "نص", pickImage: "اختر صورة", changeImage: "تغيير الصورة", caption: "التعليق", category: "الفئة", altText: "نص بديل (صِف العمل)", body: "كلماتك", publish: "نشر", publishing: "جارٍ النشر…", creatorsOnly: "للمبدعين فقط", creatorsOnlyBody: "النشر للمبدعين المعتمدين. كن مبدعًا على Atelier ثم انشر هنا.", becomeCreator: "كن مبدعًا ←", needImage: "اختر صورة أولًا.", needCategory: "اختر فئة.", needBody: "اكتب شيئًا لنشره.", failed: "تعذّر النشر. حاول مرة أخرى." },
+  post: { conversation: "المحادثة", noComments: "لا تعليقات بعد.", addComment: "أضف تعليقًا", placeholder: "قل شيئًا…", send: "نشر", sending: "جارٍ النشر…", curatorNote: "التعليقات يكتبها المنسّقون. يمكنك دعم أي تعليق بـ ▲.", signInNote: "سجّل الدخول لدعم المحادثة.", delete: "حذف", deleteTitle: "حذف التعليق؟", deleteMsg: "لا يمكن التراجع عن ذلك.", cancel: "إلغاء", about: "عن هذا العمل", category: "الفئة", style: "الأسلوب", published: "نُشر", notFound: "المنشور غير موجود.", viewFull: "عرض بدقة كاملة ↗", failed: "تعذّر النشر. حاول مرة أخرى." },
 };
 
 const ru: Dictionary = {
@@ -179,6 +207,7 @@ const ru: Dictionary = {
   profile: { follow: "Подписаться", following: "Вы подписаны", followers: "подписчиков", follower: "подписчик", posts: "Публикации", noPosts: "Пока нет публикаций.", verified: "Подтверждён", quality: "Качество", curator: "Куратор", notFound: "Профиль не найден." },
   group: { about: "Об этом", members: "участников", followers: "подписчиков", private: "Приватная", follow: "Подписаться", following: "Вы подписаны", requestJoin: "Подать заявку", requested: "Заявка отправлена", member: "Участник", feed: "Лента группы", noPosts: "В этой группе пока нет публикаций.", notFound: "Группа не найдена." },
   compose: { title: "Новый пост", newPost: "Новый пост", image: "Изображение", text: "Текст", pickImage: "Выбрать изображение", changeImage: "Заменить изображение", caption: "Подпись", category: "Категория", altText: "Альтернативный текст (опишите работу)", body: "Ваши слова", publish: "Опубликовать", publishing: "Публикация…", creatorsOnly: "Только для авторов", creatorsOnlyBody: "Публикация — для одобренных авторов. Станьте автором на Atelier, затем публикуйте здесь.", becomeCreator: "Стать автором →", needImage: "Сначала выберите изображение.", needCategory: "Выберите категорию.", needBody: "Напишите что-нибудь для публикации.", failed: "Не удалось опубликовать. Попробуйте снова." },
+  post: { conversation: "Обсуждение", noComments: "Пока нет комментариев.", addComment: "Добавить комментарий", placeholder: "Скажите что-нибудь…", send: "Опубликовать", sending: "Публикация…", curatorNote: "Комментарии пишут кураторы. Любой комментарий можно поддержать с помощью ▲.", signInNote: "Войдите, чтобы поддержать обсуждение.", delete: "Удалить", deleteTitle: "Удалить комментарий?", deleteMsg: "Это действие нельзя отменить.", cancel: "Отмена", about: "Об этой работе", category: "Категория", style: "Стиль", published: "Опубликовано", notFound: "Публикация не найдена.", viewFull: "Смотреть в полном разрешении ↗", failed: "Не удалось опубликовать. Попробуйте снова." },
 };
 
 const it: Dictionary = {
@@ -192,6 +221,7 @@ const it: Dictionary = {
   profile: { follow: "Segui", following: "Seguito", followers: "follower", follower: "follower", posts: "Post", noPosts: "Ancora nessun post.", verified: "Verificato", quality: "Qualità", curator: "Curatore", notFound: "Profilo non trovato." },
   group: { about: "Info", members: "membri", followers: "follower", private: "Privato", follow: "Segui", following: "Seguito", requestJoin: "Richiedi di unirti", requested: "Richiesto", member: "Membro", feed: "Feed del gruppo", noPosts: "Ancora nessun post in questo gruppo.", notFound: "Gruppo non trovato." },
   compose: { title: "Nuovo post", newPost: "Nuovo post", image: "Immagine", text: "Testo", pickImage: "Scegli immagine", changeImage: "Cambia immagine", caption: "Didascalia", category: "Categoria", altText: "Testo alternativo (descrivi l’opera)", body: "Le tue parole", publish: "Pubblica", publishing: "Pubblicazione…", creatorsOnly: "Solo creatori", creatorsOnlyBody: "Pubblicare è per i creatori approvati. Diventa creatore su Atelier, poi pubblica qui.", becomeCreator: "Diventa creatore →", needImage: "Scegli prima un’immagine.", needCategory: "Scegli una categoria.", needBody: "Scrivi qualcosa da pubblicare.", failed: "Impossibile pubblicare. Riprova." },
+  post: { conversation: "Conversazione", noComments: "Ancora nessun commento.", addComment: "Aggiungi un commento", placeholder: "Di’ qualcosa…", send: "Pubblica", sending: "Pubblicazione…", curatorNote: "I commenti sono scritti dai curatori. Puoi sostenere qualsiasi commento con ▲.", signInNote: "Accedi per sostenere la conversazione.", delete: "Elimina", deleteTitle: "Eliminare il commento?", deleteMsg: "Questa azione è irreversibile.", cancel: "Annulla", about: "Su quest’opera", category: "Categoria", style: "Stile", published: "Pubblicato", notFound: "Post non trovato.", viewFull: "Vedi a piena risoluzione ↗", failed: "Impossibile pubblicare. Riprova." },
 };
 
 const DICTIONARIES: Record<Locale, Dictionary> = { en, fr, pt, de, ja, zh, ar, ru, it };
