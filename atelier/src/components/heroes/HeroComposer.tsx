@@ -24,7 +24,13 @@ type Stage = "idle" | "uploading" | "recording";
  * caption + optional alt text + optional event, and publish. The video uploads
  * DIRECTLY to storage; the server action records paths and moderates.
  */
-export function HeroComposer({ events }: { events: EventOption[] }) {
+export function HeroComposer({
+  events,
+  initialEventId = "",
+}: {
+  events: EventOption[];
+  initialEventId?: string;
+}) {
   const t = useT().heroes;
   const [file, setFile] = useState<File | null>(null);
   const [duration, setDuration] = useState<number | null>(null);
@@ -32,7 +38,7 @@ export function HeroComposer({ events }: { events: EventOption[] }) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
   const [alt, setAlt] = useState("");
-  const [eventId, setEventId] = useState("");
+  const [eventId, setEventId] = useState(initialEventId);
   const [stage, setStage] = useState<Stage>("idle");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();

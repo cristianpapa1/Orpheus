@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
-import { getUpcomingEvents } from "@/lib/events/queries";
+import { getParticipantCounts, getUpcomingEvents } from "@/lib/events/queries";
 import { getFollowing } from "@/lib/profile/queries";
 import { formatEventDate, groupEventsByMonth } from "@atelier/core/events/types";
 import { getI18n } from "@/lib/i18n/server";
@@ -23,6 +23,7 @@ export default async function EventsPage({
     following ? follows.map((f) => f.id) : null,
   );
   const groups = groupEventsByMonth(events);
+  const counts = await getParticipantCounts(events.map((e) => e.id));
   const { t: dict } = await getI18n();
   const t = dict.events;
 
@@ -93,7 +94,9 @@ export default async function EventsPage({
                     accent={(["red", "blue", "yellow"] as const)[(gi + i) % 3]}
                     className="h-full"
                   >
-                    <p className="text-h2 font-bold">{e.title}</p>
+                    <Link href={`/e/${e.id}`} className="text-h2 font-bold hover:text-blue">
+                      {e.title}
+                    </Link>
                     <p className="mt-1 text-caption font-bold uppercase">
                       {formatEventDate(e.starts_at)}
                       {e.location ? ` · ${e.location}` : ""}
@@ -114,6 +117,18 @@ export default async function EventsPage({
                           {t.tickets}
                         </a>
                       ) : null}
+                    </div>
+                    <div className="mt-3 flex items-center gap-3 border-t-2 border-ink pt-3">
+                      <Link
+                        href={`/e/${e.id}`}
+                        data-event-detail={e.id}
+                        className="border-b-2 border-ink text-caption font-bold uppercase hover:text-blue"
+                      >
+                        {t.details}
+                      </Link>
+                      <span className="text-caption font-bold uppercase opacity-70">
+                        {counts.get(e.id) ?? 0} {t.goingCount}
+                      </span>
                     </div>
                   </Window>
                 </div>

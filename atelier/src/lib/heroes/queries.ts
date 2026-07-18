@@ -41,37 +41,19 @@ interface HeroRow {
   event: { title: string | null } | null;
 }
 
+type Supa = NonNullable<Awaited<ReturnType<typeof createServerSupabase>>>;
+
 const NIL = "00000000-0000-0000-0000-000000000000";
 
-/**
- * Live Heroes (expires_at in the future), newest first, with author, optional
- * event, and the viewer's like/favorite + view counts. Defensive: returns []
- * pre-migration / preview so the surface degrades to an empty state.
- */
-export async function getLiveHeroes(limit = 40): Promise<HeroItem[]> {
-  const supabase = await createServerSupabase();
-  if (!supabase) return [];
+// Explicit author FK: hero_favorites/hero_views also link heroes↔profiles, so a
+// bare `profiles` embed would be ambiguous (PGRST201). event embed is single-FK.
+const HERO_SELECT =
+  "id, media_path, poster_path, width, height, duration_seconds, caption, alt_text, created_at, expires_at, author_id, event_id, author:profiles!heroes_author_id_fkey(handle, display_name, avatar_url), event:events(title)";
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { data, error } = await supabase
-    .from("heroes")
-    // Explicit author FK: hero_favorites/hero_views also link heroes↔profiles,
-    // so a bare `profiles` embed would be ambiguous (PGRST201).
-    .select(
-      "id, media_path, poster_path, width, height, duration_seconds, caption, alt_text, created_at, expires_at, author_id, event_id, author:profiles!heroes_author_id_fkey(handle, display_name, avatar_url), event:events(title)",
-    )
-    .gt("expires_at", new Date().toISOString())
-    .order("created_at", { ascending: false })
-    .limit(limit);
-  if (error || !data) return [];
-
-  const rows = data as unknown as HeroRow[];
+/** Attach like/view counts (and the viewer's like) to a page of Hero rows. */
+async function hydrate(supabase: Supa, rows: HeroRow[], userId: string | null): Promise<HeroItem[]> {
   const ids = rows.map((r) => r.id);
   const inIds = ids.length ? ids : [NIL];
-
   const [favRes, viewRes] = await Promise.all([
     supabase.from("hero_favorites").select("hero_id, profile_id").in("hero_id", inIds),
     supabase.from("hero_views").select("hero_id").in("hero_id", inIds),
@@ -81,7 +63,7 @@ export async function getLiveHeroes(limit = 40): Promise<HeroItem[]> {
   const liked = new Set<string>();
   for (const r of favRes.data ?? []) {
     favCount.set(r.hero_id, (favCount.get(r.hero_id) ?? 0) + 1);
-    if (user && r.profile_id === user.id) liked.add(r.hero_id);
+    if (userId && r.profile_id === userId) liked.add(r.hero_id);
   }
   const viewCount = new Map<string, number>();
   for (const r of viewRes.data ?? []) {
@@ -109,4 +91,42 @@ export async function getLiveHeroes(limit = 40): Promise<HeroItem[]> {
     liked: liked.has(r.id),
     views: viewCount.get(r.id) ?? 0,
   }));
+}
+
+/**
+ * Live Heroes (expires_at in the future), newest first, with author, optional
+ * event, and the viewer's like + counts. Defensive: [] pre-migration / preview.
+ */
+export async function getLiveHeroes(limit = 40): Promise<HeroItem[]> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return [];
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data, error } = await supabase
+    .from("heroes")
+    .select(HERO_SELECT)
+    .gt("expires_at", new Date().toISOString())
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error || !data) return [];
+  return hydrate(supabase, data as unknown as HeroRow[], user?.id ?? null);
+}
+
+/** Live Heroes tied to a specific event — the event-detail shelf. */
+export async function getHeroesForEvent(eventId: string, limit = 30): Promise<HeroItem[]> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return [];
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data, error } = await supabase
+    .from("heroes")
+    .select(HERO_SELECT)
+    .eq("event_id", eventId)
+    .gt("expires_at", new Date().toISOString())
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error || !data) return [];
+  return hydrate(supabase, data as unknown as HeroRow[], user?.id ?? null);
 }
