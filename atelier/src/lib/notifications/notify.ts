@@ -13,7 +13,9 @@ export type NotificationType =
   | "quality_stamp"
   | "creator_approved"
   | "creator_rejected"
-  | "curated";
+  | "curated"
+  | "hero_like"
+  | "event_join";
 
 /**
  * Best-effort notification insert. No-op when notifying yourself, and silently
@@ -26,7 +28,7 @@ export async function notify(
     actorId: string;
     recipientId: string;
     type: NotificationType;
-    subjectType?: "post" | "profile";
+    subjectType?: "post" | "profile" | "hero" | "event";
     subjectId?: string | null;
   },
 ): Promise<void> {

@@ -20,7 +20,7 @@ export async function getUnreadCount(): Promise<number> {
 export interface NotificationItem {
   id: string;
   type: NotificationType;
-  subject_type: "post" | "profile";
+  subject_type: "post" | "profile" | "hero" | "event";
   subject_id: string | null;
   read_at: string | null;
   created_at: string;
@@ -51,7 +51,7 @@ export async function getNotifications(limit = 50): Promise<NotificationItem[]> 
   return (data as unknown as {
     id: string;
     type: NotificationType;
-    subject_type: "post" | "profile";
+    subject_type: "post" | "profile" | "hero" | "event";
     subject_id: string | null;
     read_at: string | null;
     created_at: string;

@@ -38,6 +38,10 @@ function describe(n: NotificationItem): { text: string; href: string } {
         text: `You earned a Quality stamp — you're now a trusted reviewer`,
         href: `/u/${n.subject_id ?? ""}`,
       };
+    case "hero_like":
+      return { text: `${who} liked your Hero`, href: `/heroes?h=${n.subject_id ?? ""}` };
+    case "event_join":
+      return { text: `${who} is going to your event`, href: `/e/${n.subject_id ?? ""}` };
     default:
       return { text: `${who} did something`, href: "/feed" };
   }

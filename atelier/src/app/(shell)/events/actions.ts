@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { notify } from "@/lib/notifications/notify";
 
 export interface ParticipationResult {
   ok: boolean;
@@ -31,6 +32,17 @@ export async function toggleEventParticipation(eventId: string): Promise<Partici
     await supabase.from("event_participants").delete().eq("event_id", eventId).eq("profile_id", user.id);
   } else {
     await supabase.from("event_participants").insert({ event_id: eventId, profile_id: user.id });
+    // Tell the event's owner (best-effort; notify() no-ops if it's yourself).
+    const { data: ev } = await supabase.from("events").select("profile_id").eq("id", eventId).maybeSingle();
+    if (ev) {
+      await notify(supabase, {
+        actorId: user.id,
+        recipientId: ev.profile_id,
+        type: "event_join",
+        subjectType: "event",
+        subjectId: eventId,
+      });
+    }
   }
   const { count } = await supabase
     .from("event_participants")

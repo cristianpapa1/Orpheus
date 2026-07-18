@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { moderatePost } from "@/lib/moderation/ai";
 import { publicMediaUrl } from "@/lib/posts/queries";
+import { notify } from "@/lib/notifications/notify";
 import { HERO_CAPTION_MAX, validHeroDuration } from "@atelier/core/heroes/types";
 
 export interface PublishHeroInput {
@@ -136,6 +137,17 @@ export async function toggleHeroFavorite(heroId: string): Promise<HeroFavoriteRe
     await supabase.from("hero_favorites").delete().eq("hero_id", heroId).eq("profile_id", user.id);
   } else {
     await supabase.from("hero_favorites").insert({ hero_id: heroId, profile_id: user.id });
+    // Tell the Hero's author (best-effort; notify() no-ops if it's yourself).
+    const { data: hero } = await supabase.from("heroes").select("author_id").eq("id", heroId).maybeSingle();
+    if (hero) {
+      await notify(supabase, {
+        actorId: user.id,
+        recipientId: hero.author_id,
+        type: "hero_like",
+        subjectType: "hero",
+        subjectId: heroId,
+      });
+    }
   }
   const { count } = await supabase
     .from("hero_favorites")
