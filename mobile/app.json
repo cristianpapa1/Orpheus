@@ -2,6 +2,7 @@
   "expo": {
     "name": "Atelier",
     "slug": "atelier",
+    "owner": "crisp1",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -9,7 +10,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/images/icon.png",
-      "bundleIdentifier": "com.catchyawn.atelier"
+      "bundleIdentifier": "com.aunflaneur.atelier"
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +20,10 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.catchyawn.atelier"
+      "package": "com.aunflaneur.atelier",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "static",
@@ -42,14 +46,20 @@
           "photosPermission": "Atelier accesses your photos so you can post your work."
         }
       ],
-      "expo-video"
+      "expo-video",
+      "expo-image",
+      "expo-status-bar",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": false,
       "reactCompiler": true
     },
     "extra": {
-      "router": {}
+      "router": {},
+      "eas": {
+        "projectId": "fcdeccec-a57f-477e-a928-6a5879a1a9c7"
+      }
     },
     "runtimeVersion": {
       "policy": "appVersion"
