@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Post } from "@atelier/core/posts/types";
+import { categoryCanonicalLabel } from "@atelier/core/taxonomy/taxonomy";
 
 /** A square thumbnail linking to a post — used in profile favorites/curated shelves. */
 export function PostThumb({ post }: { post: Post }) {
@@ -15,7 +16,7 @@ export function PostThumb({ post }: { post: Post }) {
         />
       ) : (
         <div className="flex aspect-square w-full items-center justify-center p-3 text-center text-caption font-bold uppercase">
-          {post.caption || post.category}
+          {post.caption || categoryCanonicalLabel(post.category)}
         </div>
       )}
     </Link>

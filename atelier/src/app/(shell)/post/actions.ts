@@ -7,12 +7,11 @@ import { parseDisplay } from "@atelier/core/posts/display";
 import {
   MAX_BODY_CHARS,
   isMediaType,
-  isPostCategory,
-  isValidSubcategory,
   parsePostTags,
   validDuration,
 } from "@atelier/core/posts/types";
-import { moderatePost } from "@/lib/moderation/ai";
+import { isValidCategory, validStyles } from "@atelier/core/taxonomy/taxonomy";
+import { categorizeWork, moderatePost } from "@/lib/moderation/ai";
 import { publicMediaUrl } from "@/lib/posts/queries";
 import { notify } from "@/lib/notifications/notify";
 
@@ -20,9 +19,10 @@ const MAX_BLUR_CHARS = 6000; // matches the DB check constraint
 
 export interface PublishPostInput {
   caption: string;
-  category: string;
-  /** Optional style within the category (e.g. music → jazz). */
-  subcategory?: string | null;
+  /** Category id — optional; if empty, the AI auto-detects it on publish. */
+  category?: string;
+  /** Up to three style ids within the category (secondary metadata). */
+  styles?: string[];
   display: unknown;
   /** Text posts (media_type 'text') carry their work here — a poem/paragraph. */
   body?: string;
@@ -95,13 +95,9 @@ export async function publishPost(
 
   // Shared metadata (every post kind).
   const caption = String(input.caption ?? "").trim().slice(0, 1000);
-  const category = String(input.category ?? "");
-  if (!isPostCategory(category)) return { ok: false, error: "Pick a category." };
-  const rawSub = input.subcategory ? String(input.subcategory) : null;
-  if (!isValidSubcategory(category, rawSub)) {
-    return { ok: false, error: "That style doesn't belong to this category." };
-  }
-  const subcategory = rawSub || null;
+  // Category is resolved AFTER moderation (it may be AI-detected). Read the
+  // user's choice loosely here; validate + resolve below.
+  const userCategory = isValidCategory(input.category) ? String(input.category) : "";
 
   // Per-kind payload + what the moderator sees.
   const display = parseDisplay(input.display);
@@ -200,8 +196,8 @@ export async function publishPost(
   const moderation = await moderatePost({
     imageUrl: moderationImageUrl,
     caption,
-    category,
-    subcategory,
+    category: userCategory,
+    styles: userCategory ? validStyles(userCategory, input.styles) : [],
     body: moderationBody,
   });
   if (moderation.decision === "reject") {
@@ -209,6 +205,28 @@ export async function publishPost(
       ok: false,
       error: `This didn't pass moderation: ${moderation.reason || "content not allowed here"}.`,
     };
+  }
+
+  // Resolve category + styles (AI Categorization Rules). The user's pick wins;
+  // if they left it blank, the AI detects exactly one category + up to 3 styles.
+  // Below 70% confidence we don't guess — we ask them to choose.
+  let category = userCategory;
+  let styles = category ? validStyles(category, input.styles) : [];
+  if (!category) {
+    const ai = await categorizeWork({
+      imageUrl: moderationImageUrl,
+      caption,
+      body: moderationBody,
+    });
+    if (ai.ok && ai.confidence >= 0.7 && isValidCategory(ai.category)) {
+      category = ai.category;
+      styles = validStyles(category, ai.styles);
+    } else {
+      return {
+        ok: false,
+        error: "We couldn't confidently detect the category — please choose one.",
+      };
+    }
   }
 
   // Group tagging guard: only groups where the author is a MEMBER
@@ -225,21 +243,24 @@ export async function publishPost(
     }
   }
 
-  const { data, error } = await supabase
-    .from("posts")
-    .insert({
-      author_id: user.id,
-      caption,
-      category,
-      subcategory,
-      display,
-      tags: parsePostTags(input.tags),
-      checkout_url: cleanCheckoutUrl(input.checkout_url),
-      images: Array.isArray(input.images) ? input.images.slice(0, 10) : [],
-      ...payload,
-    })
-    .select("id")
-    .single();
+  const baseRow = {
+    author_id: user.id,
+    caption,
+    category,
+    // Keep the legacy single-style column meaningful for back-compat reads.
+    subcategory: styles[0] ?? null,
+    display,
+    tags: parsePostTags(input.tags),
+    checkout_url: cleanCheckoutUrl(input.checkout_url),
+    images: Array.isArray(input.images) ? input.images.slice(0, 10) : [],
+    ...payload,
+  };
+  // Deploy-safe: if 0035 (posts.styles) isn't applied yet, retry without it.
+  let ins = await supabase.from("posts").insert({ ...baseRow, styles }).select("id").single();
+  if (ins.error && /styles/i.test(ins.error.message)) {
+    ins = await supabase.from("posts").insert(baseRow).select("id").single();
+  }
+  const { data, error } = ins;
   if (error || !data) return { ok: false, error: error?.message ?? "Publish failed." };
 
   // A flagged (but not rejected) post is published, then queued for review.

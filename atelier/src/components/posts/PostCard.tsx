@@ -9,7 +9,8 @@ import {
   frameClasses,
   spanClass,
 } from "@atelier/core/posts/display";
-import { CATEGORY_LABEL, formatPostDate, type Post } from "@atelier/core/posts/types";
+import { formatPostDate, type Post } from "@atelier/core/posts/types";
+import { localizedCategoryLabel } from "@atelier/core/taxonomy/i18n";
 import type { GroupTag } from "@/lib/groups/types";
 import { FavoritePost, type Contact } from "@/components/posts/FavoritePost";
 import { Avatar } from "@/components/profile/Avatar";
@@ -49,7 +50,7 @@ export async function PostCard({
   canReportQuality?: boolean;
   viewerId?: string | null;
 }) {
-  const { t } = await getI18n();
+  const { t, locale } = await getI18n();
   const frame = frameClasses(post.display.frame);
 
   return (
@@ -61,7 +62,7 @@ export async function PostCard({
       className={`flex flex-col ${spanClass(post.display.span)}`}
     >
       <Window
-        title={CATEGORY_LABEL[post.category]}
+        title={localizedCategoryLabel(post.category, locale)}
         accent={ACCENTS[index % ACCENTS.length]}
         flush
         className="h-full"

@@ -5,11 +5,8 @@ import { WindowGrid } from "@/components/ui/WindowGrid";
 import { getRecentPosts, getRemovedPosts } from "@/lib/posts/queries";
 import { getGroups } from "@/lib/groups/queries";
 import { isViewerAdmin } from "@/lib/donations/queries";
-import {
-  CATEGORY_LABEL,
-  formatPostDate,
-  thumbUrl,
-} from "@atelier/core/posts/types";
+import { formatPostDate, thumbUrl } from "@atelier/core/posts/types";
+import { categoryCanonicalLabel } from "@atelier/core/taxonomy/taxonomy";
 import { reinstatePost, removeGroup, removePost } from "./actions";
 
 export const metadata = { title: "Content — Atelier admin" };
@@ -85,7 +82,7 @@ export default async function AdminContentPage({
                       {p.caption || "Untitled work"}
                     </p>
                     <p className="text-caption uppercase opacity-70">
-                      {CATEGORY_LABEL[p.category]} · by{" "}
+                      {categoryCanonicalLabel(p.category)} · by{" "}
                       <Link href={`/u/${p.author_handle || p.author_id}`} className="hover:text-blue">
                         {p.author_name}
                       </Link>{" "}
@@ -166,7 +163,7 @@ export default async function AdminContentPage({
                       {p.caption || p.body?.slice(0, 60) || "Untitled work"}
                     </p>
                     <p className="text-caption uppercase opacity-70">
-                      {CATEGORY_LABEL[p.category]} · by {p.author_name}
+                      {categoryCanonicalLabel(p.category)} · by {p.author_name}
                     </p>
                   </div>
                   <form action={reinstatePost}>

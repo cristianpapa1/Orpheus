@@ -20,11 +20,10 @@ import { getComments, getCommentSupports } from "@/lib/comments/queries";
 import { CommentSupport } from "@/components/posts/CommentSupport";
 import { isViewerAdmin } from "@/lib/donations/queries";
 import { addComment, deleteComment } from "../../post/comments";
-import {
-  CATEGORY_LABEL,
-  formatPostDate,
-  subcategoryLabel,
-} from "@atelier/core/posts/types";
+import { formatPostDate } from "@atelier/core/posts/types";
+import { categoryCanonicalLabel } from "@atelier/core/taxonomy/taxonomy";
+import { localizedCategoryLabel, localizedStyleLabel } from "@atelier/core/taxonomy/i18n";
+import { getI18n } from "@/lib/i18n/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 interface Props {
@@ -36,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = await getPostById(id);
   if (!post) return { title: "Not found — Atelier" };
   return {
-    title: `${post.author_name}: ${post.caption.slice(0, 60) || CATEGORY_LABEL[post.category]} — Atelier`,
+    title: `${post.author_name}: ${post.caption.slice(0, 60) || categoryCanonicalLabel(post.category)} — Atelier`,
     // Provenance in metadata: attribute the work to its author.
     authors: [{ name: post.author_name }],
   };
@@ -61,11 +60,12 @@ export default async function PostDetailPage({ params }: Props) {
     ]);
   const commentSupports = await getCommentSupports(comments.map((c) => c.id));
   const configured = isSupabaseConfigured();
+  const { locale } = await getI18n();
 
   return (
     <WindowGrid>
       <div data-post={post.id} className="col-span-12 flex flex-col md:col-span-8">
-        <Window title={CATEGORY_LABEL[post.category]} accent="red" className="h-full">
+        <Window title={localizedCategoryLabel(post.category, locale)} accent="red" className="h-full">
           <FavoritePost postId={post.id} caption={post.caption} fav={favs?.get(post.id)} cur={curs?.get(post.id)} canCurate={canCurate} following={following} canReportQuality={stamped} canDelete={!!viewerId && viewerId === post.author_id} checkoutUrl={post.checkout_url}>
           {post.media_type === "text" ? (
             <>
@@ -154,12 +154,16 @@ export default async function PostDetailPage({ params }: Props) {
           <dl className="mt-6 flex flex-col gap-1 text-caption uppercase">
             <div className="flex justify-between border-t-2 border-ink pt-2">
               <dt className="font-bold">Category</dt>
-              <dd>{CATEGORY_LABEL[post.category]}</dd>
+              <dd>{localizedCategoryLabel(post.category, locale)}</dd>
             </div>
-            {post.subcategory ? (
+            {post.styles.length > 0 ? (
               <div className="flex justify-between border-t-2 border-ink pt-2">
-                <dt className="font-bold">Style</dt>
-                <dd>{subcategoryLabel(post.subcategory)}</dd>
+                <dt className="font-bold">{post.styles.length > 1 ? "Styles" : "Style"}</dt>
+                <dd>
+                  {post.styles
+                    .map((s) => localizedStyleLabel(post.category, s, locale))
+                    .join(", ")}
+                </dd>
               </div>
             ) : null}
             <div className="flex justify-between border-t-2 border-ink pt-2">

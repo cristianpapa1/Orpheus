@@ -190,9 +190,13 @@ export interface Post {
   /** Author's circular profile photo (null → monogram fallback). */
   author_avatar_url: string | null;
   caption: string;
-  category: PostCategory;
-  /** Optional style within the category (music → jazz). Null when not set. */
+  /** Taxonomy category id (see @atelier/core/taxonomy). String, not a fixed
+   *  enum, so the expanded taxonomy + legacy ids all read cleanly. */
+  category: string;
+  /** Legacy single style (kept for back-compat); primary style id or null. */
   subcategory: string | null;
+  /** Up to three style ids within the category (secondary metadata). */
+  styles: string[];
   /** Text posts (media_type 'text') carry their work here — a poem/paragraph. */
   body: string | null;
   /** Free-form topic tags (folksonomy discovery, /t/<tag>). */

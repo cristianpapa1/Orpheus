@@ -13,7 +13,7 @@ const DEMO_BLUR =
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 3"><rect width="4" height="3" fill="#c9c5b8"/></svg>',
   );
 
-const RAW: Omit<Post, "subcategory" | "body" | "tags">[] = [
+const RAW: Omit<Post, "subcategory" | "styles" | "body" | "tags">[] = [
   {
     id: "demo-theo-1",
     author_id: "00000000-0000-4000-a000-000000000002",
@@ -189,7 +189,7 @@ const RAW: Omit<Post, "subcategory" | "body" | "tags">[] = [
 // Demo posts predate subcategories/body — default them to null in one place,
 // then add one text post (a poem) to exercise the text-post surface.
 export const DEMO_POSTS: Post[] = [
-  ...RAW.map((p) => ({ ...p, subcategory: null, body: null, tags: [] })),
+  ...RAW.map((p) => ({ ...p, subcategory: null, styles: [], body: null, tags: [] })),
   {
     id: "demo-text-1",
     tags: ["poetry", "sea"],
@@ -200,8 +200,9 @@ export const DEMO_POSTS: Post[] = [
     checkout_url: null,
     images: [],
     caption: "Low Tide",
-    category: "writing",
-    subcategory: "poetry",
+    category: "poetry",
+    subcategory: "sonnet",
+    styles: ["sonnet"],
     body:
       "The sea unmakes the letters\nI wrote across the sand—\neach wave a gentle censor,\neach retreat a hand\n\nthat gives the beach back blank,\npatient as a page,\nasking only that I kneel\nand write my name again.",
     image_url: "",

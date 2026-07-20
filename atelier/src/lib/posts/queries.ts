@@ -4,7 +4,6 @@ import { DEMO_POSTS } from "./demo";
 import { parseDisplay } from "@atelier/core/posts/display";
 import {
   isMediaType,
-  isPostCategory,
   parseVariantPaths,
   parsePostImages,
   type Post,
@@ -61,7 +60,8 @@ export function publicMediaUrl(path: string): string {
 }
 
 function toPost(row: PostRow): Post | null {
-  if (!isPostCategory(row.category)) return null;
+  // Any category id is valid now (the taxonomy is much larger than the old 8,
+  // and legacy ids still read) — never drop a post on its category.
   const variants = parseVariantPaths(row.variants, publicMediaUrl);
   const parsedImages = parsePostImages(row.images, publicMediaUrl);
   // Multi-image posts carry the full set; older single-image posts derive a
@@ -81,6 +81,10 @@ function toPost(row: PostRow): Post | null {
     caption: row.caption,
     category: row.category,
     subcategory: row.subcategory,
+    // Deploy-safe: derive from the legacy single style. Reading the full
+    // posts.styles[] column is a follow-up once 0035 is confirmed applied
+    // (adding it to POST_SELECT pre-migration would empty the feed).
+    styles: row.subcategory ? [row.subcategory] : [],
     body: row.body,
     tags: row.tags ?? [],
     checkout_url: row.checkout_url ?? null,

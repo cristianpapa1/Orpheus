@@ -20,21 +20,25 @@ import {
 } from "@/lib/posts/media";
 import { createClient } from "@/lib/supabase/client";
 import {
-  CATEGORY_LABEL,
   MAX_BODY_CHARS,
   MEDIA_EXT,
   MEDIA_LIMITS,
-  POST_CATEGORIES,
-  subcategoriesFor,
-  subcategoryLabel,
   validDuration,
   type MediaType,
 } from "@atelier/core/posts/types";
+import { MAX_STYLES } from "@atelier/core/taxonomy/taxonomy";
 import type { MutualFollow } from "@/lib/profile/queries";
 import type { TaggableGroup } from "@/lib/groups/queries";
 import { useT } from "@/lib/i18n/context";
 
 type Stage = "idle" | "uploading" | "recording";
+
+/** A category + its styles, already localized by the server (labels ready to render). */
+export interface LocalizedCategory {
+  id: string;
+  label: string;
+  styles: { id: string; label: string }[];
+}
 
 interface Prepared extends PreparedUpload {
   previewUrl: string;
@@ -50,12 +54,15 @@ const EXT: Record<string, string> = {
 
 export function PostComposer({
   canPublish,
+  taxonomy,
   memberGroups = [],
   mutuals = [],
   initialCaption,
   initialCheckoutUrl,
 }: {
   canPublish: boolean;
+  /** Localized category→styles tree (built server-side for the viewer's locale). */
+  taxonomy: LocalizedCategory[];
   memberGroups?: TaggableGroup[];
   mutuals?: MutualFollow[];
   /** Prefill when arriving from Astelier ("Post on Atelier"). */
@@ -74,7 +81,16 @@ export function PostComposer({
   const [avDuration, setAvDuration] = useState<number | null>(null);
   const [readingFile, setReadingFile] = useState<File | null>(null); // optional audio on a text post
   const [category, setCategory] = useState("");
-  const [subcategory, setSubcategory] = useState("");
+  const [styles, setStyles] = useState<string[]>([]);
+  const activeStyles = taxonomy.find((c) => c.id === category)?.styles ?? [];
+  const toggleStyle = (id: string) =>
+    setStyles((cur) =>
+      cur.includes(id)
+        ? cur.filter((s) => s !== id)
+        : cur.length >= MAX_STYLES
+          ? cur
+          : [...cur, id],
+    );
   const [display, setDisplay] = useState<PostDisplay>(DEFAULT_DISPLAY);
   const [groupIds, setGroupIds] = useState<string[]>([]);
   const [mentionIds, setMentionIds] = useState<string[]>([]);
@@ -164,10 +180,6 @@ export function PostComposer({
         setError("Write something to publish.");
         return;
       }
-      if (!category) {
-        setError("Pick a category.");
-        return;
-      }
       startTransition(async () => {
         // Optional "reading": upload the audio, attach it to the text post.
         let mediaPath: string | null = null;
@@ -203,7 +215,7 @@ export function PostComposer({
         const result = await publishPost({
           caption,
           category,
-          subcategory: subcategory || null,
+          styles,
           body: trimmed,
           tags,
           checkout_url: checkoutUrl,
@@ -318,7 +330,7 @@ export function PostComposer({
         const result = await publishPost({
           caption,
           category,
-          subcategory: subcategory || null,
+          styles,
           tags,
           checkout_url: checkoutUrl,
           display,
@@ -545,43 +557,47 @@ export function PostComposer({
       </label>
       <select
         id="category"
-        required
         value={category}
         onChange={(e) => {
           setCategory(e.target.value);
-          setSubcategory(""); // reset — styles differ per category
+          setStyles([]); // reset — styles differ per category
         }}
         className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
       >
-        <option value="" disabled>
-          {tc.pickOne}
-        </option>
-        {POST_CATEGORIES.map((c) => (
-          <option key={c} value={c}>
-            {CATEGORY_LABEL[c]}
+        <option value="">✨ Auto-detect (or choose)</option>
+        {taxonomy.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.label}
           </option>
         ))}
       </select>
 
-      {subcategoriesFor(category).length > 0 ? (
+      {activeStyles.length > 0 ? (
         <>
-          <label htmlFor="subcategory" className="text-caption font-bold uppercase">
-            Style (optional)
+          <label className="text-caption font-bold uppercase">
+            Styles ({styles.length}/{MAX_STYLES})
           </label>
-          <select
-            id="subcategory"
-            data-subcategory
-            value={subcategory}
-            onChange={(e) => setSubcategory(e.target.value)}
-            className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
-          >
-            <option value="">No style</option>
-            {subcategoriesFor(category).map((s) => (
-              <option key={s} value={s}>
-                {subcategoryLabel(s)}
-              </option>
-            ))}
-          </select>
+          <div data-styles className="flex flex-wrap gap-2">
+            {activeStyles.map((s) => {
+              const on = styles.includes(s.id);
+              const full = !on && styles.length >= MAX_STYLES;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => toggleStyle(s.id)}
+                  disabled={full}
+                  data-style={s.id}
+                  aria-pressed={on}
+                  className={`border-2 border-ink px-2 py-0.5 text-caption font-bold uppercase disabled:opacity-40 ${
+                    on ? "bg-ink text-paper" : "hover:bg-yellow"
+                  }`}
+                >
+                  {s.label}
+                </button>
+              );
+            })}
+          </div>
         </>
       ) : null}
 
