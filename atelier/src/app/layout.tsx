@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Space_Grotesk } from "next/font/google";
 import { getLocale } from "@/lib/i18n/server";
 import { localeDir } from "@/lib/i18n/config";
+import { Analytics } from "@/components/analytics/Analytics";
 import "./globals.css";
 
 const grotesk = Space_Grotesk({
@@ -30,6 +31,7 @@ export default async function RootLayout({
           Skip to content
         </a>
         {children}
+        <Analytics />
       </body>
     </html>
   );
