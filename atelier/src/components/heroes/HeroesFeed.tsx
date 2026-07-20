@@ -48,7 +48,20 @@ export function HeroesFeed({
     }`;
   const router = useRouter();
   const [heroes, setHeroes] = useState<HeroItem[]>(initial);
+  const [scope, setScope] = useState<"all" | "following">(scopeFollowing ? "following" : "all");
   const [muted, setMuted] = useState(true);
+
+  // Client-side scope: the feed holds every live Hero; "People you follow"
+  // filters by the followed set instantly — no navigation, no remount.
+  const followingIds = new Set(following.map((f) => f.id));
+  const visible = scope === "following" ? heroes.filter((h) => followingIds.has(h.author_id)) : heroes;
+  const switchScope = (next: "all" | "following") => {
+    setScope(next);
+    // Keep the URL in sync (shareable/refresh-safe) without a navigation.
+    if (typeof window !== "undefined") {
+      window.history.replaceState(null, "", next === "following" ? "/heroes?following=1" : "/heroes");
+    }
+  };
   const [copied, setCopied] = useState<string | null>(null);
   const [sendFor, setSendFor] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
@@ -98,7 +111,7 @@ export function HeroesFeed({
     }
     return () => observer.disconnect();
     // Re-bind when the set of heroes changes.
-  }, [heroes.length, muted]);
+  }, [visible.length, muted]);
 
   const setVideoRef = useCallback((id: string, el: HTMLVideoElement | null) => {
     if (el) videos.current.set(id, el);
@@ -154,12 +167,12 @@ export function HeroesFeed({
         <div className="flex items-center gap-3">
           {viewerId ? (
             <div data-hero-scope className="flex items-center gap-2">
-              <Link href="/heroes?following=1" className={scopeChip(scopeFollowing)}>
+              <button type="button" onClick={() => switchScope("following")} className={scopeChip(scope === "following")}>
                 {te.peopleYouFollow}
-              </Link>
-              <Link href="/heroes" className={scopeChip(!scopeFollowing)}>
+              </button>
+              <button type="button" onClick={() => switchScope("all")} className={scopeChip(scope === "all")}>
                 {te.everyone}
-              </Link>
+              </button>
             </div>
           ) : null}
           <Link
@@ -172,23 +185,41 @@ export function HeroesFeed({
         </div>
       </div>
 
-      {heroes.length === 0 ? (
+      {visible.length === 0 ? (
         <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-6 text-center">
-          <p className="text-h2 font-bold uppercase">{t.emptyTitle}</p>
-          <p className="max-w-md text-body opacity-70">{t.emptyBody}</p>
-          <Link
-            href="/heroes/new"
-            className="border-2 border-ink bg-ink px-6 py-2 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue"
-          >
-            ＋ {t.new}
-          </Link>
+          {scope === "following" ? (
+            <>
+              <p className="text-h2 font-bold uppercase">No Heroes from people you follow</p>
+              <p className="max-w-md text-body opacity-70">
+                Nobody you follow has a live Hero right now.
+              </p>
+              <button
+                type="button"
+                onClick={() => switchScope("all")}
+                className="border-2 border-ink bg-ink px-6 py-2 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue"
+              >
+                {te.everyone}
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="text-h2 font-bold uppercase">{t.emptyTitle}</p>
+              <p className="max-w-md text-body opacity-70">{t.emptyBody}</p>
+              <Link
+                href="/heroes/new"
+                className="border-2 border-ink bg-ink px-6 py-2 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue"
+              >
+                ＋ {t.new}
+              </Link>
+            </>
+          )}
         </div>
       ) : (
         <div
           data-heroes-pager
           className="h-[calc(100dvh-11rem)] snap-y snap-mandatory overflow-y-auto bg-ink"
         >
-          {heroes.map((h) => {
+          {visible.map((h) => {
             const canDelete = isAdmin || (viewerId && viewerId === h.author_id);
             return (
               <section

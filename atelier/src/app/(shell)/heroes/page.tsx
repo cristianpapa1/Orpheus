@@ -18,18 +18,16 @@ export default async function HeroesPage({
   searchParams: Promise<{ following?: string }>;
 }) {
   const { following: followingParam } = await searchParams;
+  // ?following=1 only seeds the INITIAL scope; the toggle then filters
+  // client-side (no reload), so the feed always loads the full live set.
   const scopeFollowing = followingParam === "1";
 
-  const [viewerId, isAdmin, following] = await Promise.all([
+  const [heroes, viewerId, isAdmin, following] = await Promise.all([
+    getLiveHeroes(40),
     getViewerId(),
     isViewerAdmin(),
     getFollowingRanked(),
   ]);
-  // "People you follow" reuses the followed list for the author scope.
-  const heroes = await getLiveHeroes(
-    40,
-    scopeFollowing ? following.map((f) => f.id) : null,
-  );
 
   return (
     <HeroesFeed
