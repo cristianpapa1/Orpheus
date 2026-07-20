@@ -20,8 +20,39 @@ export async function signInWithEmail(formData: FormData) {
   redirect(
     error
       ? `/login?error=${error.status === 429 ? "rate-limit" : "otp"}`
-      : "/login?sent=1",
+      : `/login?sent=1&email=${encodeURIComponent(email)}`,
   );
+}
+
+/**
+ * Verify the 6-digit code from the sign-in email (no redirect needed — works in
+ * the mobile WebView shell, an in-app browser, anywhere). The same email also
+ * carries the magic link for desktop; this is the redirect-free alternative.
+ */
+export async function verifyEmailCode(formData: FormData) {
+  const email = String(formData.get("email") ?? "").trim();
+  const token = String(formData.get("code") ?? "").replace(/\s+/g, "");
+  const supabase = await createServerSupabase();
+  if (!supabase) redirect("/login?error=unconfigured");
+  const back = `/login?sent=1&email=${encodeURIComponent(email)}`;
+  if (!email || !token) redirect(`${back}&error=code`);
+
+  const { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
+  if (error) redirect(`${back}&error=code`);
+
+  // First login → onboarding (mirrors /auth/callback so the profile is reachable).
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("onboarded_at")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (!profile?.onboarded_at) redirect("/onboarding");
+  }
+  redirect("/feed");
 }
 
 /** Google OAuth sign-in. */

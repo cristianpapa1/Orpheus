@@ -3,14 +3,14 @@ import { WindowGrid } from "@/components/ui/WindowGrid";
 import { BauhausReveal } from "@/components/BauhausReveal";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { getI18n } from "@/lib/i18n/server";
-import { signInWithEmail, signInWithGoogle } from "./actions";
+import { signInWithEmail, signInWithGoogle, verifyEmailCode } from "./actions";
 
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sent?: string; error?: string }>;
+  searchParams: Promise<{ sent?: string; error?: string; email?: string }>;
 }) {
-  const { sent, error } = await searchParams;
+  const { sent, error, email } = await searchParams;
   const configured = isSupabaseConfigured();
   const { t: dict } = await getI18n();
   const t = dict.login;
@@ -54,9 +54,43 @@ export default async function LoginPage({
               </a>
             </div>
           ) : sent ? (
-            <p className="text-body">
-              <strong>{t.checkInbox}</strong> {t.linkSent}
-            </p>
+            <div className="flex flex-col gap-3">
+              <p className="text-body">
+                <strong>{t.checkInbox}</strong> We sent a sign-in link and a
+                6-digit code{email ? ` to ${email}` : ""}. Tap the link, or enter
+                the code below.
+              </p>
+              {error === "code" ? (
+                <p className="border-2 border-red p-3 text-caption font-bold uppercase text-red">
+                  That code didn&apos;t match — check the email and try again.
+                </p>
+              ) : null}
+              <form action={verifyEmailCode} className="flex flex-col gap-3">
+                <input type="hidden" name="email" value={email ?? ""} />
+                <label htmlFor="code" className="text-caption font-bold uppercase">
+                  Enter your code
+                </label>
+                <input
+                  id="code"
+                  name="code"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  required
+                  placeholder="123456"
+                  maxLength={8}
+                  className="border-2 border-ink bg-paper px-3 py-2 text-body tracking-[0.4em] outline-none focus:border-blue"
+                />
+                <button
+                  type="submit"
+                  className="border-2 border-ink bg-ink px-4 py-2 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue"
+                >
+                  Verify code
+                </button>
+              </form>
+              <a href="/login" className="text-caption font-bold uppercase underline">
+                Use a different email
+              </a>
+            </div>
           ) : (
             <>
               {error ? (
