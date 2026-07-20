@@ -1,11 +1,23 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { heroCountdown } from "@atelier/core/heroes/types";
 import type { HeroItem } from "@/lib/heroes/queries";
-import { deleteHero, recordHeroView, toggleHeroFavorite } from "@/app/(shell)/heroes/actions";
+import {
+  deleteHero,
+  recordHeroView,
+  shareHeroToChat,
+  toggleHeroFavorite,
+} from "@/app/(shell)/heroes/actions";
 import { useT } from "@/lib/i18n/context";
+
+interface FollowedPerson {
+  id: string;
+  handle: string;
+  display_name: string;
+}
 
 /**
  * Heroes — the vertical, snap-scrolling short-video pager. The active clip
@@ -18,17 +30,33 @@ export function HeroesFeed({
   heroes: initial,
   viewerId,
   isAdmin,
+  following = [],
 }: {
   heroes: HeroItem[];
   viewerId: string | null;
   isAdmin: boolean;
+  following?: FollowedPerson[];
 }) {
   const t = useT().heroes;
+  const router = useRouter();
   const [heroes, setHeroes] = useState<HeroItem[]>(initial);
   const [muted, setMuted] = useState(true);
   const [copied, setCopied] = useState<string | null>(null);
+  const [sendFor, setSendFor] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
   const videos = useRef(new Map<string, HTMLVideoElement>());
   const viewed = useRef(new Set<string>());
+
+  const sendTo = async (heroId: string, targetId: string) => {
+    if (sending) return;
+    setSending(true);
+    const r = await shareHeroToChat(heroId, targetId);
+    setSending(false);
+    if (r.ok && r.threadId) {
+      setSendFor(null);
+      router.push(`/chat/${r.threadId}`);
+    }
+  };
 
   // Autoplay whichever clip is centered; pause + rewind the rest; record a view
   // the first time a clip becomes active.
@@ -176,6 +204,41 @@ export function HeroesFeed({
                   ⏳ {heroCountdown(h.expires_at)}
                 </span>
 
+                {/* send-to-chat picker overlay */}
+                {sendFor === h.id ? (
+                  <div className="absolute inset-0 z-10 flex flex-col bg-ink/85 p-4">
+                    <div className="flex items-center justify-between border-b-2 border-paper pb-2">
+                      <span className="text-caption font-bold uppercase text-paper">
+                        Send to someone you follow
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setSendFor(null)}
+                        aria-label="Close"
+                        className="border-2 border-paper px-2 text-caption font-bold text-paper"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <ul className="mt-2 flex-1 overflow-y-auto">
+                      {following.map((p) => (
+                        <li key={p.id}>
+                          <button
+                            type="button"
+                            disabled={sending}
+                            onClick={() => sendTo(h.id, p.id)}
+                            data-send-to={p.id}
+                            className="w-full truncate border-2 border-transparent px-2 py-2 text-left text-caption font-bold uppercase text-paper hover:border-paper disabled:opacity-50"
+                          >
+                            {p.display_name}
+                            {p.handle ? ` · @${p.handle}` : ""}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+
                 {/* left: identity + caption + event */}
                 <div className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-4">
                   <div className="min-w-0 max-w-[70%]">
@@ -193,7 +256,7 @@ export function HeroesFeed({
                     ) : null}
                     {h.event_id && h.event_title ? (
                       <Link
-                        href="/events"
+                        href={`/e/${h.event_id}`}
                         data-hero-event={h.event_id}
                         className="mt-2 inline-block border-2 border-paper px-2 py-0.5 text-caption font-bold uppercase text-paper hover:bg-paper hover:text-ink"
                       >
@@ -234,6 +297,19 @@ export function HeroesFeed({
                         {copied === h.id ? t.shareCopied : t.share}
                       </span>
                     </button>
+                    {viewerId && following.length > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => setSendFor((s) => (s === h.id ? null : h.id))}
+                        data-send-hero={h.id}
+                        className="flex flex-col items-center"
+                      >
+                        <span className="text-xl leading-none" aria-hidden>
+                          ✉
+                        </span>
+                        <span className="text-caption font-bold uppercase">Send</span>
+                      </button>
+                    ) : null}
                     {canDelete ? (
                       <button
                         type="button"

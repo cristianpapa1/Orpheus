@@ -64,3 +64,86 @@ export async function recordEventView(eventId: string): Promise<void> {
     .from("event_views")
     .upsert({ event_id: eventId, viewer_id: user.id }, { onConflict: "event_id,viewer_id", ignoreDuplicates: true });
 }
+
+export interface OrganizerResult {
+  ok: boolean;
+  error?: string;
+}
+
+/**
+ * Organizer confirms (or un-confirms) an attendee — the manual ticket check.
+ * A confirmed, non-blocked attendee may post a Hero tied to this event. Only the
+ * event owner (or the manager of the institution running it) may do this; RLS
+ * enforces it too, but we check first for a clean message and to notify.
+ */
+export async function confirmAttendee(
+  eventId: string,
+  profileId: string,
+  confirm: boolean,
+): Promise<OrganizerResult> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return { ok: false, error: "Unavailable." };
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Sign in." };
+
+  const { data: owns } = await supabase.rpc("is_event_owner", { uid: user.id, ev: eventId });
+  if (!owns) return { ok: false, error: "Only the organizer can confirm attendees." };
+
+  const { error } = await supabase
+    .from("event_participants")
+    .update({
+      confirmed_at: confirm ? new Date().toISOString() : null,
+      confirmed_by: confirm ? user.id : null,
+    })
+    .eq("event_id", eventId)
+    .eq("profile_id", profileId);
+  if (error) return { ok: false, error: error.message };
+
+  if (confirm) {
+    await notify(supabase, {
+      actorId: user.id,
+      recipientId: profileId,
+      type: "event_confirmed",
+      subjectType: "event",
+      subjectId: eventId,
+    });
+  }
+  revalidatePath(`/e/${eventId}`);
+  return { ok: true };
+}
+
+/**
+ * Organizer blocks (or unblocks) an attendee from tying Heroes to this event.
+ * Anti-abuse: stops someone riding the event's name. A block overrides any
+ * confirmation. Owner-only (+ RLS). Silent — no notification.
+ */
+export async function blockAttendee(
+  eventId: string,
+  profileId: string,
+  block: boolean,
+): Promise<OrganizerResult> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return { ok: false, error: "Unavailable." };
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Sign in." };
+
+  const { data: owns } = await supabase.rpc("is_event_owner", { uid: user.id, ev: eventId });
+  if (!owns) return { ok: false, error: "Only the organizer can block attendees." };
+
+  const { error } = await supabase
+    .from("event_participants")
+    .update({
+      blocked_at: block ? new Date().toISOString() : null,
+      blocked_by: block ? user.id : null,
+    })
+    .eq("event_id", eventId)
+    .eq("profile_id", profileId);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath(`/e/${eventId}`);
+  return { ok: true };
+}

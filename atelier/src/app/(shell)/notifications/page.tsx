@@ -42,6 +42,8 @@ function describe(n: NotificationItem): { text: string; href: string } {
       return { text: `${who} liked your Hero`, href: `/heroes?h=${n.subject_id ?? ""}` };
     case "event_join":
       return { text: `${who} is going to your event`, href: `/e/${n.subject_id ?? ""}` };
+    case "event_confirmed":
+      return { text: `${who} confirmed you for their event — you can post a Hero`, href: `/e/${n.subject_id ?? ""}` };
     default:
       return { text: `${who} did something`, href: "/feed" };
   }

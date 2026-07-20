@@ -38,7 +38,7 @@ export function HeroComposer({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
   const [alt, setAlt] = useState("");
-  const [eventId, setEventId] = useState(initialEventId);
+  const [eventId, setEventId] = useState(initialEventId || events[0]?.id || "");
   const [stage, setStage] = useState<Stage>("idle");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -78,6 +78,11 @@ export function HeroComposer({
     setError(null);
     if (!file || !poster || !duration) {
       setError(t.needVideo);
+      return;
+    }
+    if (!eventId) {
+      // A Hero must belong to an event you're confirmed for.
+      setError("Pick the event this Hero belongs to.");
       return;
     }
     const supabase = createClient();
@@ -126,7 +131,7 @@ export function HeroComposer({
           duration_seconds: Math.round(duration),
           caption,
           alt_text: alt,
-          event_id: eventId || null,
+          event_id: eventId,
         });
         // publishHero redirects on success; reaching here means failure.
         if (result && !result.ok) {
@@ -196,27 +201,22 @@ export function HeroComposer({
         className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
       />
 
-      {events.length > 0 ? (
-        <>
-          <label htmlFor="hero_event" className="text-caption font-bold uppercase">
-            {t.event}
-          </label>
-          <select
-            id="hero_event"
-            data-hero-event
-            value={eventId}
-            onChange={(e) => setEventId(e.target.value)}
-            className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
-          >
-            <option value="">{t.noEvent}</option>
-            {events.map((ev) => (
-              <option key={ev.id} value={ev.id}>
-                {ev.title}
-              </option>
-            ))}
-          </select>
-        </>
-      ) : null}
+      <label htmlFor="hero_event" className="text-caption font-bold uppercase">
+        Which event? — a Hero must belong to an event you&apos;re confirmed for
+      </label>
+      <select
+        id="hero_event"
+        data-hero-event
+        value={eventId}
+        onChange={(e) => setEventId(e.target.value)}
+        className="border-2 border-ink bg-paper px-3 py-2 text-body outline-none focus:border-blue"
+      >
+        {events.map((ev) => (
+          <option key={ev.id} value={ev.id}>
+            {ev.title}
+          </option>
+        ))}
+      </select>
 
       {error ? (
         <p role="alert" className="border-2 border-red px-3 py-2 text-caption font-bold uppercase text-red">
@@ -227,7 +227,7 @@ export function HeroComposer({
       <button
         type="button"
         onClick={publish}
-        disabled={pending || !file}
+        disabled={pending || !file || !eventId}
         className="self-start border-2 border-ink bg-ink px-6 py-2 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue disabled:opacity-50"
       >
         {stage === "uploading" ? t.uploading : stage === "recording" ? t.publishing : t.publish}

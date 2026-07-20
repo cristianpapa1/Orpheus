@@ -15,7 +15,8 @@ export type NotificationType =
   | "creator_rejected"
   | "curated"
   | "hero_like"
-  | "event_join";
+  | "event_join"
+  | "event_confirmed";
 
 /**
  * Best-effort notification insert. No-op when notifying yourself, and silently

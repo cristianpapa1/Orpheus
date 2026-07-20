@@ -6,6 +6,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { moderatePost } from "@/lib/moderation/ai";
 import { publicMediaUrl } from "@/lib/posts/queries";
 import { notify } from "@/lib/notifications/notify";
+import { getOrCreateThread } from "@/lib/chat/threads";
 import { HERO_CAPTION_MAX, validHeroDuration } from "@atelier/core/heroes/types";
 
 export interface PublishHeroInput {
@@ -57,16 +58,25 @@ export async function publishHero(input: PublishHeroInput): Promise<PublishHeroR
     return { ok: false, error: "Invalid media path." };
   }
 
-  // Optional event link — must reference a real event (RLS keeps events public-read).
-  let event_id: string | null = null;
-  if (input.event_id) {
-    const { data: ev } = await supabase
-      .from("events")
-      .select("id")
-      .eq("id", input.event_id)
-      .maybeSingle();
-    event_id = ev?.id ?? null;
+  // A Hero MUST belong to an event, and the author must be a confirmed (not
+  // blocked) attendee — or the event's owner. This keeps Heroes tied to real
+  // events people took part in (no unrelated content). RLS enforces the same
+  // gate; this returns a clear message before we upload nothing.
+  if (!input.event_id) {
+    return { ok: false, error: "Pick the event this Hero belongs to." };
   }
+  const { data: confirmed } = await supabase.rpc("is_event_confirmed", {
+    uid: user.id,
+    ev: input.event_id,
+  });
+  if (!confirmed) {
+    return {
+      ok: false,
+      error:
+        "You can only post a Hero from an event you're confirmed for. Ask the organizer to confirm your attendance.",
+    };
+  }
+  const event_id = input.event_id;
 
   // Rate limit: ≤20 Heroes per hour.
   const hourAgo = new Date(Date.now() - 3600_000).toISOString();
@@ -174,7 +184,67 @@ export interface DeleteHeroResult {
   error?: string;
 }
 
-/** Delete a Hero early (RLS permits the author or an admin). */
+export interface HeroShareResult {
+  ok: boolean;
+  threadId?: string;
+  error?: string;
+}
+
+/**
+ * Send a Hero to someone you follow, as a chat message with the link — the
+ * Heroes twin of sharePost. Get-or-creates the thread (a non-mutual first
+ * contact becomes a request) and returns the thread id so the client can jump
+ * into the conversation. The link is live only while the Hero is (24h).
+ */
+export async function shareHeroToChat(
+  heroId: string,
+  targetId: string,
+): Promise<HeroShareResult> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return { ok: false, error: "Unavailable." };
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Sign in to send." };
+  if (targetId === user.id) return { ok: false, error: "Can't send to yourself." };
+
+  // You can send to anyone you follow.
+  const { data: iFollow } = await supabase
+    .from("follows")
+    .select("followee_id")
+    .eq("follower_id", user.id)
+    .eq("followee_id", targetId)
+    .maybeSingle();
+  if (!iFollow) return { ok: false, error: "You can only send to people you follow." };
+
+  // Confirm the Hero is still live, and grab a caption for the message.
+  const { data: hero } = await supabase
+    .from("heroes")
+    .select("id, caption")
+    .eq("id", heroId)
+    .gt("expires_at", new Date().toISOString())
+    .maybeSingle();
+  if (!hero) return { ok: false, error: "This Hero is no longer live." };
+
+  const { threadId, error: threadErr } = await getOrCreateThread(supabase, user.id, targetId);
+  if (threadErr || !threadId) {
+    return { ok: false, error: "Couldn't start a conversation." };
+  }
+
+  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://atelier.aunflaneur.com";
+  const label = hero.caption ? `"${hero.caption}"` : "a Hero";
+  const { error: msgErr } = await supabase.from("chat_messages").insert({
+    thread_id: threadId,
+    sender_id: user.id,
+    body: `Shared ${label} (a Hero — live for 24h): ${site}/heroes?h=${hero.id}`,
+  });
+  if (msgErr) return { ok: false, error: "Couldn't send the message." };
+
+  revalidatePath(`/chat/${threadId}`);
+  return { ok: true, threadId };
+}
+
+/** Delete a Hero early (RLS permits the author, an admin, or the event owner). */
 export async function deleteHero(heroId: string): Promise<DeleteHeroResult> {
   const supabase = await createServerSupabase();
   if (!supabase) return { ok: false, error: "Unavailable." };

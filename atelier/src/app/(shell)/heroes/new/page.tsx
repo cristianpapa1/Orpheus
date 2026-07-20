@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { getEventById } from "@/lib/events/queries";
+import { getPostableEventsForViewer } from "@/lib/events/queries";
 import { HeroComposer } from "@/components/heroes/HeroComposer";
 import { Window } from "@/components/ui/Window";
 
@@ -21,31 +22,42 @@ export default async function NewHeroPage({
 
   const { event: eventParam } = await searchParams;
 
-  // The poster's own events, plus (if arriving from an event page) that event —
-  // so an attendee can post a Hero for a show they didn't organise.
-  const { data: own } = await supabase
-    .from("events")
-    .select("id, title")
-    .eq("profile_id", user.id)
-    .order("starts_at", { ascending: false })
-    .limit(50);
-  const options: { id: string; title: string }[] = (own ?? []).map((e) => ({ id: e.id, title: e.title }));
+  // A Hero must belong to an event you're confirmed for (or one you organize).
+  // These are the only events the composer can offer.
+  const events = await getPostableEventsForViewer();
 
-  let initialEventId = "";
-  if (eventParam && !options.some((o) => o.id === eventParam)) {
-    const linked = await getEventById(eventParam);
-    if (linked) {
-      options.unshift({ id: linked.id, title: linked.title });
-      initialEventId = linked.id;
-    }
-  } else if (eventParam) {
-    initialEventId = eventParam;
+  if (events.length === 0) {
+    return (
+      <div className="mx-auto max-w-2xl">
+        <Window title="New Hero" accent="red">
+          <p className="text-body">
+            Heroes belong to events. To post one, you need to be a{" "}
+            <strong>confirmed</strong> attendee of an event — RSVP with{" "}
+            &ldquo;I&apos;m going&rdquo;, then the organizer confirms you (a ticket
+            check). Once confirmed, come back and your event will be here.
+          </p>
+          <Link
+            href="/events"
+            className="mt-4 inline-block border-2 border-ink bg-ink px-4 py-2 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue"
+          >
+            Browse events →
+          </Link>
+        </Window>
+      </div>
+    );
   }
+
+  // Preselect the arriving event only if the viewer may actually post to it.
+  const initialEventId =
+    eventParam && events.some((e) => e.id === eventParam) ? eventParam : "";
 
   return (
     <div className="mx-auto max-w-2xl">
       <Window title="New Hero" accent="red">
-        <HeroComposer events={options} initialEventId={initialEventId} />
+        <HeroComposer
+          events={events.map((e) => ({ id: e.id, title: e.title }))}
+          initialEventId={initialEventId}
+        />
       </Window>
     </div>
   );

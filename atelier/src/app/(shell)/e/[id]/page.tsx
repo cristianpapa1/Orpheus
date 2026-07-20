@@ -3,13 +3,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
-import { getEventById, getEventEngagement } from "@/lib/events/queries";
+import { getEventAttendees, getEventById, getEventEngagement } from "@/lib/events/queries";
 import { getHeroesForEvent } from "@/lib/heroes/queries";
 import { getViewerId } from "@/lib/profile/queries";
 import { getI18n } from "@/lib/i18n/server";
 import { formatEventDate } from "@atelier/core/events/types";
 import { JoinButton } from "@/components/events/JoinButton";
 import { EventViewRecorder } from "@/components/events/EventViewRecorder";
+import { EventAttendeePanel } from "@/components/events/EventAttendeePanel";
+import { EventHeroShelf } from "@/components/events/EventHeroShelf";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -36,6 +38,15 @@ export default async function EventDetailPage({ params }: Props) {
     getI18n(),
   ]);
   const t = dict.events;
+  // Only the organizer sees (and needs) the attendee list.
+  const attendees = engagement.isOwner ? await getEventAttendees(id) : [];
+
+  // Viewer status line under the RSVP (new copy — hardcoded EN, i18n follow-up).
+  let statusLine: string | null = null;
+  if (engagement.isOwner) statusLine = "You organize this event.";
+  else if (engagement.blocked) statusLine = "You can't post Heroes for this event.";
+  else if (engagement.confirmed) statusLine = "✓ You're confirmed — you can post a Hero from this event.";
+  else if (engagement.going) statusLine = "You're going — waiting for the organizer to confirm you.";
 
   return (
     <>
@@ -86,6 +97,11 @@ export default async function EventDetailPage({ params }: Props) {
                 👁 {engagement.views} {t.views}
               </span>
             </div>
+            {statusLine ? (
+              <p data-viewer-status className="mt-3 text-caption font-bold uppercase opacity-80">
+                {statusLine}
+              </p>
+            ) : null}
           </Window>
         </div>
 
@@ -95,39 +111,35 @@ export default async function EventDetailPage({ params }: Props) {
             {heroes.length === 0 ? (
               <p className="text-body opacity-70">{t.heroesEmpty}</p>
             ) : (
-              <div data-event-heroes className="grid grid-cols-3 gap-2">
-                {heroes.map((h) => (
-                  <Link
-                    key={h.id}
-                    href={`/heroes?h=${h.id}`}
-                    data-event-hero={h.id}
-                    className="relative block border-2 border-ink"
-                  >
-                    {h.poster_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={h.poster_url}
-                        alt={h.alt_text ?? h.caption ?? "Hero"}
-                        className="aspect-[3/4] w-full object-cover"
-                      />
-                    ) : (
-                      <div className="grid aspect-[3/4] w-full place-items-center bg-ink text-paper">
-                        ▶
-                      </div>
-                    )}
-                  </Link>
-                ))}
-              </div>
+              <EventHeroShelf heroes={heroes} canRemove={engagement.isOwner} />
             )}
-            <Link
-              href={`/heroes/new?event=${id}`}
-              data-post-hero
-              className="mt-4 inline-block border-2 border-ink bg-ink px-4 py-1 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue"
-            >
-              ＋ {t.postHero}
-            </Link>
+            {engagement.canPostHero ? (
+              <Link
+                href={`/heroes/new?event=${id}`}
+                data-post-hero
+                className="mt-4 inline-block border-2 border-ink bg-ink px-4 py-1 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue"
+              >
+                ＋ {t.postHero}
+              </Link>
+            ) : (
+              <p className="mt-4 text-caption uppercase opacity-70">
+                Only confirmed attendees can post a Hero from this event.
+              </p>
+            )}
           </Window>
         </div>
+
+        {engagement.isOwner ? (
+          <div className="col-span-12">
+            <Window title="Attendees" accent="yellow">
+              <p className="mb-3 text-caption uppercase opacity-70">
+                Confirm who actually attended (your ticket check). Confirmed attendees can post a Hero
+                from this event. Block anyone abusing the event&apos;s name.
+              </p>
+              <EventAttendeePanel eventId={id} initial={attendees} />
+            </Window>
+          </div>
+        ) : null}
       </WindowGrid>
     </>
   );
