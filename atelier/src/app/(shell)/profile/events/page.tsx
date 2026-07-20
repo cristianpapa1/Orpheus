@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
 import { CreatorGate } from "@/components/creator/CreatorGate";
@@ -100,15 +101,26 @@ export default async function ProfileEventsPage({
               {upcoming.map((e) => (
                 <li key={e.id} data-own-event={e.id} className="border-2 border-ink p-4">
                   <div className="flex items-baseline justify-between gap-3">
-                    <p className="text-h2 font-bold">{e.title}</p>
-                    <form action={deleteEvent}>
-                      <input type="hidden" name="id" value={e.id} />
-                      <button disabled={!configured} aria-label={`Delete ${e.title}`}
-                        className="border-2 border-ink px-2 py-0.5 text-caption font-bold uppercase hover:bg-red hover:border-red hover:text-paper disabled:opacity-50">
-                        Delete
-                      </button>
-                    </form>
+                    <Link href={`/e/${e.id}`} data-open-event={e.id} className="text-h2 font-bold hover:text-blue">
+                      {e.title}
+                    </Link>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <Link href={`/e/${e.id}`} aria-label={`Open ${e.title}`}
+                        className="border-2 border-ink px-2 py-0.5 text-caption font-bold uppercase hover:bg-blue hover:border-blue hover:text-paper">
+                        Open →
+                      </Link>
+                      <form action={deleteEvent}>
+                        <input type="hidden" name="id" value={e.id} />
+                        <button disabled={!configured} aria-label={`Delete ${e.title}`}
+                          className="border-2 border-ink px-2 py-0.5 text-caption font-bold uppercase hover:bg-red hover:border-red hover:text-paper disabled:opacity-50">
+                          Delete
+                        </button>
+                      </form>
+                    </div>
                   </div>
+                  <p className="mt-1 text-caption uppercase opacity-70">
+                    Open to confirm attendees, manage Heroes, and see who&apos;s going.
+                  </p>
                   <p className="mt-1 text-caption font-bold uppercase">
                     {formatEventDate(e.starts_at)} · {e.location_type === "online" ? "Online" : e.location}
                   </p>
@@ -125,7 +137,7 @@ export default async function ProfileEventsPage({
               <ul className="mt-3 flex flex-col gap-2 opacity-70">
                 {past.map((e) => (
                   <li key={e.id} className="flex items-baseline justify-between gap-3">
-                    <span className="text-body">{e.title}</span>
+                    <Link href={`/e/${e.id}`} className="text-body hover:text-blue">{e.title}</Link>
                     <span className="text-caption uppercase">{formatEventDate(e.starts_at)}</span>
                   </li>
                 ))}
