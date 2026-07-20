@@ -89,6 +89,8 @@ export default function RootLayout() {
         <Stack.Protected guard={!session}>
           <Stack.Screen name="login" />
         </Stack.Protected>
+        {/* Reachable in either state — a magic-link tap lands here mid-sign-in. */}
+        <Stack.Screen name="auth-callback" />
       </Stack>
     </I18nProvider>
   );

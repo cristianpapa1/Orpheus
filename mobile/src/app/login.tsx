@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { Window } from "../components/Window";
 import { supabase } from "../lib/supabase";
+import { signInWithGoogle, signInWithMagicLink } from "../lib/auth";
 import { useI18n, useT } from "../lib/i18n/context";
 import { BAUHAUS, FONT, FONT_BODY } from "../theme";
 
-/** Entry gate — the facade's front door. Sign in or create an account. */
+/** Entry gate — the facade's front door. Magic link + Google (mirrors the web),
+ *  with email+password kept as a fallback. */
 export default function LoginScreen() {
   const t = useT().login;
   const { dir } = useI18n();
@@ -14,6 +16,29 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // On success the root layout's session gate swaps to the tabs (or, for magic
+  // link, /auth-callback completes it after the emailed link is tapped).
+  const magicLink = async () => {
+    if (!email.trim()) {
+      setStatus("Enter your email first.");
+      return;
+    }
+    setBusy(true);
+    setStatus(null);
+    const { error } = await signInWithMagicLink(email);
+    setStatus(error ? error.message : "Check your email for a sign-in link.");
+    setBusy(false);
+  };
+
+  const google = async () => {
+    setBusy(true);
+    setStatus(null);
+    const { error, cancelled } = await signInWithGoogle();
+    if (error) setStatus(error.message);
+    else if (cancelled) setStatus(null);
+    setBusy(false);
+  };
 
   const run = async (mode: "in" | "up") => {
     setBusy(true);
@@ -24,7 +49,6 @@ export default function LoginScreen() {
         : await supabase.auth.signUp({ email, password });
     setStatus(error ? error.message : mode === "up" ? t.confirm : null);
     setBusy(false);
-    // On successful sign-in the root layout's session gate swaps to the tabs.
   };
 
   return (
@@ -52,6 +76,15 @@ export default function LoginScreen() {
           value={email}
           onChangeText={setEmail}
         />
+        <Pressable testID="magic-link" style={styles.button} disabled={busy} onPress={magicLink}>
+          <Text style={styles.buttonText}>{busy ? "…" : "EMAIL ME A MAGIC LINK"}</Text>
+        </Pressable>
+        <Pressable testID="google" style={styles.buttonAlt} disabled={busy} onPress={google}>
+          <Text style={styles.buttonAltText}>CONTINUE WITH GOOGLE</Text>
+        </Pressable>
+
+        <Text style={styles.divider}>— OR USE A PASSWORD —</Text>
+
         <TextInput
           testID="password"
           style={[styles.input, { textAlign: align }]}
@@ -99,6 +132,15 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   buttonAltText: { color: BAUHAUS.ink, fontFamily: FONT, letterSpacing: 2 },
+  divider: {
+    fontFamily: FONT,
+    fontSize: 11,
+    letterSpacing: 1,
+    textAlign: "center",
+    color: BAUHAUS.ink,
+    opacity: 0.5,
+    marginVertical: 16,
+  },
   status: { fontFamily: FONT, fontSize: 12, marginTop: 10, color: BAUHAUS.red },
   hint: { fontFamily: FONT_BODY, fontSize: 12, marginTop: 12, color: BAUHAUS.ink, opacity: 0.6 },
 });
