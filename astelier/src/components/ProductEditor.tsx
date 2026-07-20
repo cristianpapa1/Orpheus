@@ -4,7 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { SUPABASE_URL } from "@/lib/supabase/config";
-import { DISCIPLINE_OPTIONS } from "@atelier/core/taxonomy/disciplines";
+import type { DisciplineChip } from "@/lib/taxonomy";
 import {
   PRODUCT_STATUSES,
   PRODUCT_STATUS_LABEL,
@@ -14,7 +14,6 @@ import {
 import { saveProduct } from "@/app/sell/products/actions";
 import { useT } from "@/lib/i18n/context";
 
-const CATEGORIES = DISCIPLINE_OPTIONS.filter((o) => o.isCategory);
 const PREFIX = `${SUPABASE_URL}/storage/v1/object/public/media/`;
 const mediaUrl = (path: string) => `${PREFIX}${path}`;
 const toPath = (url: string) => (url.startsWith(PREFIX) ? url.slice(PREFIX.length) : url);
@@ -25,9 +24,12 @@ const LABEL = "text-caption font-bold uppercase";
 export function ProductEditor({
   initial,
   prefillTitle,
+  categoryOptions,
 }: {
   initial: Product | null;
   prefillTitle?: string;
+  /** Localized category chips (value "cat:<id>"), built server-side. */
+  categoryOptions: DisciplineChip[];
 }) {
   const router = useRouter();
   const dict = useT();
@@ -162,7 +164,7 @@ export function ProductEditor({
       <div className="flex flex-col gap-2">
         <span className={LABEL}>{t.disciplines}</span>
         <div className="flex flex-wrap gap-2">
-          {CATEGORIES.map((c) => (
+          {categoryOptions.map((c) => (
             <label
               key={c.value}
               className={`cursor-pointer border-2 border-ink px-3 py-1 text-caption font-bold uppercase ${

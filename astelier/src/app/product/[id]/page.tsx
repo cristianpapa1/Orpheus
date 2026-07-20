@@ -8,7 +8,7 @@ import { getProductById } from "@/lib/products/queries";
 import { getStoreById } from "@/lib/stores/queries";
 import { formatMoney } from "@atelier/core/commerce/money";
 import { PRODUCT_STATUS_LABEL } from "@atelier/core/commerce/products";
-import { disciplineLabel } from "@atelier/core/taxonomy/disciplines";
+import { disciplineLabel } from "@/lib/taxonomy";
 import { getI18n } from "@/lib/i18n/server";
 
 export async function generateMetadata({
@@ -30,7 +30,7 @@ export default async function ProductPage({
   const product = await getProductById(id);
   if (!product) notFound();
 
-  const [gate, store, { t: dict }] = await Promise.all([
+  const [gate, store, { t: dict, locale }] = await Promise.all([
     getGateState(),
     getStoreById(product.store_id),
     getI18n(),
@@ -92,7 +92,7 @@ export default async function ProductPage({
                     key={d}
                     className="border-2 border-ink px-2 py-0.5 text-caption font-bold uppercase"
                   >
-                    {disciplineLabel(d)}
+                    {disciplineLabel(d, locale)}
                   </span>
                 ))}
               </p>

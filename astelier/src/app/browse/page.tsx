@@ -5,11 +5,10 @@ import { getGateState } from "@/lib/gate";
 import { browseProducts, type BrowseSort } from "@/lib/discovery/queries";
 import { browseStores } from "@/lib/stores/queries";
 import { getI18n } from "@/lib/i18n/server";
-import { DISCIPLINE_OPTIONS } from "@atelier/core/taxonomy/disciplines";
+import { categoryChips } from "@/lib/taxonomy";
 
 export const metadata = { title: "Browse — Astelier" };
 
-const CATEGORIES = DISCIPLINE_OPTIONS.filter((o) => o.isCategory);
 const SORT_VALUES: BrowseSort[] = ["new", "price-asc", "price-desc"];
 
 const chip = (active: boolean) =>
@@ -28,13 +27,14 @@ export default async function BrowsePage({
     sp.sort === "price-asc" || sp.sort === "price-desc" ? sp.sort : "new";
   const following = sp.following === "1";
 
-  const [gate, products, stores, { t: dict }] = await Promise.all([
+  const [gate, products, stores, { t: dict, locale }] = await Promise.all([
     getGateState(),
     browseProducts({ discipline, sort }),
     browseStores(following ? { following: true } : undefined),
     getI18n(),
   ]);
   const t = dict.browse;
+  const CATEGORIES = categoryChips(locale);
   const sortLabel: Record<BrowseSort, string> = {
     new: t.newest,
     "price-asc": t.priceUp,

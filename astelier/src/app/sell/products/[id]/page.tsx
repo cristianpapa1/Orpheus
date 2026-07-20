@@ -5,6 +5,7 @@ import { getGateState } from "@/lib/gate";
 import { getMyStore } from "@/lib/stores/queries";
 import { getProductById } from "@/lib/products/queries";
 import { getI18n } from "@/lib/i18n/server";
+import { categoryChips } from "@/lib/taxonomy";
 
 export const metadata = { title: "Edit product — Astelier" };
 
@@ -31,7 +32,7 @@ export default async function EditProductPage({
   const postOnAtelier = `${ATELIER_URL}/post/new?caption=${encodeURIComponent(
     product.title,
   )}&checkout_url=${encodeURIComponent(productUrl)}`;
-  const { t } = await getI18n();
+  const { t, locale } = await getI18n();
 
   return (
     <>
@@ -49,7 +50,7 @@ export default async function EditProductPage({
           </a>
         </div>
 
-        <ProductEditor initial={product} />
+        <ProductEditor initial={product} categoryOptions={categoryChips(locale)} />
       </main>
     </>
   );
