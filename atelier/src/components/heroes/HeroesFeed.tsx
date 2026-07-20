@@ -31,13 +31,21 @@ export function HeroesFeed({
   viewerId,
   isAdmin,
   following = [],
+  scopeFollowing = false,
 }: {
   heroes: HeroItem[];
   viewerId: string | null;
   isAdmin: boolean;
   following?: FollowedPerson[];
+  /** Whether the feed is scoped to people you follow (the header toggle). */
+  scopeFollowing?: boolean;
 }) {
   const t = useT().heroes;
+  const te = useT().events; // reuse "People you follow" / "Everyone" labels
+  const scopeChip = (on: boolean) =>
+    `border-2 border-ink px-3 py-1 text-caption font-bold uppercase ${
+      on ? "bg-ink text-paper" : "hover:bg-yellow"
+    }`;
   const router = useRouter();
   const [heroes, setHeroes] = useState<HeroItem[]>(initial);
   const [muted, setMuted] = useState(true);
@@ -138,18 +146,30 @@ export function HeroesFeed({
 
   return (
     <div className="-mx-6 -mt-10">
-      <div className="flex items-center justify-between border-b-2 border-ink bg-paper px-6 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-ink bg-paper px-6 py-3">
         <div>
           <span className="text-h2 font-bold uppercase tracking-tight">{t.title}</span>
           <span className="ml-3 text-caption uppercase opacity-70">{t.tagline}</span>
         </div>
-        <Link
-          href="/heroes/new"
-          data-new-hero
-          className="border-2 border-ink bg-ink px-4 py-1 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue"
-        >
-          ＋ {t.new}
-        </Link>
+        <div className="flex items-center gap-3">
+          {viewerId ? (
+            <div data-hero-scope className="flex items-center gap-2">
+              <Link href="/heroes?following=1" className={scopeChip(scopeFollowing)}>
+                {te.peopleYouFollow}
+              </Link>
+              <Link href="/heroes" className={scopeChip(!scopeFollowing)}>
+                {te.everyone}
+              </Link>
+            </div>
+          ) : null}
+          <Link
+            href="/heroes/new"
+            data-new-hero
+            className="border-2 border-ink bg-ink px-4 py-1 text-caption font-bold uppercase text-paper hover:bg-blue hover:border-blue"
+          >
+            ＋ {t.new}
+          </Link>
+        </div>
       </div>
 
       {heroes.length === 0 ? (

@@ -97,18 +97,26 @@ async function hydrate(supabase: Supa, rows: HeroRow[], userId: string | null): 
  * Live Heroes (expires_at in the future), newest first, with author, optional
  * event, and the viewer's like + counts. Defensive: [] pre-migration / preview.
  */
-export async function getLiveHeroes(limit = 40): Promise<HeroItem[]> {
+export async function getLiveHeroes(
+  limit = 40,
+  /** When provided, only Heroes by these authors (e.g. people you follow).
+   *  An empty set (you follow nobody) yields no results. */
+  authorIds?: string[] | null,
+): Promise<HeroItem[]> {
+  if (authorIds && authorIds.length === 0) return [];
   const supabase = await createServerSupabase();
   if (!supabase) return [];
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const { data, error } = await supabase
+  let query = supabase
     .from("heroes")
     .select(HERO_SELECT)
     .gt("expires_at", new Date().toISOString())
     .order("created_at", { ascending: false })
     .limit(limit);
+  if (authorIds) query = query.in("author_id", authorIds);
+  const { data, error } = await query;
   if (error || !data) return [];
   return hydrate(supabase, data as unknown as HeroRow[], user?.id ?? null);
 }
