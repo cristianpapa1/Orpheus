@@ -41,7 +41,8 @@
         {
           "photosPermission": "Atelier accesses your photos so you can post your work."
         }
-      ]
+      ],
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": false,

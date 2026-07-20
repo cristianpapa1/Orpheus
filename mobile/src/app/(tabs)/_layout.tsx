@@ -30,6 +30,7 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen name="index" options={{ title: t.feed.toUpperCase(), tabBarIcon: square(BAUHAUS.red) }} />
+      <Tabs.Screen name="heroes" options={{ title: "HEROES", tabBarIcon: square(BAUHAUS.ink) }} />
       <Tabs.Screen name="groups" options={{ title: t.groups.toUpperCase(), tabBarIcon: square(BAUHAUS.blue) }} />
       <Tabs.Screen name="events" options={{ title: t.events.toUpperCase(), tabBarIcon: square(BAUHAUS.yellow) }} />
       <Tabs.Screen name="jobs" options={{ title: t.jobs.toUpperCase(), tabBarIcon: square(BAUHAUS.blue) }} />
