@@ -27,14 +27,20 @@ const json = (status: number, body: unknown) =>
     headers: { ...CORS, "content-type": "application/json" },
   });
 
-const CATEGORY_LABEL: Record<string, string> = {
-  music: "Music", writing: "Writing & Poetry", theater: "Theater", film: "Film",
-  dance: "Dance", visual: "Visual Art", photography: "Photography", handmade: "Handmade",
-};
-const CATEGORIES = Object.keys(CATEGORY_LABEL);
+// Category ids kept in sync with @atelier/core/taxonomy (Edge Functions can't
+// import the workspace package, so the id list is inlined). Styles are accepted
+// as free string ids (capped at 3) — the app validates them per-category; here
+// they're just sanitized. Keep this list in sync when the taxonomy changes.
+const CATEGORIES = [
+  "architecture", "sculpture", "painting", "drawing", "illustration", "photography",
+  "film", "documentary", "music", "opera", "dance", "ballet", "theater", "performance",
+  "circus", "puppetry", "poetry", "prose", "essay", "sequential-art", "video-games",
+  "fashion", "product-design", "handmade", "jewelry", "furniture", "metalwork",
+  "woodworking", "bookbinding", "calligraphy", "mosaic", "stained-glass",
+];
 const DEFAULT_DISPLAY = { frame: "inset", span: "standard", aspect: "natural" };
 
-const SYSTEM = `You are a content-moderation classifier for Atelier, a platform for creative work: music, writing & poetry, theater, film, dance, visual art, photography, and handmade craft.
+const SYSTEM = `You are a content-moderation classifier for Atelier, a platform for creative work across many disciplines — visual art, music, writing, film, performance, design, and craft.
 Decide whether a post may be published. Respond with ONLY a compact JSON object, no prose:
 {"decision":"approve|flag|reject","reason":"<=120 chars"}
 - reject: sexually explicit content, graphic violence/gore, hate or harassment, illegal content, or blatant spam/advertising with no creative intent.
@@ -51,7 +57,7 @@ async function moderate(input: {
   body: string | null;
 }): Promise<{ decision: Decision; reason: string }> {
   if (!ANTHROPIC_KEY) return { decision: "approve", reason: "moderation disabled (no key)" };
-  const cat = CATEGORY_LABEL[input.category] ?? input.category;
+  const cat = input.category || "unspecified";
   const caption = (input.caption || "").slice(0, 500) || "(no caption)";
   const bodyPart = input.body ? `\nText of the work:\n"""${input.body.slice(0, 3000)}"""` : "";
   const content: Array<Record<string, unknown>> = [];
@@ -118,6 +124,9 @@ Deno.serve(async (req) => {
   const caption = String(input.caption ?? "").trim().slice(0, 1000);
   const category = String(input.category ?? "");
   if (!CATEGORIES.includes(category)) return json(200, { ok: false, error: "Pick a category." });
+  const styles = Array.isArray(input.styles)
+    ? (input.styles as unknown[]).filter((s): s is string => typeof s === "string").slice(0, 3)
+    : [];
 
   const own = `${user.id}/`;
   const images = Array.isArray(input.images)
@@ -149,7 +158,7 @@ Deno.serve(async (req) => {
     author_id: user.id,
     caption,
     category,
-    subcategory: null,
+    subcategory: styles[0] ?? null,
     display: DEFAULT_DISPLAY,
     tags: [],
     checkout_url: null,
@@ -169,7 +178,12 @@ Deno.serve(async (req) => {
           media_type: "image", media_path: null, duration_seconds: null, body: null,
         };
 
-  const { data: post, error } = await supabase.from("posts").insert(row).select("id").single();
+  // Deploy-safe: if migration 0035 (posts.styles) isn't applied yet, retry without it.
+  let ins = await supabase.from("posts").insert({ ...row, styles }).select("id").single();
+  if (ins.error && /styles/i.test(ins.error.message)) {
+    ins = await supabase.from("posts").insert(row).select("id").single();
+  }
+  const { data: post, error } = ins;
   if (error || !post) return json(200, { ok: false, error: error?.message ?? "Publish failed." });
 
   if (verdict.decision === "flag") {

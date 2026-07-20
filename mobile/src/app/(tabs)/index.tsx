@@ -5,7 +5,8 @@ import { Dimensions, FlatList, Image, Pressable, ScrollView, StyleSheet, Text, V
 import { Window } from "../../components/Window";
 import { mediaUrl, supabase } from "../../lib/supabase";
 import { useFavorites } from "../../lib/favorites";
-import { useT } from "../../lib/i18n/context";
+import { localizedCategoryLabel } from "@atelier/core/taxonomy/i18n";
+import { useI18n, useT } from "../../lib/i18n/context";
 import { BAUHAUS, FONT, FONT_BODY } from "../../theme";
 
 const CARD_W = Dimensions.get("window").width - 64;
@@ -30,6 +31,7 @@ const imgsOf = (r: Row): string[] =>
 export default function FeedScreen() {
   const dict = useT();
   const t = dict.feed;
+  const { locale } = useI18n();
   const router = useRouter();
   const [rows, setRows] = useState<Row[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -82,7 +84,7 @@ export default function FeedScreen() {
         const pics = imgsOf(item);
         return (
           <Window
-            title={item.category}
+            title={localizedCategoryLabel(item.category, locale)}
             accent={(["red", "blue", "yellow"] as const)[index % 3]}
           >
             {item.media_type !== "text" && pics.length ? (

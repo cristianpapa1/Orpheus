@@ -1,4 +1,5 @@
-import { CATEGORY_LABEL, POST_CATEGORIES, type PostCategory } from "@atelier/core/posts/types";
+import { CATEGORIES, MAX_STYLES, stylesForCategory } from "@atelier/core/taxonomy/taxonomy";
+import { localizedCategoryLabel, localizedStyleLabel } from "@atelier/core/taxonomy/i18n";
 import { decode } from "base64-arraybuffer";
 import * as ImagePicker from "expo-image-picker";
 import { Stack, useRouter } from "expo-router";
@@ -22,7 +23,7 @@ const rand = () => `${Date.now().toString(36)}${Math.random().toString(36).slice
  *  the same). Image posts upload the picked photo; text posts carry a body. */
 export default function ComposeScreen() {
   const t = useT().compose;
-  const { dir } = useI18n();
+  const { dir, locale } = useI18n();
   const align = dir === "rtl" ? "right" : "left";
   const router = useRouter();
 
@@ -32,7 +33,17 @@ export default function ComposeScreen() {
 
   const [mediaType, setMediaType] = useState<"image" | "text">("image");
   const [caption, setCaption] = useState("");
-  const [category, setCategory] = useState<PostCategory | "">("");
+  const [category, setCategory] = useState<string>("");
+  const [styles_, setStyles] = useState<string[]>([]);
+  const activeStyles = category ? stylesForCategory(category) : [];
+  const toggleStyle = (id: string) =>
+    setStyles((cur) =>
+      cur.includes(id)
+        ? cur.filter((s) => s !== id)
+        : cur.length >= MAX_STYLES
+          ? cur
+          : [...cur, id],
+    );
   const [altText, setAltText] = useState("");
   const [body, setBody] = useState("");
   const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
@@ -107,13 +118,14 @@ export default function ComposeScreen() {
           media_type: "image",
           caption,
           category,
+          styles: styles_,
           images: paths,
           image_width: images[0].width,
           image_height: images[0].height,
           alt_text: altText,
         };
       } else {
-        payload = { media_type: "text", caption, category, body };
+        payload = { media_type: "text", caption, category, styles: styles_, body };
       }
 
       const { data, error: fnErr } = await supabase.functions.invoke("moderate-post", {
@@ -225,18 +237,45 @@ export default function ComposeScreen() {
 
         <Text style={styles.label}>{t.category.toUpperCase()}</Text>
         <View style={styles.chips}>
-          {POST_CATEGORIES.map((c) => (
+          {CATEGORIES.map((c) => (
             <Pressable
-              key={c}
-              onPress={() => setCategory(c)}
-              style={[styles.chip, category === c && styles.chipOn]}
+              key={c.id}
+              onPress={() => {
+                setCategory(c.id);
+                setStyles([]);
+              }}
+              style={[styles.chip, category === c.id && styles.chipOn]}
             >
-              <Text style={[styles.chipText, category === c && styles.chipTextOn]}>
-                {CATEGORY_LABEL[c].toUpperCase()}
+              <Text style={[styles.chipText, category === c.id && styles.chipTextOn]}>
+                {localizedCategoryLabel(c.id, locale).toUpperCase()}
               </Text>
             </Pressable>
           ))}
         </View>
+
+        {activeStyles.length > 0 ? (
+          <>
+            <Text style={styles.label}>
+              STYLES ({styles_.length}/{MAX_STYLES})
+            </Text>
+            <View style={styles.chips}>
+              {activeStyles.map((s) => {
+                const on = styles_.includes(s.id);
+                return (
+                  <Pressable
+                    key={s.id}
+                    onPress={() => toggleStyle(s.id)}
+                    style={[styles.chip, on && styles.chipOn]}
+                  >
+                    <Text style={[styles.chipText, on && styles.chipTextOn]}>
+                      {localizedStyleLabel(category, s.id, locale).toUpperCase()}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </>
+        ) : null}
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
 

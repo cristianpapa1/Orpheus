@@ -1,4 +1,5 @@
-import { CATEGORY_LABEL, formatPostDate, subcategoryLabel } from "@atelier/core/posts/types";
+import { formatPostDate } from "@atelier/core/posts/types";
+import { localizedCategoryLabel, localizedStyleLabel } from "@atelier/core/taxonomy/i18n";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -64,7 +65,7 @@ export default function PostDetailScreen() {
   const dict = useT();
   const t = dict.post;
   const router = useRouter();
-  const { dir } = useI18n();
+  const { dir, locale } = useI18n();
   const align = dir === "rtl" ? "right" : "left";
   const { id } = useLocalSearchParams<{ id: string }>();
 
@@ -256,9 +257,9 @@ export default function PostDetailScreen() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.pad} keyboardShouldPersistTaps="handled">
-      <Stack.Screen options={{ title: CATEGORY_LABEL[post.category as keyof typeof CATEGORY_LABEL] ?? "" }} />
+      <Stack.Screen options={{ title: localizedCategoryLabel(post.category, locale) }} />
 
-      <Window title={CATEGORY_LABEL[post.category as keyof typeof CATEGORY_LABEL] ?? post.category} accent="red">
+      <Window title={localizedCategoryLabel(post.category, locale)} accent="red">
         {post.media_type === "text" ? (
           <>
             {post.caption ? <Text style={styles.heading}>{post.caption}</Text> : null}
@@ -311,12 +312,12 @@ export default function PostDetailScreen() {
 
         <View style={styles.metaRow}>
           <Text style={styles.metaKey}>{t.category.toUpperCase()}</Text>
-          <Text style={styles.metaVal}>{CATEGORY_LABEL[post.category as keyof typeof CATEGORY_LABEL] ?? post.category}</Text>
+          <Text style={styles.metaVal}>{localizedCategoryLabel(post.category, locale)}</Text>
         </View>
         {post.subcategory ? (
           <View style={styles.metaRow}>
             <Text style={styles.metaKey}>{t.style.toUpperCase()}</Text>
-            <Text style={styles.metaVal}>{subcategoryLabel(post.subcategory)}</Text>
+            <Text style={styles.metaVal}>{localizedStyleLabel(post.category, post.subcategory, locale)}</Text>
           </View>
         ) : null}
         <View style={styles.metaRow}>
