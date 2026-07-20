@@ -1,3 +1,6 @@
 # Windows WSL artifacts
 *:Zone.Identifier
 node_modules
+
+# sensitive — never commit
+recovery-codes.txt
