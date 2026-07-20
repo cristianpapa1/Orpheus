@@ -39,13 +39,6 @@
         }
       ],
       "expo-font",
-      [
-        "expo-image-picker",
-        {
-          "photosPermission": "Atelier accesses your photos so you can post your work."
-        }
-      ],
-      "expo-video",
       "expo-image",
       "expo-status-bar",
       "expo-web-browser"
