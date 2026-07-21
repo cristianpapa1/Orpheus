@@ -6,3 +6,6 @@ node_modules
 recovery-codes.txt
 .env.local
 stripe_backup_code.txt
+
+# recovery codes folder — never commit
+RecoveryCodes/
