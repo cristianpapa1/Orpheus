@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { getPostHog } from "@/lib/analytics/posthog";
 
 // Behind the Cloudflare tunnel, the inferred request origin is the internal
 // localhost address — always redirect against the configured public URL.
@@ -27,10 +28,33 @@ export async function GET(request: Request) {
         if (user) {
           const { data: profile } = await supabase
             .from("profiles")
-            .select("onboarded_at")
+            .select("onboarded_at, handle, display_name")
             .eq("id", user.id)
             .maybeSingle();
-          if (!profile?.onboarded_at) {
+          const isFirstLogin = !profile?.onboarded_at;
+
+          // Identify + user_signed_in for the OAuth / magic-link path (matches
+          // the OTP flow in login/actions.ts). Consent-gated (getPostHog is null
+          // until the visitor accepts analytics).
+          const ph = await getPostHog();
+          if (ph) {
+            const method = user.app_metadata?.provider === "google" ? "google" : "magic_link";
+            ph.identify({
+              distinctId: user.id,
+              properties: {
+                $set: { handle: profile?.handle ?? null, display_name: profile?.display_name ?? null },
+                $set_once: { first_seen: new Date().toISOString() },
+              },
+            });
+            ph.capture({
+              distinctId: user.id,
+              event: "user_signed_in",
+              properties: { method, is_first_login: isFirstLogin },
+            });
+            await ph.flush();
+          }
+
+          if (isFirstLogin) {
             return NextResponse.redirect(`${SITE_URL}/onboarding`);
           }
         }

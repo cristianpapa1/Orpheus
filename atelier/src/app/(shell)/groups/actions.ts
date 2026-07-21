@@ -6,6 +6,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { GROUP_SLUG_RE, slugifyGroupName } from "@/lib/groups/types";
 import { conflictingInstitution } from "@/lib/groups/institutionGuard";
 import { parseDisciplines } from "@atelier/core/taxonomy/disciplines";
+import { getPostHog } from "@/lib/analytics/posthog";
 
 /* Group lifecycle server actions. Form-friendly: they take FormData and
    redirect with query flags; RLS enforces every rule a second time. */
@@ -71,6 +72,21 @@ export async function createGroup(formData: FormData) {
     .from("group_members")
     .insert({ group_id: group.id, profile_id: user.id, role: "owner" });
 
+  const ph = await getPostHog();
+  if (ph) {
+    ph.capture({
+      distinctId: user.id,
+      event: "group_created",
+      properties: {
+        group_id: group.id,
+        is_private,
+        discussion_mode,
+        discipline_count: interests.length,
+      },
+    });
+    await ph.flush();
+  }
+
   revalidatePath("/groups");
   redirect(`/g/${group.slug}`);
 }
@@ -126,6 +142,16 @@ export async function acceptInvite(formData: FormData) {
     .delete()
     .eq("group_id", groupId)
     .eq("invitee_id", user.id);
+
+  const ph = await getPostHog();
+  if (ph) {
+    ph.capture({
+      distinctId: user.id,
+      event: "group_joined",
+      properties: { group_id: groupId, via: "invite" },
+    });
+    await ph.flush();
+  }
 
   revalidatePath(`/g/${slug}`);
   redirect(`/g/${slug}?joined=1`);

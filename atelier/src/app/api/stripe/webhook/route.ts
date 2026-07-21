@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/donations/stripe";
 import { createServiceClient } from "@/lib/supabase/admin";
+import { getPostHogClient } from "@/lib/analytics/posthog";
 
 /**
  * Stripe webhook — the ONLY writer of donation rows (service role; the
@@ -52,6 +53,25 @@ export async function POST(request: Request) {
     });
     if (error && !error.message.includes("duplicate")) {
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    const donorId = session.metadata?.donor_id;
+    // Transactional confirmation from Stripe (server-to-server, no browser
+    // cookie to consult) → raw client. Not behavioral tracking.
+    const ph = getPostHogClient();
+    if (ph && donorId) {
+      ph.capture({
+        distinctId: donorId,
+        event: "donation_completed",
+        properties: {
+          amount_cents: session.amount_total ?? 0,
+          currency: session.currency ?? "eur",
+          kind: session.metadata?.kind === "recurring" ? "recurring" : "one_off",
+          stripe_session_id: session.id,
+          has_appeal: !!(session.metadata?.appeal_id),
+        },
+      });
+      await ph.flush();
     }
   }
 

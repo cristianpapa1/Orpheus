@@ -6,6 +6,7 @@ import {
   fileCreatorApplication,
   type CreatorApplyResult,
 } from "@/lib/creator/apply";
+import { getPostHog } from "@/lib/analytics/posthog";
 
 /** File a creator application from the standalone page (also reused conceptually
  *  by onboarding). Validation + the privileged status flip live in the helper. */
@@ -25,6 +26,19 @@ export async function submitCreatorApplication(input: {
     revalidatePath("/creator/apply");
     revalidatePath("/feed");
     revalidatePath("/post/new");
+
+    const ph = await getPostHog();
+    if (ph) {
+      ph.capture({
+        distinctId: user.id,
+        event: "creator_application_submitted",
+        properties: {
+          statement_length: input.statement.trim().length,
+          link_count: input.links.filter(Boolean).length,
+        },
+      });
+      await ph.flush();
+    }
   }
   return res;
 }

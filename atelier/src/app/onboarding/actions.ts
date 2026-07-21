@@ -10,6 +10,7 @@ import {
 } from "@atelier/core/profile/types";
 import { fileCreatorApplication } from "@/lib/creator/apply";
 import { cleanCreatorLinks, STATEMENT_MIN } from "@/lib/creator/limits";
+import { getPostHog } from "@/lib/analytics/posthog";
 
 export interface OnboardingInput {
   display_name: string;
@@ -115,5 +116,28 @@ export async function completeOnboarding(
 
   revalidatePath("/feed");
   revalidatePath(`/u/${handle}`);
+
+  const ph = await getPostHog();
+  if (ph) {
+    ph.identify({
+      distinctId: user.id,
+      properties: {
+        $set: { handle, display_name, account_type, institution_kind, interests },
+        $set_once: { onboarding_completed_at: new Date().toISOString() },
+      },
+    });
+    ph.capture({
+      distinctId: user.id,
+      event: "onboarding_completed",
+      properties: {
+        account_type,
+        institution_kind,
+        interest_count: interests.length,
+        applied_as_creator: input.wants_creator,
+      },
+    });
+    await ph.flush();
+  }
+
   return { ok: true };
 }

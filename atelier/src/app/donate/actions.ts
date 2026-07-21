@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getStripe } from "@/lib/donations/stripe";
 import { parseEurosToCents } from "@atelier/core/donations/types";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { getPostHog } from "@/lib/analytics/posthog";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
@@ -58,5 +59,22 @@ export async function createDonationCheckout(formData: FormData) {
   });
 
   if (!session.url) redirect("/donate?error=stripe");
+
+  const ph = await getPostHog();
+  if (ph) {
+    ph.capture({
+      distinctId: user?.id ?? "anonymous",
+      event: "donation_checkout_started",
+      properties: {
+        amount_cents: cents,
+        currency: "eur",
+        kind: recurring ? "recurring" : "one_off",
+        has_appeal: !!appealId,
+        stripe_session_id: session.id,
+      },
+    });
+    await ph.flush();
+  }
+
   redirect(session.url);
 }

@@ -4,3 +4,5 @@ node_modules
 
 # sensitive — never commit
 recovery-codes.txt
+.env.local
+stripe_backup_code.txt

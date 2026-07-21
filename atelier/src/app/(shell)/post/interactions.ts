@@ -5,6 +5,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/admin";
 import { notify } from "@/lib/notifications/notify";
 import { getOrCreateThread } from "@/lib/chat/threads";
+import { getPostHog } from "@/lib/analytics/posthog";
 
 // A curator's buy link may only point at Astelier — never an arbitrary URL.
 const ASTELIER_HOST = process.env.NEXT_PUBLIC_ASTELIER_HOST ?? "astelier.aunflaneur.com";
@@ -75,6 +76,14 @@ export async function toggleFavorite(postId: string): Promise<FavoriteResult> {
     .from("post_favorites")
     .select("*", { count: "exact", head: true })
     .eq("post_id", postId);
+
+  if (!existing) {
+    const ph = await getPostHog();
+    if (ph) {
+      ph.capture({ distinctId: user.id, event: "post_favorited", properties: { post_id: postId } });
+      await ph.flush();
+    }
+  }
 
   revalidatePath("/feed");
   revalidatePath("/saved");
@@ -151,6 +160,14 @@ export async function curatePost(postId: string): Promise<CurateResult> {
     .from("post_curations")
     .select("*", { count: "exact", head: true })
     .eq("post_id", postId);
+
+  if (!existing) {
+    const ph = await getPostHog();
+    if (ph) {
+      ph.capture({ distinctId: user.id, event: "post_curated", properties: { post_id: postId } });
+      await ph.flush();
+    }
+  }
 
   revalidatePath("/feed");
   revalidatePath(`/p/${postId}`);
@@ -306,6 +323,16 @@ export async function sharePost(
     body: `Shared ${label}: ${site}/p/${post.id}`,
   });
   if (msgErr) return { ok: false, error: "Couldn't send the message." };
+
+  const ph = await getPostHog();
+  if (ph) {
+    ph.capture({
+      distinctId: user.id,
+      event: "post_shared_to_chat",
+      properties: { post_id: postId, thread_id: threadId },
+    });
+    await ph.flush();
+  }
 
   revalidatePath(`/chat/${threadId}`);
   return { ok: true, threadId };

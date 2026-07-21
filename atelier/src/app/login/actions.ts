@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { getPostHog } from "@/lib/analytics/posthog";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
@@ -45,12 +46,36 @@ export async function verifyEmailCode(formData: FormData) {
     data: { user },
   } = await supabase.auth.getUser();
   if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("onboarded_at")
-      .eq("id", user.id)
-      .maybeSingle();
-    if (!profile?.onboarded_at) redirect("/onboarding");
+    const ph = await getPostHog();
+    if (ph) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("onboarded_at, handle, display_name")
+        .eq("id", user.id)
+        .maybeSingle();
+      const isFirstLogin = !profile?.onboarded_at;
+      ph.identify({
+        distinctId: user.id,
+        properties: {
+          $set: { handle: profile?.handle ?? null, display_name: profile?.display_name ?? null },
+          $set_once: { first_seen: new Date().toISOString() },
+        },
+      });
+      ph.capture({
+        distinctId: user.id,
+        event: "user_signed_in",
+        properties: { method: "email_otp", is_first_login: isFirstLogin },
+      });
+      await ph.flush();
+      if (isFirstLogin) redirect("/onboarding");
+    } else {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("onboarded_at")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (!profile?.onboarded_at) redirect("/onboarding");
+    }
   }
   redirect("/feed");
 }

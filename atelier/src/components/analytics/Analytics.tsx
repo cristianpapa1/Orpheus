@@ -3,12 +3,20 @@
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import posthog from "posthog-js";
+import { createClient } from "@/lib/supabase/client";
 
 // Set these on Vercel to turn analytics on. Absent → this whole component is a
-// no-op (deploy-safe). EU host by default (data residency, fits the app ethos).
+// no-op (deploy-safe). US host default matches the PostHog project + the
+// server-side client (lib/analytics/posthog.ts).
 const KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-const HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://eu.i.posthog.com";
+const HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com";
 const CONSENT_KEY = "atelier_analytics_consent";
+
+/** Mirror the consent choice into a cookie so server-side capture can honor it. */
+function writeConsentCookie(granted: boolean) {
+  if (typeof document === "undefined") return;
+  document.cookie = `${CONSENT_KEY}=${granted ? "granted" : "denied"}; path=/; max-age=31536000; samesite=lax`;
+}
 
 let started = false;
 function ensureInit() {
@@ -47,11 +55,36 @@ export function Analytics() {
     if (!KEY) return;
     ensureInit();
     const saved = localStorage.getItem(CONSENT_KEY);
-    setConsent(saved === "granted" || saved === "denied" ? saved : "unset");
+    const value = saved === "granted" || saved === "denied" ? saved : "unset";
+    setConsent(value);
+    // Keep the cookie in sync for returning users (migrates pre-cookie choices).
+    if (value !== "unset") writeConsentCookie(value === "granted");
   }, []);
+
+  // Stitch client events (pageviews/replay) to the same person as the
+  // server-side events by identifying with the Supabase user id. Only when
+  // consent is granted; reset on sign-out.
+  useEffect(() => {
+    if (!KEY || consent !== "granted") return;
+    const supabase = createClient();
+    if (!supabase) return;
+    let cancelled = false;
+    void supabase.auth.getUser().then(({ data }) => {
+      if (!cancelled && data.user) posthog.identify(data.user.id);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT") posthog.reset();
+      else if (session?.user) posthog.identify(session.user.id);
+    });
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
+  }, [consent]);
 
   const choose = (granted: boolean) => {
     localStorage.setItem(CONSENT_KEY, granted ? "granted" : "denied");
+    writeConsentCookie(granted);
     if (granted) posthog.opt_in_capturing();
     else posthog.opt_out_capturing();
     setConsent(granted ? "granted" : "denied");

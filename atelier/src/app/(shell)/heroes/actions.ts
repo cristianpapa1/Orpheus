@@ -8,6 +8,7 @@ import { publicMediaUrl } from "@/lib/posts/queries";
 import { notify } from "@/lib/notifications/notify";
 import { getOrCreateThread } from "@/lib/chat/threads";
 import { HERO_CAPTION_MAX, validHeroDuration } from "@atelier/core/heroes/types";
+import { getPostHog } from "@/lib/analytics/posthog";
 
 export interface PublishHeroInput {
   /** Storage path of the uploaded video (caller's folder). */
@@ -115,6 +116,21 @@ export async function publishHero(input: PublishHeroInput): Promise<PublishHeroR
   });
   if (error) return { ok: false, error: error.message };
 
+  const ph = await getPostHog();
+  if (ph) {
+    ph.capture({
+      distinctId: user.id,
+      event: "hero_published",
+      properties: {
+        event_id,
+        duration_seconds: duration,
+        has_caption: !!caption,
+        moderation_decision: moderation.decision,
+      },
+    });
+    await ph.flush();
+  }
+
   revalidatePath("/heroes");
   redirect("/heroes");
 }
@@ -163,6 +179,15 @@ export async function toggleHeroFavorite(heroId: string): Promise<HeroFavoriteRe
     .from("hero_favorites")
     .select("*", { count: "exact", head: true })
     .eq("hero_id", heroId);
+
+  if (!existing) {
+    const ph = await getPostHog();
+    if (ph) {
+      ph.capture({ distinctId: user.id, event: "hero_liked", properties: { hero_id: heroId } });
+      await ph.flush();
+    }
+  }
+
   return { ok: true, favorited: !existing, count: count ?? 0 };
 }
 

@@ -14,6 +14,7 @@ import { isValidCategory, validStyles } from "@atelier/core/taxonomy/taxonomy";
 import { categorizeWork, moderatePost } from "@/lib/moderation/ai";
 import { publicMediaUrl } from "@/lib/posts/queries";
 import { notify } from "@/lib/notifications/notify";
+import { getPostHog } from "@/lib/analytics/posthog";
 
 const MAX_BLUR_CHARS = 6000; // matches the DB check constraint
 
@@ -317,6 +318,25 @@ export async function publishPost(
         });
       }
     }
+  }
+
+  const ph = await getPostHog();
+  if (ph) {
+    ph.capture({
+      distinctId: user.id,
+      event: "post_published",
+      properties: {
+        post_id: data.id,
+        media_type,
+        category,
+        style_count: styles.length,
+        has_checkout_url: !!baseRow.checkout_url,
+        group_count: groupIds.length,
+        mention_count: mentionIds.length,
+        moderation_decision: moderation.decision,
+      },
+    });
+    await ph.flush();
   }
 
   revalidatePath("/feed");
