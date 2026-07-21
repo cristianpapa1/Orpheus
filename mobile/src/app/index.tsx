@@ -19,12 +19,20 @@ import { BAUHAUS } from "../theme";
 const SITE = (process.env.EXPO_PUBLIC_SITE_URL ?? "https://atelier.aunflaneur.com").replace(/\/+$/, "");
 const SITE_HOST = SITE.replace(/^https?:\/\//, "").split("/")[0];
 
+// The whole aunflaneur.com family is "the app" — Atelier (social), Astelier
+// (commerce), the apex, and the media CDN. All of these stay INSIDE the WebView
+// so links between the two products (e.g. "Shop at Astelier →") open in-app
+// instead of bouncing to the system browser. Only truly external hosts (OAuth
+// providers, other sites) are handed off.
+const APP_DOMAIN = SITE_HOST.split(".").slice(-2).join("."); // e.g. aunflaneur.com
+const isAppHost = (host: string) => host === APP_DOMAIN || host.endsWith(`.${APP_DOMAIN}`);
+
 /**
  * Atelier — native shell around the responsive web app. Handles only the
  * shell concerns: safe area, a first-paint spinner, Android hardware-back →
  * web history, and sending mailto:/tel:/clearly-external links to the system
- * browser (everything on our own domain — including the auth callback — stays
- * inside the WebView so the session lives in one place).
+ * browser. Everything on the aunflaneur.com family (Atelier + Astelier + auth
+ * callback) stays inside the WebView so the session + navigation live in one place.
  */
 export default function App() {
   const webRef = useRef<WebView>(null);
@@ -53,11 +61,11 @@ export default function App() {
       void Linking.openURL(url);
       return false;
     }
-    // Keep our own domain (incl. /auth/callback) in the WebView; hand any other
-    // site to the system browser.
+    // Keep the whole aunflaneur.com family (Atelier + Astelier + auth callback)
+    // in the WebView; hand any other site to the system browser.
     if (/^https?:\/\//.test(url)) {
       const host = url.replace(/^https?:\/\//, "").split("/")[0];
-      if (host !== SITE_HOST) {
+      if (!isAppHost(host)) {
         void Linking.openURL(url);
         return false;
       }
