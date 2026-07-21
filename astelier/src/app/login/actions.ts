@@ -20,8 +20,26 @@ export async function signInWithEmail(formData: FormData) {
   redirect(
     error
       ? `/login?error=${error.status === 429 ? "rate-limit" : "otp"}`
-      : "/login?sent=1",
+      : `/login?sent=1&email=${encodeURIComponent(email)}`,
   );
+}
+
+/**
+ * Verify the 6-digit code from the sign-in email (no redirect needed — works in
+ * the mobile WebView shell / in-app browser). Astelier doesn't own onboarding
+ * (that's Atelier's); the gate on "/" handles the rest.
+ */
+export async function verifyEmailCode(formData: FormData) {
+  const email = String(formData.get("email") ?? "").trim();
+  const token = String(formData.get("code") ?? "").replace(/\s+/g, "");
+  const supabase = await createServerSupabase();
+  if (!supabase) redirect("/login?error=unconfigured");
+  const back = `/login?sent=1&email=${encodeURIComponent(email)}`;
+  if (!email || !token) redirect(`${back}&error=code`);
+
+  const { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
+  if (error) redirect(`${back}&error=code`);
+  redirect("/");
 }
 
 /** Google OAuth sign-in. */

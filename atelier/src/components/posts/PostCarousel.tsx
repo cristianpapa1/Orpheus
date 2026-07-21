@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { PostImage } from "@atelier/core/posts/types";
 
 /**
  * Swipe/click carousel for multi-image posts. Bauhaus controls: square ink
- * arrows, square dots, a counter. Each image renders from its own variants
- * (srcset) over a blur-up background. Single image → render it plain.
+ * arrows (shown on hover / keyboard focus), square dots, a counter. Touch: drag
+ * left/right to change image. Each image renders from its own variants (srcset)
+ * over a blur-up background. Single image → render it plain.
  */
 export function PostCarousel({
   images,
@@ -30,8 +31,27 @@ export function PostCarousel({
       : undefined;
   const go = (d: number) => setI((x) => (x + d + images.length) % images.length);
 
+  // Touch swipe: horizontal drag past a threshold flips the image; vertical
+  // scroll is left to the page (touch-action: pan-y).
+  const startX = useRef<number | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => {
+    startX.current = e.touches[0]?.clientX ?? null;
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const start = startX.current;
+    startX.current = null;
+    if (start == null || images.length < 2) return;
+    const dx = (e.changedTouches[0]?.clientX ?? start) - start;
+    if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+  };
+
   return (
-    <div className="relative">
+    <div
+      className="group relative"
+      style={{ touchAction: "pan-y" }}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}
@@ -52,7 +72,7 @@ export function PostCarousel({
             type="button"
             aria-label="Previous image"
             onClick={() => go(-1)}
-            className="absolute left-2 top-1/2 grid size-9 -translate-y-1/2 place-items-center border-2 border-ink bg-paper text-body font-bold hover:bg-ink hover:text-paper"
+            className="absolute left-2 top-1/2 grid size-9 -translate-y-1/2 place-items-center border-2 border-ink bg-paper text-body font-bold opacity-0 transition-opacity pointer-events-none hover:bg-ink hover:text-paper group-hover:opacity-100 group-hover:pointer-events-auto focus-visible:opacity-100 focus-visible:pointer-events-auto"
           >
             ‹
           </button>
@@ -60,7 +80,7 @@ export function PostCarousel({
             type="button"
             aria-label="Next image"
             onClick={() => go(1)}
-            className="absolute right-2 top-1/2 grid size-9 -translate-y-1/2 place-items-center border-2 border-ink bg-paper text-body font-bold hover:bg-ink hover:text-paper"
+            className="absolute right-2 top-1/2 grid size-9 -translate-y-1/2 place-items-center border-2 border-ink bg-paper text-body font-bold opacity-0 transition-opacity pointer-events-none hover:bg-ink hover:text-paper group-hover:opacity-100 group-hover:pointer-events-auto focus-visible:opacity-100 focus-visible:pointer-events-auto"
           >
             ›
           </button>

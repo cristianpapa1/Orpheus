@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Space_Grotesk } from "next/font/google";
 import { getLocale } from "@/lib/i18n/server";
 import { localeDir } from "@/lib/i18n/config";
@@ -15,6 +15,14 @@ export const metadata: Metadata = {
   title: "Atelier",
   description:
     "A community-first platform for creators — art, handmade, photography, music. No ads, no pay-to-be-seen. Funded by donations.",
+};
+
+// viewport-fit=cover lets the mobile bottom bar sit flush to the device/nav
+// edge — its env(safe-area-inset-bottom) padding only engages under cover.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({
