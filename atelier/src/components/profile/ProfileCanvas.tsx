@@ -157,8 +157,8 @@ function BlockBody({
           <div className="flex items-center gap-3">
             <Avatar url={profile.avatar_url} name={profile.display_name} size="md" />
             <div className="min-w-0">
-              <p className="text-h2 font-bold uppercase">{profile.display_name}</p>
-              <p className="mt-1 text-caption font-bold uppercase">
+              <p className="text-h2 font-bold uppercase break-words">{profile.display_name}</p>
+              <p className="mt-1 text-caption font-bold uppercase break-words">
                 @{profile.handle}
               </p>
             </div>

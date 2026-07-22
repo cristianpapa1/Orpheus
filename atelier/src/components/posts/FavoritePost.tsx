@@ -286,7 +286,7 @@ export function FavoritePost({
           </button>
 
           {actOpen ? (
-            <div className="absolute left-0 z-20 mt-1 w-72 border-2 border-ink bg-paper p-3">
+            <div className="absolute right-0 z-20 mt-1 w-72 max-w-[calc(100vw-1.5rem)] border-2 border-ink bg-paper p-3">
               {/* actions */}
               <div className="flex flex-col gap-2">
                 {checkoutUrl ? (

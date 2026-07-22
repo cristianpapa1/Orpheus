@@ -102,7 +102,7 @@ export default async function PublicProfilePage({ params, searchParams }: Props)
   return (
     <div data-school={profile.school} className="-m-2 p-2">
       <div className="mb-6 flex flex-wrap items-center gap-4">
-        <h1 className="text-h1 font-bold uppercase">{profile.display_name}</h1>
+        <h1 className="min-w-0 max-w-full break-words text-h1 font-bold uppercase">{profile.display_name}</h1>
         {claim.claimed ? (
           <span
             data-verified
