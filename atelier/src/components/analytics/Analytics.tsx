@@ -100,7 +100,7 @@ export function Analytics() {
       {consent === "unset" ? (
         <div
           data-analytics-consent
-          className="fixed inset-x-0 bottom-0 z-50 flex flex-wrap items-center justify-between gap-3 border-t-2 border-ink bg-paper px-4 py-3"
+          className="fixed inset-x-0 bottom-0 z-50 flex flex-wrap items-center justify-between gap-3 border-t-2 border-ink bg-paper px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]"
         >
           <p className="max-w-2xl text-caption">
             We use privacy-first analytics (including masked session replay) to
