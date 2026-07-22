@@ -4,8 +4,9 @@ import { notFound } from "next/navigation";
 import { Nav } from "@/components/Nav";
 import { ViewBeacon } from "@/components/ViewBeacon";
 import { getGateState } from "@/lib/gate";
-import { getStoreBySlug } from "@/lib/stores/queries";
+import { getStoreBySlug, getStoreOwnerAvatar } from "@/lib/stores/queries";
 import { getLiveProductsByStore } from "@/lib/products/queries";
+import { StoreLogo } from "@/components/StoreLogo";
 import { formatMoney } from "@atelier/core/commerce/money";
 import { getI18n } from "@/lib/i18n/server";
 
@@ -34,9 +35,10 @@ export default async function StorePage({
   const store = await getStoreBySlug(slug);
   if (!store) notFound();
 
-  const [gate, products, { t: dict }] = await Promise.all([
+  const [gate, products, ownerAvatar, { t: dict }] = await Promise.all([
     getGateState(),
     getLiveProductsByStore(store.id),
+    getStoreOwnerAvatar(store.owner_id),
     getI18n(),
   ]);
   const t = dict.store;
@@ -64,10 +66,15 @@ export default async function StorePage({
             ) : null}
           </div>
           <div className="border-t-2 border-ink p-5">
-            <h1 className="text-h1 font-bold uppercase">{store.name}</h1>
-            {store.description ? (
-              <p className="mt-3 max-w-2xl text-body">{store.description}</p>
-            ) : null}
+            <div className="flex items-start gap-4">
+              <StoreLogo url={ownerAvatar} name={store.name} size="lg" className="-mt-16" />
+              <div className="min-w-0">
+                <h1 className="min-w-0 break-words text-h1 font-bold uppercase">{store.name}</h1>
+                {store.description ? (
+                  <p className="mt-3 max-w-2xl text-body">{store.description}</p>
+                ) : null}
+              </div>
+            </div>
           </div>
         </header>
 

@@ -16,6 +16,8 @@ export interface GateState {
   unlocked: boolean;
   handle: string | null;
   displayName: string | null;
+  /** The signed-in user's Atelier profile picture (full URL), reused as the store logo. */
+  avatarUrl: string | null;
 }
 
 const LOCKED: GateState = {
@@ -26,6 +28,7 @@ const LOCKED: GateState = {
   unlocked: false,
   handle: null,
   displayName: null,
+  avatarUrl: null,
 };
 
 export async function getGateState(): Promise<GateState> {
@@ -44,7 +47,7 @@ export async function getGateState(): Promise<GateState> {
       .eq("follower_id", user.id),
     supabase
       .from("profiles")
-      .select("handle, display_name")
+      .select("handle, display_name, avatar_url")
       .eq("id", user.id)
       .maybeSingle(),
   ]);
@@ -58,5 +61,6 @@ export async function getGateState(): Promise<GateState> {
     unlocked: followCount >= REQUIRED_FOLLOWS,
     handle: profile?.handle ?? null,
     displayName: profile?.display_name ?? null,
+    avatarUrl: (profile?.avatar_url as string | null) ?? null,
   };
 }

@@ -101,6 +101,22 @@ export async function browseStores(opts?: { following?: boolean }): Promise<Stor
   return (data as StoreRow[]).map(toStore);
 }
 
+/**
+ * The store owner's Atelier profile picture (a full, ready-to-use URL) or null.
+ * Astelier reuses this as the store logo — one avatar across both apps, no
+ * second upload. Reads the shared `profiles` table (same Supabase project).
+ */
+export async function getStoreOwnerAvatar(ownerId: string): Promise<string | null> {
+  const supabase = await createServerSupabase();
+  if (!supabase) return null;
+  const { data } = await supabase
+    .from("profiles")
+    .select("avatar_url")
+    .eq("id", ownerId)
+    .maybeSingle();
+  return (data?.avatar_url as string | null) ?? null;
+}
+
 /** A store by id (for a product's parent), active only, or null. */
 export async function getStoreById(id: string): Promise<Store | null> {
   const supabase = await createServerSupabase();

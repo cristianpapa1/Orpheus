@@ -19,6 +19,8 @@ export interface SaveStoreInput {
   description: string;
   accent?: string;
   school?: string;
+  /** Storage path of the banner image. `null` clears it; omit to leave it unchanged. */
+  banner_path?: string | null;
 }
 
 export interface SaveStoreResult {
@@ -75,6 +77,13 @@ export async function saveStore(input: SaveStoreInput): Promise<SaveStoreResult>
   const accent = toStoreAccent(input.accent);
   const school = toSchool(input.school);
 
+  // Only touch banner_path when the editor sent one — `undefined` leaves the
+  // stored banner alone, `null` clears it, a string sets it.
+  const bannerPatch =
+    input.banner_path === undefined
+      ? {}
+      : { banner_path: input.banner_path ? input.banner_path.slice(0, 400) : null };
+
   const { error } = await supabase.from("astelier_stores").upsert(
     {
       owner_id: user.id,
@@ -83,6 +92,7 @@ export async function saveStore(input: SaveStoreInput): Promise<SaveStoreResult>
       description,
       accent,
       school,
+      ...bannerPatch,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "owner_id" },

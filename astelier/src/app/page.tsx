@@ -23,6 +23,16 @@ export default async function AstelierHome() {
           <p className="mt-6 max-w-md text-body">{t.heroLead}</p>
         </section>
 
+        {/* Marketing: your existing shop comes with you — automatic catalog import. */}
+        <section data-import-showcase className="mb-10 border-2 border-ink">
+          <div className="border-b-2 border-ink bg-yellow px-5 py-3">
+            <h2 className="text-h2 font-bold uppercase">{t.importTitle}</h2>
+          </div>
+          <div className="p-5">
+            <p className="max-w-2xl text-body">{t.importBody}</p>
+          </div>
+        </section>
+
         {!gate.signedIn ? (
           <WindowGrid>
             <Window title={t.enter} accent="blue" span="col-span-12 md:col-span-7">

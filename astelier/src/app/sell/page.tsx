@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { StoreEditor } from "@/components/StoreEditor";
-import { CrawlerNotice } from "@/components/CrawlerNotice";
+import { ImportNotice } from "@/components/ImportNotice";
 import { getGateState } from "@/lib/gate";
 import { getInstitutionValidation, isViewerCurator, isViewerCreator } from "@/lib/validation";
 import { getMyStore } from "@/lib/stores/queries";
@@ -94,7 +94,7 @@ export default async function SellPage() {
           {store ? t.editIntro : t.openIntro}
         </p>
 
-        <StoreEditor initial={store} />
+        <StoreEditor initial={store} ownerAvatarUrl={gate.avatarUrl} atelierUrl={atelierUrl} />
 
         {store ? (
           <section className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -178,7 +178,7 @@ export default async function SellPage() {
           </section>
         ) : null}
 
-        <CrawlerNotice validation={validation} hasStore={!!store} />
+        <ImportNotice validation={validation} hasStore={!!store} />
       </main>
     </>
   );
