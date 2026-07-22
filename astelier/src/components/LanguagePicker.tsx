@@ -26,8 +26,10 @@ export function LanguagePicker({ current }: { current: Locale }) {
       className="border-2 border-ink bg-paper px-2 py-1 text-caption font-bold uppercase outline-none focus:border-blue disabled:opacity-50"
     >
       {LOCALES.map((l) => (
-        <option key={l.code} value={l.code}>
-          {l.label}
+        // Show the short CODE (EN / PT / …) so the closed picker stays compact
+        // in the mobile header; the full name rides along as the option title.
+        <option key={l.code} value={l.code} title={l.label}>
+          {l.code.toUpperCase()}
         </option>
       ))}
     </select>

@@ -21,6 +21,10 @@ import { getCuratedByProfile } from "@/lib/curations/queries";
 import { FavoritesGallery } from "@/components/profile/FavoritesGallery";
 import { CuratedGallery } from "@/components/profile/CuratedGallery";
 import { getI18n } from "@/lib/i18n/server";
+import { getStoreLinkForOwner } from "@/lib/commerce/stores";
+
+const ASTELIER_URL =
+  process.env.NEXT_PUBLIC_ASTELIER_URL ?? "https://astelier.aunflaneur.com";
 
 export default async function ProfilePage() {
   const profile = await getOwnProfile();
@@ -31,6 +35,8 @@ export default async function ProfilePage() {
   const isCreator = (await getViewerCreatorStatus()) === "approved";
   const { t: dict } = await getI18n();
   const t = dict.profile;
+  // Astelier store link: open it if they have one, else a call to create.
+  const storeLink = profile ? await getStoreLinkForOwner(profile.id) : null;
 
   const curatorProgress = profile ? await getCuratorProgress(profile.id) : null;
   const favorites = profile ? await getFavoritesByProfile(profile.id, 12) : [];
@@ -75,6 +81,23 @@ export default async function ProfilePage() {
               </span>
             ) : null}
           </Link>
+          {storeLink ? (
+            <a
+              href={storeLink.url}
+              data-astelier-store
+              className="border-2 border-ink bg-yellow px-4 py-2 text-caption font-bold uppercase text-ink hover:bg-ink hover:text-paper"
+            >
+              Your shop on Astelier →
+            </a>
+          ) : (
+            <a
+              href={`${ASTELIER_URL}/sell`}
+              data-astelier-store-cta
+              className="border-2 border-ink px-4 py-2 text-caption font-bold uppercase hover:bg-yellow"
+            >
+              Open a shop on Astelier →
+            </a>
+          )}
           {isCreator ? (
             <>
               <Link
