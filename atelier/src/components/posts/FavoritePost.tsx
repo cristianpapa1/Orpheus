@@ -224,7 +224,7 @@ export function FavoritePost({
         </div>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-2 pt-3">
+      <div className="relative flex flex-wrap items-center gap-2 pt-3">
         {showFav ? (
           <button
             type="button"
@@ -270,7 +270,7 @@ export function FavoritePost({
           )
         ) : null}
 
-        <div className="relative">
+        <div>
           <button
             type="button"
             onClick={() => {
@@ -286,7 +286,7 @@ export function FavoritePost({
           </button>
 
           {actOpen ? (
-            <div className="absolute right-0 z-20 mt-1 w-72 max-w-[calc(100vw-1.5rem)] border-2 border-ink bg-paper p-3">
+            <div className="absolute left-1/2 top-full z-20 mt-1 w-72 max-w-[calc(100vw-2rem)] -translate-x-1/2 border-2 border-ink bg-paper p-3">
               {/* actions */}
               <div className="flex flex-col gap-2">
                 {checkoutUrl ? (
