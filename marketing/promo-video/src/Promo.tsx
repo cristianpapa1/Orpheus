@@ -21,16 +21,18 @@ export const FPS = 30;
 // short lead-in before the voice starts and a tail after it ends. The whole
 // video length falls out of the sum — quicker than the silent cut (~48s).
 const VO: { f: string; d: number }[] = [
-  { f: "01", d: 5.041633 },
-  { f: "02", d: 5.093878 },
-  { f: "03", d: 5.851429 },
-  { f: "04", d: 3.657143 },
-  { f: "05", d: 3.657143 },
-  { f: "06", d: 5.694694 },
-  { f: "07", d: 2.403265 },
-  { f: "08", d: 5.250612 },
-  { f: "09", d: 4.545306 },
-  { f: "10", d: 4.127347 },
+  { f: "01", d: 5.041633 }, // Message1
+  { f: "02", d: 5.093878 }, // Message2
+  { f: "03", d: 5.851429 }, // Feed
+  { f: "04", d: 3.657143 }, // Composer
+  { f: "05", d: 3.657143 }, // Heroes
+  { f: "11", d: 6.295510 }, // Events
+  { f: "06", d: 5.694694 }, // Roles
+  { f: "07", d: 2.403265 }, // Groups
+  { f: "08", d: 5.250612 }, // Astelier
+  { f: "12", d: 4.075102 }, // Web + mobile
+  { f: "09", d: 4.545306 }, // Values
+  { f: "10", d: 4.127347 }, // CTA
 ];
 const LEAD = 6; // frames before the voice starts in each scene
 const TAIL = 12; // frames after the voice ends
@@ -407,6 +409,113 @@ const CTA: React.FC = () => {
   );
 };
 
+// Events + the Heroes-from-an-event mechanic (mirrors the real event page).
+const Events: React.FC<{ len: number }> = () => {
+  const f = useCurrentFrame();
+  return (
+    <AbsoluteFill style={{ background: PAPER, padding: "60px 48px 0" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        <div style={{ border: `4px solid ${INK}`, background: PAPER, opacity: fade(f, 2) }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, borderBottom: `4px solid ${INK}`, padding: "14px 20px" }}><div style={{ width: 22, height: 22, background: RED }} /><span style={{ fontSize: 22, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Online</span></div>
+          <div style={{ padding: 24 }}>
+            <div style={{ fontSize: 52, fontWeight: 700, lineHeight: 1.02, color: INK }}>Nocturne — Opening Night</div>
+            <div style={{ marginTop: 12, fontSize: 22, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: INK }}>Wed · 23 Jul 2026 · 20:00</div>
+            <div style={{ marginTop: 8, fontSize: 24, color: MUTE }}>Aurora Editions · @aurora</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 18, borderTop: `3px solid ${INK}`, paddingTop: 18 }}>
+              <Chip solid>✓ I&apos;m going</Chip>
+              <span style={{ fontSize: 22, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: INK }}>24 going · 2 views</span>
+            </div>
+          </div>
+        </div>
+        <div style={{ border: `4px solid ${INK}`, background: PAPER, opacity: fade(f, 16) }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, borderBottom: `4px solid ${INK}`, padding: "14px 20px" }}><div style={{ width: 22, height: 22, background: BLUE }} /><span style={{ fontSize: 22, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Heroes from this event</span></div>
+          <div style={{ padding: 24 }}>
+            <div style={{ fontSize: 26, color: INK, lineHeight: 1.3 }}>Short videos posted from this event — live for 24 hours.</div>
+            <div style={{ marginTop: 16 }}><Chip solid>+ Post a Hero</Chip></div>
+          </div>
+        </div>
+        <div style={{ border: `4px solid ${INK}`, background: PAPER, opacity: fade(f, 30) }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, borderBottom: `4px solid ${INK}`, padding: "14px 20px" }}><div style={{ width: 22, height: 22, background: YELLOW }} /><span style={{ fontSize: 22, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Attendees</span></div>
+          <div style={{ padding: 24 }}>
+            <div style={{ fontSize: 24, color: INK, lineHeight: 1.3 }}>Confirm who attended — only confirmed guests can post a Hero. Block anyone abusing the event&apos;s name.</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 18, border: `3px solid ${INK}`, padding: "14px 18px", flexWrap: "wrap" }}>
+              <Avatar letter="M" color={INK} size={40} />
+              <span style={{ fontSize: 24, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: INK }}>Member · @member</span>
+              <span style={{ marginLeft: "auto", fontSize: 22, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: BLUE }}>✓ Confirmed</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <BottomNav tabs={ATELIER_TABS} active={1} />
+    </AbsoluteFill>
+  );
+};
+
+// A compact group card for the desktop grid (fictional communities).
+const GroupMini: React.FC<{ f: number; delay: number; accent: string; name: string; cat: string }> = ({ f, delay, accent, name, cat }) => (
+  <div style={{ border: `3px solid ${INK}`, background: PAPER, opacity: fade(f, delay) }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 10, borderBottom: `3px solid ${INK}`, padding: "10px 14px" }}><div style={{ width: 16, height: 16, background: accent }} /><span style={{ fontSize: 16, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Group</span></div>
+    <div style={{ padding: 16 }}>
+      <div style={{ fontSize: 24, fontWeight: 700, lineHeight: 1.05, color: INK, textTransform: "uppercase" }}>{name} — Community</div>
+      <div style={{ marginTop: 8, fontSize: 17, color: INK, lineHeight: 1.25 }}>Open group for people who follow {name}.</div>
+      <div style={{ marginTop: 12, display: "inline-block", border: `2px solid ${INK}`, padding: "4px 10px", fontSize: 15, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase" }}>{cat}</div>
+    </div>
+  </div>
+);
+
+// Web + mobile: the app is the same room on a desktop browser and on a phone.
+const WebMobile: React.FC<{ len: number }> = () => {
+  const f = useCurrentFrame();
+  const groups = [
+    { a: RED, n: "Margin Books", c: "Writing & Poetry" },
+    { a: BLUE, n: "Kino Verde", c: "Film" },
+    { a: YELLOW, n: "Aurora Editions", c: "Music" },
+    { a: RED, n: "Atrium", c: "Visual Art" },
+    { a: BLUE, n: "Verso Press", c: "Writing & Poetry" },
+    { a: YELLOW, n: "Nocturne Club", c: "Film" },
+  ];
+  const dot = (c: string) => <div style={{ width: 18, height: 18, borderRadius: "50%", background: c }} />;
+  const rise2 = interpolate(fade(f, 6), [0, 1], [40, 0]);
+  return (
+    <AbsoluteFill style={{ background: PAPER }}>
+      <div style={{ position: "absolute", left: 64, right: 64, top: 70, opacity: fade(f, 2) }}>
+        <div style={{ width: 54, height: 54, background: BLUE, marginBottom: 20 }} />
+        <div style={{ fontSize: 58, fontWeight: 700, letterSpacing: -1, color: INK, lineHeight: 1.05 }}>Phone or web —<br />the same room.</div>
+      </div>
+      {/* desktop browser window */}
+      <div style={{ position: "absolute", left: 50, right: 50, top: 320, border: `4px solid ${INK}`, background: PAPER, opacity: fade(f, 6), transform: `translateY(${rise2}px)` }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, borderBottom: `4px solid ${INK}`, padding: "14px 20px" }}>
+          {dot(RED)}{dot(YELLOW)}{dot("#5aa469")}
+          <div style={{ flex: 1, marginLeft: 14, border: `3px solid ${INK}`, borderRadius: 999, padding: "8px 20px", fontSize: 22, color: MUTE, textAlign: "center" }}>atelier.aunflaneur.com</div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `4px solid ${INK}`, padding: "16px 22px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}><MiniMarks /><span style={{ fontSize: 30, fontWeight: 700, letterSpacing: 2, color: INK }}>ATELIER</span></div>
+          <div style={{ display: "flex", gap: 22, fontSize: 18, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: INK }}><span>Feed</span><span>Heroes</span><span style={{ borderBottom: `3px solid ${INK}` }}>Groups</span><span>Chat</span></div>
+          <span style={{ border: `3px solid ${INK}`, padding: "8px 16px", fontSize: 18, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase" }}>Profile</span>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 18, padding: 22 }}>
+          {groups.map((g, i) => <GroupMini key={g.n} f={f} delay={12 + i * 3} accent={g.a} name={g.n} cat={g.c} />)}
+        </div>
+      </div>
+      {/* phone, floating over the desktop's lower-right corner */}
+      <div style={{ position: "absolute", right: 70, top: 760, width: 320, border: `5px solid ${INK}`, borderRadius: 34, background: PAPER, overflow: "hidden", boxShadow: "-16px 16px 0 rgba(17,17,17,0.12)", opacity: fade(f, 20), transform: `translateY(${interpolate(fade(f, 20), [0, 1], [50, 0])}px)` }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, borderBottom: `3px solid ${INK}`, padding: "16px 16px 12px" }}><MiniMarks /><span style={{ fontSize: 18, fontWeight: 700, letterSpacing: 1, color: INK }}>ATELIER</span></div>
+        <div style={{ padding: 14, display: "flex", flexDirection: "column", gap: 12 }}>
+          {[{ a: RED, t: "Writing & Poetry" }, { a: BLUE, t: "Visual Art" }].map((c) => (
+            <div key={c.t} style={{ border: `3px solid ${INK}` }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, borderBottom: `3px solid ${INK}`, padding: "8px 10px" }}><div style={{ width: 12, height: 12, background: c.a }} /><span style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase" }}>{c.t}</span></div>
+              <div style={{ height: 90, background: c.a === RED ? "#efe9dc" : INK }} />
+            </div>
+          ))}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", borderTop: `3px solid ${INK}` }}>
+          {[RED, BLUE, YELLOW, RED].map((c, i) => <div key={i} style={{ display: "grid", placeItems: "center", padding: "12px 0", background: i === 2 ? INK : "transparent" }}><div style={{ width: 12, height: 12, background: c }} /></div>)}
+        </div>
+      </div>
+    </AbsoluteFill>
+  );
+};
+
 // bg lets full-bleed dark scenes (Heroes) stay dark while SceneWrap fades them.
 const SCENES: { C: React.FC<{ len: number }>; bg?: string }[] = [
   { C: Message1 as React.FC<{ len: number }> },
@@ -414,9 +523,11 @@ const SCENES: { C: React.FC<{ len: number }>; bg?: string }[] = [
   { C: Feed },
   { C: Composer },
   { C: Heroes, bg: INK },
+  { C: Events },
   { C: Roles },
   { C: Groups },
   { C: Astelier },
+  { C: WebMobile },
   { C: Values },
   { C: CTA as React.FC<{ len: number }> },
 ];

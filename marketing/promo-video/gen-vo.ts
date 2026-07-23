@@ -20,6 +20,8 @@ const LINES: [string, string][] = [
   ["08", "Sell on your own storefront. The buy button sends collectors straight to you. Zero fees."],
   ["09", "Funded by donations, led by people from the arts. Never by ads."],
   ["10", "A un flaneur. Join us at atelier dot aunflaneur dot com."],
+  ["11", "Events live here too. The organizer confirms who attended, and only they can post a Hero, tied to that event."],
+  ["12", "On your phone, or full-width on the web. The same room, everywhere."],
 ];
 
 mkdirSync("public/audio/vo", { recursive: true });
