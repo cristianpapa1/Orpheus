@@ -7,9 +7,11 @@ if (!KEY) throw new Error("ELEVENLABS_API_KEY not set");
 const VOICE = "EXAVITQu4vr4xnSDxMaL"; // Sarah — mature, reassuring narration
 
 // [filename, narration] — narration mirrors what's written on screen.
+// Pass filenames as args to regenerate a subset, e.g. `bun gen-vo.ts 01 02`.
+const only = process.argv.slice(2);
 const LINES: [string, string][] = [
-  ["01", "A un flaneur. A home for the craft of our culture."],
-  ["02", "Tired of an algorithm deciding who sees your art?"],
+  ["01", "Tired of generic platforms like Instagram and Amazon to publish and sell your art?"],
+  ["02", "Here, we're building a social community worthy of the talent and effort behind your creations."],
   ["03", "Atelier is a feed in order. Everyone who follows you sees your work. No ranking, no ads."],
   ["04", "Post art, writing, music, or film in seconds."],
   ["05", "Heroes live for just one day, tied to the events you attend."],
@@ -23,6 +25,7 @@ const LINES: [string, string][] = [
 mkdirSync("public/audio/vo", { recursive: true });
 
 for (const [name, text] of LINES) {
+  if (only.length && !only.includes(name)) continue;
   const res = await fetch(
     `https://api.elevenlabs.io/v1/text-to-speech/${VOICE}?output_format=mp3_44100_128`,
     {

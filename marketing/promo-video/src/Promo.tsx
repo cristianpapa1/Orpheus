@@ -21,8 +21,8 @@ export const FPS = 30;
 // short lead-in before the voice starts and a tail after it ends. The whole
 // video length falls out of the sum — quicker than the silent cut (~48s).
 const VO: { f: string; d: number }[] = [
-  { f: "01", d: 3.343673 },
-  { f: "02", d: 2.925714 },
+  { f: "01", d: 5.041633 },
+  { f: "02", d: 5.093878 },
   { f: "03", d: 5.851429 },
   { f: "04", d: 3.657143 },
   { f: "05", d: 3.657143 },
@@ -138,22 +138,27 @@ const SceneWrap: React.FC<{ len: number; children: React.ReactNode; bg?: string 
 };
 
 // ── Scenes (each sized by SCENE[i]) ───────────────────────────────
-const Opener: React.FC = () => {
+// Cold open — the message first, no brand. The name lands only at the end (CTA).
+const Message1: React.FC = () => {
   const f = useCurrentFrame();
   return (
-    <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
-      <Marks f={f} size={120} gap={40} />
-      <div style={{ marginTop: 60, fontSize: 78, fontWeight: 700, letterSpacing: 4, color: INK, opacity: fade(f, 26), transform: `translateY(${rise(f, 26)}px)` }}>À UN FLÂNEUR</div>
-      <div style={{ marginTop: 24, fontSize: 40, color: INK, opacity: fade(f, 44), maxWidth: 820, textAlign: "center", lineHeight: 1.15 }}>a space for the technē of our culture</div>
+    <AbsoluteFill style={{ alignItems: "flex-start", justifyContent: "center", padding: 80 }}>
+      <div style={{ width: 54, height: 54, background: RED, marginBottom: 30, opacity: fade(f, 2) }} />
+      <div style={{ fontSize: 62, fontWeight: 700, color: INK, lineHeight: 1.08, letterSpacing: -1, opacity: fade(f, 4), transform: `translateY(${rise(f, 4)}px)` }}>
+        Tired of generic platforms like <span style={{ color: RED }}>Instagram</span> &amp; <span style={{ color: RED }}>Amazon</span> to publish and sell your art?
+      </div>
     </AbsoluteFill>
   );
 };
 
-const Problem: React.FC = () => {
+const Message2: React.FC = () => {
   const f = useCurrentFrame();
   return (
-    <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", padding: 80 }}>
-      <div style={{ fontSize: 64, fontWeight: 700, color: INK, textAlign: "center", lineHeight: 1.08, opacity: fade(f, 2), transform: `translateY(${rise(f, 2)}px)` }}>Tired of an <span style={{ color: RED }}>algorithm</span><br />deciding who sees<br />your art?</div>
+    <AbsoluteFill style={{ alignItems: "flex-start", justifyContent: "center", padding: 80 }}>
+      <div style={{ width: 54, height: 54, background: BLUE, marginBottom: 30, opacity: fade(f, 2) }} />
+      <div style={{ fontSize: 60, fontWeight: 700, color: INK, lineHeight: 1.1, letterSpacing: -1, opacity: fade(f, 4), transform: `translateY(${rise(f, 4)}px)` }}>
+        Here we&apos;re building a <span style={{ color: BLUE }}>social community</span> worthy of the talent and effort behind your creations.
+      </div>
     </AbsoluteFill>
   );
 };
@@ -221,17 +226,44 @@ const Feed: React.FC<{ len: number }> = ({ len }) => {
   );
 };
 
-const Composer: React.FC<{ len: number }> = ({ len }) => {
+// Real publish form (mirrors the app: segmented type, choose files, alt text,
+// caption, ✨ auto-detect category, tags).
+const Composer: React.FC<{ len: number }> = () => {
   const f = useCurrentFrame();
-  const pressed = f > len - 46;
+  const FLabel: React.FC<{ d: number; children: React.ReactNode }> = ({ d, children }) => (
+    <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: INK, opacity: fade(f, d) }}>{children}</div>
+  );
+  const FBox: React.FC<{ d: number; h?: number; children: React.ReactNode }> = ({ d, h, children }) => (
+    <div style={{ border: `3px solid ${INK}`, background: PAPER, padding: "16px 18px", fontSize: 26, color: MUTE, marginTop: 12, minHeight: h, opacity: fade(f, d) }}>{children}</div>
+  );
+  const seg = ["Image", "Short video", "Short audio", "Text"];
   return (
-    <AbsoluteFill style={{ padding: "110px 64px 0" }}>
-      <Window title="Publish your work" accent={RED}>
-        <Line w="100%" h={40} /><div style={{ height: 18 }} />
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 26 }}>{["Art", "Writing", "Music", "Film", "Handmade"].map((c, i) => <span key={c} style={{ border: `3px solid ${INK}`, padding: "8px 16px", fontSize: 24, fontWeight: 700, textTransform: "uppercase", background: i === 0 ? INK : PAPER, color: i === 0 ? PAPER : INK, opacity: fade(f, 10 + i * 5) }}>{c}</span>)}</div>
-        <div style={{ display: "inline-block", border: `4px solid ${INK}`, background: pressed ? BLUE : INK, color: PAPER, padding: "18px 34px", fontSize: 30, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", transform: `scale(${pressed ? 0.96 : 1})` }}>{pressed ? "Published ✓" : "Publish"}</div>
-      </Window>
-      <Caption f={f} delay={16} accent={RED}>Art, writing, music<br />or film — in seconds.</Caption>
+    <AbsoluteFill style={{ background: PAPER }}>
+      <div style={{ position: "absolute", left: 0, right: 0, top: 0, display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `4px solid ${INK}`, padding: "26px 40px", background: PAPER }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}><MiniMarks /><span style={{ fontSize: 40, fontWeight: 700, letterSpacing: 2, color: INK }}>ATELIER</span></div>
+        <span style={{ border: `3px solid ${INK}`, padding: "10px 20px", fontSize: 22, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: INK }}>Profile</span>
+      </div>
+      <div style={{ position: "absolute", left: 40, right: 40, top: 150 }}>
+        <Window title="Publish work" accent={RED}>
+          <FLabel d={4}>What are you sharing?</FLabel>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", margin: "14px 0 26px" }}>
+            {seg.map((s, i) => <span key={s} style={{ border: `3px solid ${INK}`, padding: "12px 18px", fontSize: 23, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", background: i === 0 ? INK : PAPER, color: i === 0 ? PAPER : INK, opacity: fade(f, 8 + i * 4) }}>{s}</span>)}
+          </div>
+          <FLabel d={16}>Work — up to 10 images</FLabel>
+          <div style={{ display: "flex", alignItems: "center", border: `3px solid ${INK}`, marginTop: 12, opacity: fade(f, 18) }}>
+            <span style={{ background: INK, color: PAPER, padding: "16px 22px", fontSize: 23, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase" }}>Choose files</span>
+            <span style={{ padding: "16px 20px", fontSize: 26, color: MUTE }}>No file chosen</span>
+          </div>
+          <div style={{ marginTop: 14, fontSize: 22, color: MUTE, lineHeight: 1.3, opacity: fade(f, 22) }}>Your original is stored untouched, full resolution. Optimized display copies are generated for fast viewing.</div>
+          <div style={{ marginTop: 24 }}><FLabel d={26}>Alt text (describe the work for screen readers)</FLabel><FBox d={28}>e.g. Wood-fired tea bowl with iron glaze, kiln scars</FBox></div>
+          <div style={{ marginTop: 22 }}><FLabel d={30}>Caption</FLabel><FBox d={32} h={110}>Say something about the work…</FBox></div>
+          <div style={{ marginTop: 22 }}><FLabel d={34}>Category</FLabel>
+            <div style={{ border: `3px solid ${INK}`, padding: "16px 20px", marginTop: 12, fontSize: 26, color: INK, display: "flex", justifyContent: "space-between", opacity: fade(f, 36) }}><span>✨ Auto-detect (or choose)</span><span style={{ color: MUTE }}>▾</span></div>
+          </div>
+          <div style={{ marginTop: 22 }}><FLabel d={38}>Tags (optional)</FLabel><FBox d={40}>woodfired, ceramics, studio</FBox></div>
+        </Window>
+      </div>
+      <BottomNav tabs={ATELIER_TABS} active={-1} />
     </AbsoluteFill>
   );
 };
@@ -377,8 +409,8 @@ const CTA: React.FC = () => {
 
 // bg lets full-bleed dark scenes (Heroes) stay dark while SceneWrap fades them.
 const SCENES: { C: React.FC<{ len: number }>; bg?: string }[] = [
-  { C: Opener as React.FC<{ len: number }> },
-  { C: Problem as React.FC<{ len: number }> },
+  { C: Message1 as React.FC<{ len: number }> },
+  { C: Message2 as React.FC<{ len: number }> },
   { C: Feed },
   { C: Composer },
   { C: Heroes, bg: INK },
@@ -391,7 +423,7 @@ const SCENES: { C: React.FC<{ len: number }>; bg?: string }[] = [
 
 export const Promo: React.FC = () => (
   <AbsoluteFill style={{ backgroundColor: PAPER, fontFamily }}>
-    <Audio src={staticFile("audio/music.mp3")} volume={musicVol} />
+    <Audio src={staticFile("audio/music.mp3")} volume={musicVol} loop />
     {SCENES.map(({ C, bg }, i) => (
       <Sequence key={i} from={STARTS[i]} durationInFrames={SCENE[i]}>
         <SceneWrap len={SCENE[i]} bg={bg}>
