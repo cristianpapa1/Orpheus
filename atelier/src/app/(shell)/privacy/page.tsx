@@ -7,10 +7,7 @@ export const metadata = { title: "Privacy — Atelier" };
 export default function PrivacyPage() {
   return (
     <div>
-      <h1 className="mb-2 text-h1 font-bold uppercase">Privacy</h1>
-      <p data-draft-notice className="mb-6 border-2 border-ink bg-yellow px-3 py-2 text-caption font-bold uppercase">
-        Draft — for review by counsel before public launch
-      </p>
+      <h1 className="mb-6 text-h1 font-bold uppercase">Privacy</h1>
       <WindowGrid>
         <Window title="What we store" accent="blue" span="col-span-12 md:col-span-6">
           <ul data-data-inventory className="flex flex-col gap-2 text-body">

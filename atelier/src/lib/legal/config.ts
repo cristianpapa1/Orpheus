@@ -51,7 +51,3 @@ export function copyrightAgent(): CopyrightAgent {
 
 /** Bump when the substance of the Terms changes so we can track acceptance. */
 export const TERMS_VERSION = "2026-07-16";
-
-/** Shown on every legal page — this text is a draft, not legal advice. */
-export const LEGAL_DRAFT_NOTICE =
-  "Draft — must be reviewed by qualified counsel before public reliance. This is not legal advice.";

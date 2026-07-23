@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Window } from "@/components/ui/Window";
 import { WindowGrid } from "@/components/ui/WindowGrid";
-import { LEGAL_DRAFT_NOTICE, TERMS_VERSION } from "@/lib/legal/config";
+import { TERMS_VERSION } from "@/lib/legal/config";
 
 export const metadata = { title: "Terms — Atelier" };
 
@@ -9,9 +9,6 @@ export default function TermsPage() {
   return (
     <div>
       <h1 className="mb-2 text-h1 font-bold uppercase">Terms of use</h1>
-      <p data-draft-notice className="mb-2 border-2 border-ink bg-yellow px-3 py-2 text-caption font-bold uppercase">
-        {LEGAL_DRAFT_NOTICE}
-      </p>
       <p className="mb-6 text-caption uppercase opacity-70">
         Version {TERMS_VERSION}
       </p>
