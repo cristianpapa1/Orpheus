@@ -213,7 +213,9 @@ export function Landing({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: [0.2, 0.7, 0.2, 1] }}
           >
-            A space for<br />the <span className="text-blue">technē</span><br />of our culture.
+            {L.heroTaglinePre}{" "}
+            <span className="text-blue">technē</span>{" "}
+            {L.heroTaglinePost}
           </motion.h1>
           <motion.p
             className="max-w-xl text-body"
@@ -279,9 +281,9 @@ export function Landing({
           <div className="af-marquee-mask">
             <div className={`af-marquee ${reduce ? "af-marquee--static" : ""}`}>
               {marquee.map((p, i) => (
-                <Link
+                // Not a link — the strip is a showcase, not navigation.
+                <div
                   key={`${p.id}-${i}`}
-                  href={`/p/${p.id}`}
                   className="af-tile group relative block shrink-0 border-2 border-paper"
                   title={`Work by ${p.author}`}
                 >
@@ -291,7 +293,7 @@ export function Landing({
                   <span className="absolute inset-x-0 bottom-0 truncate bg-ink/70 px-2 py-1 text-caption font-bold uppercase opacity-0 transition-opacity group-hover:opacity-100">
                     {p.author}
                   </span>
-                </Link>
+                </div>
               ))}
             </div>
           </div>
